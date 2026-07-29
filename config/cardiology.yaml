@@ -138,6 +138,14 @@ domain_predictors:
     score_cols: [cardioboost__cardiomyopathy, cardioboost__arrhythmias]
     text_cols:  [cardioboost__cardiomyopathy1, cardioboost__arrhythmias1]
     min: 0.90
+  - code: MUTPRED
+    score_cols: [mutpred1__mutpred_score]
+    text_cols: []
+    min: 0.85
+  - code: MUT_ASSESSOR
+    score_cols: []
+    text_cols: [mutation_assessor__pred]
+    min: 0.0
 
 # -----------------------------------------------------------------------------
 # OPTIONAL domain-specific evidence columns. If ANY listed column is non-empty
@@ -148,6 +156,15 @@ domain_evidence:
   - code: ARRVARS_KNOWN
     kind: phenotype
     columns: [arrvars__lqt, arrvars__brs, arrvars__function]
+  - code: PHARMGKB_DRUG
+    kind: phenotype
+    columns: [pharmgkb__chemicals]
+  - code: INTERPRO_DOMAIN
+    kind: genotype
+    columns: [interpro__domain]
+  - code: DENOVO_EVIDENCE
+    kind: phenotype
+    columns: [denovo__PubmedID]
 
 # -----------------------------------------------------------------------------
 # Non-coding regulatory thresholds (genotype evidence, panel genes only)

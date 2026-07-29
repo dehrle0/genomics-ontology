@@ -51,7 +51,9 @@ PULL_KEYS = [
     "spliceai_ds_ag", "spliceai_ds_al", "spliceai_ds_dg", "spliceai_ds_dl",
     "cadd_phred", "linsight", "ncer", "regulomedb_ra", "ccre_group",
     "gene_hpo_id", "gene_hpo_term", "gene_go_bpo", "gene_go_mfo", "gene_go_cco",
-    "gtex_tissue",
+    "gtex_tissue", "pharmgkb__chemicals", "pharmgkb__phenotypes",
+    "civic__clinical_significance", "interpro__domain", "cancer_genome_interpreter__tier",
+    "mutpred1__mutpred_score", "mutation_assessor__pred", "denovo__PubmedID", "mitomap__disease"
 ]
 
 
