@@ -1,0 +1,10 @@
+*.fastq
+*.fastq.gz
+*.bam
+*.bai
+*.vcf
+*.vcf.gz
+*.cram
+*.crai
+.nextflow/
+work/

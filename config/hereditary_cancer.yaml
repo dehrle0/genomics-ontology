@@ -1,0 +1,117 @@
+# =============================================================================
+# hereditary_cancer.yaml  —  SECOND EXAMPLE DOMAIN
+#
+# Demonstrates that the engine is not tied to cardiology or any single ontology
+# focus: swap the HPO/GO seeds and thresholds and you retarget the whole report.
+# =============================================================================
+
+domain: hereditary_cancer
+report_title: Ontology-Driven Actionable Hereditary Cancer Report
+description: >
+  Actionable variant selection for hereditary cancer predisposition. Gene panel
+  derived from HPO neoplasm phenotypes and GO DNA-repair / cell-cycle functions.
+
+hpo:
+  term_ids:
+    - HP:0002664   # Neoplasm
+    - HP:0003002   # Breast carcinoma
+    - HP:0100615   # Ovarian neoplasm
+    - HP:0012125   # Prostate cancer
+    - HP:0002894   # Neoplasm of the pancreas
+    - HP:0100526   # Neoplasm of the lung
+    - HP:0006744   # Adrenocortical carcinoma
+    - HP:0006721   # Acute lymphoblastic leukemia
+  term_keywords:
+    - neoplasm
+    - carcinoma
+    - adenoma
+    - cancer
+    - tumor
+    - lymphoma
+    - leukemia
+    - melanoma
+    - polyposis
+
+go:
+  term_ids:
+    - GO:0006281   # DNA repair
+    - GO:0006302   # double-strand break repair
+    - GO:0000724   # double-strand break repair via homologous recombination
+    - GO:0006303   # double-strand break repair via nonhomologous end joining
+  term_keywords:
+    - dna repair
+    - double-strand break
+    - mismatch repair
+    - cell cycle checkpoint
+    - tumor suppressor
+    - homologous recombination
+    - regulation of apoptotic process
+  drop_iea_only: false
+
+panel:
+  min_ontology_support: 1
+  force_include:
+    - BRCA1
+    - BRCA2
+    - TP53
+    - MLH1
+    - MSH2
+    - MSH6
+    - PMS2
+    - APC
+    - PTEN
+    - CDH1
+    - STK11
+    - PALB2
+  force_exclude: []
+
+frequency:
+  max_af: 0.01
+  tier2_af: 0.001
+  tier1_af: 0.0001
+
+predictors:
+  revel_min: 0.75
+  alphamissense_min: 0.564
+  bayesdel_min: 0.16
+  metarnn_min: 0.80
+  esm1b_max: -7.5
+  varity_min: 0.75
+  spliceai_min: 0.20
+  spliceai_tier1: 0.50
+  pp3_consensus_n: 2
+
+# No cardiology-style disease predictor here; leave empty to show it's optional.
+domain_predictors: []
+
+# CIViC / cancer-hotspot style evidence if those annotators are installed.
+domain_evidence:
+  - code: CANCER_HOTSPOT
+    kind: phenotype
+    columns: [cancer_hotspots__samples, cancer_hotspots__count]
+  - code: CIVIC_EVIDENCE
+    kind: phenotype
+    columns: [civic__description, civic__clinical_significance]
+
+noncoding:
+  cadd_phred_min: 15
+  linsight_min: 0.4
+  regulomedb_rank_max: "3a"
+  ncer_percentile_min: 0.90
+
+# Tumor-suppressor / mismatch-repair genes act largely through loss-of-function.
+haploinsufficient_genes:
+  - BRCA1
+  - BRCA2
+  - TP53
+  - MLH1
+  - MSH2
+  - MSH6
+  - PMS2
+  - APC
+  - PTEN
+  - STK11
+  - PALB2
+  - NF1
+  - RB1
+  - VHL
