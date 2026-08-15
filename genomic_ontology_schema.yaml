@@ -1,0 +1,105 @@
+id: http://dehrle0.github.io/genomics-ontology/genomic_ontology_schema
+name: genomic_ontology_schema
+prefixes:
+  linkml: https://w3id.org/linkml/
+  OBO: http://purl.obolibrary.org/obo/
+  PGS: https://www.pgscatalog.org/
+  dbSNP: https://www.ncbi.nlm.nih.gov/snp/
+imports:
+  - linkml:types
+default_range: string
+
+classes:
+  VariantReport:
+    description: "Root class for a complete patient Whole Genome Sequencing (WGS) report"
+    attributes:
+      patient_id:
+        range: string
+        required: true
+      run_date:
+        range: string
+      monogenic_findings:
+        range: MonogenicFinding
+        multivalued: true
+      polygenic_findings:
+        range: PolygenicRollup
+        multivalued: true
+      pharma_findings:
+        range: PharmaRecommendation
+        multivalued: true
+
+  MonogenicFinding:
+    description: "High-penetrance Mendelian variant and its associated clinical/ontological metadata"
+    attributes:
+      gene_symbol:
+        range: string
+        required: true
+      ncbi_description:
+        range: string
+      rsid:
+        range: string
+      chromosome:
+        range: string
+      position:
+        range: integer
+      genotype:
+        range: string
+      zygosity:
+        range: string
+      revel_score:
+        range: float
+      impact_consequence:
+        range: string
+      clinvar_significance:
+        range: string
+      phasing:
+        range: string # maternal, paternal, de_novo, or undetermined
+      associated_hpo_terms:
+        range: string
+        multivalued: true # prefix: HP:
+      associated_mondo_terms:
+        range: string
+        multivalued: true # prefix: MONDO:
+
+  PolygenicRollup:
+    description: "Trait-level roll-up of low-effect polygenic risk scores"
+    attributes:
+      efo_trait_id:
+        range: string
+        required: true # prefix: EFO:
+      trait_name:
+        range: string
+        required: true
+      pgs_catalog_id:
+        range: string # prefix: PGS:
+      computed_score:
+        range: float
+      percentile:
+        range: float
+      risk_category:
+        range: string # HIGH, MODERATE, PROTECTIVE
+      hpo_level1_system:
+        range: string # organ system node, e.g. HP:0001626 (Cardiovascular)
+      hpo_level2_subcategory:
+        range: string # Morphology vs Physiology
+
+  PharmaRecommendation:
+    description: "Pharmacogenomics recommendation derived from diplotypes/star-alleles"
+    attributes:
+      gene:
+        range: string
+        required: true
+      diplotype:
+        range: string
+        required: true
+      phenotype:
+        range: string
+      affected_drug:
+        range: string
+        required: true
+      clinical_recommendation:
+        range: string
+      action_tier:
+        range: string # STANDARD, FAVOUR, CAUTION, AVOID, DOSE_UP, DOSE_DOWN, MONITOR
+      guideline_source:
+        range: string # CPIC, DPWG, FDA
