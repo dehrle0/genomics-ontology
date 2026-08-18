@@ -107,9 +107,9 @@ def send_email_notification(patient_id: str, report_filepath: str, recipient_ema
         print(f"[Warning] SMTP Connection failed: {e}. Email notification could not be dispatched.")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: python3 cloud_delivery_service.py <file_path> <patient_id>")
+    if len(sys.argv) < 2:
+        print("Usage: python3 cloud_delivery_service.py <file_path> [folder_name]")
         sys.exit(1)
     file_path = sys.argv[1]
-    patient_id = sys.argv[2]
-    upload_to_drive(file_path)
+    folder_name = sys.argv[2] if len(sys.argv) > 2 else "Ontology"
+    upload_to_drive(file_path, folder_name)

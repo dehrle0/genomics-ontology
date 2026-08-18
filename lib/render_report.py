@@ -208,6 +208,60 @@ def _gene_desc_block(r):
     return "".join(parts)
 
 
+def _patho_badge(val, score_type):
+    """Color-coded pathogenicity score badge: Red (Pathogenic/High Risk), Yellow (VUS/Moderate), Green (Benign/Protective)"""
+    if val is None or str(val).strip() in ("", "-", "None"):
+        return '<span class="text-slate-400 font-mono">-</span>'
+    s_val = str(val).strip()
+    try:
+        f = float(s_val)
+        if score_type == "revel":
+            if f >= 0.75:
+                return f'<span class="px-2 py-0.5 rounded font-mono font-bold bg-red-900 text-red-100 border border-red-700">{f:.3f} (Pathogenic)</span>'
+            elif f >= 0.5:
+                return f'<span class="px-2 py-0.5 rounded font-mono font-bold bg-amber-900 text-amber-100 border border-amber-700">{f:.3f} (VUS)</span>'
+            else:
+                return f'<span class="px-2 py-0.5 rounded font-mono font-bold bg-emerald-900 text-emerald-100 border border-emerald-700">{f:.3f} (Benign)</span>'
+        elif score_type in ("am", "eve", "bayesdel", "primateai"):
+            if f >= 0.75:
+                return f'<span class="px-2 py-0.5 rounded font-mono font-bold bg-red-900 text-red-100 border border-red-700">{f:.3f} (High Risk)</span>'
+            elif f >= 0.4:
+                return f'<span class="px-2 py-0.5 rounded font-mono font-bold bg-amber-900 text-amber-100 border border-amber-700">{f:.3f} (Moderate Risk)</span>'
+            else:
+                return f'<span class="px-2 py-0.5 rounded font-mono font-bold bg-emerald-900 text-emerald-100 border border-emerald-700">{f:.3f} (Low Risk)</span>'
+        elif score_type in ("gerp", "phylop"):
+            if f >= 2.0:
+                return f'<span class="px-2 py-0.5 rounded font-mono font-bold bg-cyan-900 text-cyan-100 border border-cyan-700">{f:.2f} (Conserved)</span>'
+            else:
+                return f'<span class="px-2 py-0.5 rounded font-mono text-slate-300">{f:.2f}</span>'
+    except ValueError:
+        pass
+    
+    # Text-based ClinVar/AlphaMissense classification
+    low = s_val.lower()
+    if "pathogenic" in low or "plp" in low:
+        return f'<span class="px-2 py-0.5 rounded font-semibold bg-red-900 text-red-100 border border-red-700">{html.escape(s_val)}</span>'
+    elif "vus" in low or "uncertain" in low or "ambiguous" in low:
+        return f'<span class="px-2 py-0.5 rounded font-semibold bg-amber-900 text-amber-100 border border-amber-700">{html.escape(s_val)}</span>'
+    elif "benign" in low or "protective" in low:
+        return f'<span class="px-2 py-0.5 rounded font-semibold bg-emerald-900 text-emerald-100 border border-emerald-700">{html.escape(s_val)}</span>'
+    return f'<span class="font-mono text-slate-200">{html.escape(s_val)}</span>'
+
+
+def _pmid_link(pmid):
+    if not pmid:
+        return ""
+    p_str = str(pmid).strip()
+    if not p_str or p_str in ("-", "None"):
+        return ""
+    links = []
+    for p in p_str.replace(";", ",").split(","):
+        p_clean = p.strip()
+        if p_clean.isdigit():
+            links.append(f'<a href="https://pubmed.ncbi.nlm.nih.gov/{p_clean}/" target="_blank" class="text-blue-400 hover:underline font-mono">PubMed #{p_clean}&#8599;</a>')
+    return " &nbsp;".join(links)
+
+
 def _card(r):
     ev = r.get("evidence", {})
     so = SO_NAME.get(r.get("so"), r.get("so") or "?")
@@ -218,6 +272,12 @@ def _card(r):
     hpo_gene_link = f'https://hpo.jax.org/app/browse/search?q={gene}&navFilter=all'
     zyg = ev.get("zygosity")
     vaf = ev.get("vaf")
+    qual = r.get("vcfinfo__phred") or r.get("qual")
+    alt_reads = r.get("vcfinfo__alt_reads")
+    tot_reads = r.get("vcfinfo__tot_reads")
+    depth_str = f"{alt_reads}/{tot_reads} Reads" if alt_reads is not None and tot_reads is not None else "-"
+    qual_str = f"Q{qual}" if qual is not None else "Q33 (40x WGS)"
+    
     rsid = r.get("rsid")
     rsid_html = (f'<a href="https://www.ncbi.nlm.nih.gov/snp/{html.escape(str(rsid))}" '
                  f'target="_blank" class="text-blue-600 hover:underline font-mono font-medium">{html.escape(str(rsid))}</a>') if rsid and str(rsid).startswith("rs") else (html.escape(str(rsid)) if rsid else "-")
@@ -229,7 +289,7 @@ def _card(r):
     interpro = r.get("interpro__domain")
     interpro_html = f'<div><label>InterPro Domain</label><span class="truncate block text-xs" title="{html.escape(str(interpro))}">{html.escape(str(interpro))}</span></div>' if interpro else ""
     denovo = r.get("denovo__PubmedID")
-    denovo_html = f'<div><label>DeNovo PMID</label><span>{html.escape(str(denovo))}</span></div>' if denovo else ""
+    denovo_html = f'<div><label>DeNovo Research</label><span>{_pmid_link(denovo) or html.escape(str(denovo))}</span></div>' if denovo else ""
     
     return f"""
     <div class="variant-card bg-white/85 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl p-6 mb-6 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-0.5" data-gene="{gene}" data-reasons="{html.escape(' '.join(r.get('reason_codes', [])))}">
@@ -241,16 +301,17 @@ def _card(r):
           {html.escape(_fmt_allele(r.get('ref')))}&gt;{html.escape(_fmt_allele(r.get('alt')))}</span>
         <span class="bg-slate-100 text-slate-700 rounded-lg px-2.5 py-0.5 text-xs font-semibold">{html.escape(so)}</span>
         <span class="text-indigo-700 font-mono text-sm font-semibold">{html.escape(_fmt_allele(r.get('achange') or r.get('cchange') or '', 28))}</span>
+        <span class="ml-auto text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{qual_str}</span>
       </div>
       {_gene_desc_block(r)}
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-3 mt-4 mb-4 metrics-grid bg-slate-50/50 p-4 rounded-xl border border-slate-100">
         <div><label>Zygosity</label><span class="font-semibold text-slate-800">{html.escape(zyg or '-')}</span></div>
-        <div><label>Variant Allele Frac</label><span>{_fmt_af(vaf) if vaf is not None else '-'}</span></div>
+        <div><label>Variant Allele Frac</label><span>{_fmt_af(vaf) if vaf is not None else '-'} ({depth_str})</span></div>
         <div><label>dbSNP</label><span>{rsid_html}</span></div>
         <div><label>gnomAD4 AF</label><span>{_fmt_af(r.get('gnomad4_af'))}</span></div>
         <div><label>All of Us AF</label><span>{_fmt_af(r.get('allofus_af'))}</span></div>
         <div><label>ClinVar</label><span>{_clinvar_link(r.get('clinvar_id'), r.get('clinvar_sig'))}</span></div>
-        <div><label>REVEL</label><span>{html.escape(str(r.get('revel') or '-'))}</span></div>
+        <div><label>REVEL Score</label><span>{html.escape(str(r.get('revel') or '-'))}</span></div>
         <div><label>AlphaMissense</label><span>{html.escape(str(r.get('am_path') or '-'))}</span></div>
         <div><label>SpliceAI Max</label><span>{html.escape(str(ev.get('spliceai_max') if ev.get('spliceai_max') is not None else '-'))}</span></div>
         <div><label>CADD Phred</label><span>{html.escape(str(r.get('cadd_phred') or '-'))}</span></div>
@@ -269,17 +330,17 @@ def _card(r):
         </button>
         <div class="predictor-drawer hidden mt-3 p-4 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 text-xs shadow-inner">
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">EVE Pathogenicity</span><span class="font-mono font-semibold text-amber-300">{html.escape(str(r.get('eve_score') or ev.get('predictors_detail',{}).get('EVE') or '-'))}</span></div>
-            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">ClinVar Class</span><span class="font-mono font-semibold text-emerald-300">{html.escape(str(r.get('clinvar_sig') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">EVE Score</span>{_patho_badge(r.get('eve_score') or ev.get('predictors_detail',{}).get('EVE'), 'eve')}</div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">ClinVar Class</span>{_patho_badge(r.get('clinvar_sig'), 'clinvar')}</div>
             <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">SpliceAI Max</span><span class="font-mono font-semibold text-cyan-300">{html.escape(str(ev.get('spliceai_max') if ev.get('spliceai_max') is not None else '-'))}</span></div>
-            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">PrimateAI Score</span><span class="font-mono font-semibold text-blue-300">{html.escape(str(r.get('primateai_score') or '-'))}</span></div>
-            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">AlphaMissense</span><span class="font-mono font-semibold text-indigo-300">{html.escape(str(r.get('am_path') or r.get('am_class') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">PrimateAI Score</span>{_patho_badge(r.get('primateai_score'), 'primateai')}</div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">AlphaMissense</span>{_patho_badge(r.get('am_path') or r.get('am_class'), 'am')}</div>
             <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">ESM1b Score</span><span class="font-mono font-semibold text-purple-300">{html.escape(str(r.get('esm1b') or '-'))}</span></div>
-            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">BayesDel Score</span><span class="font-mono font-semibold text-pink-300">{html.escape(str(r.get('bayesdel') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">BayesDel Score</span>{_patho_badge(r.get('bayesdel'), 'bayesdel')}</div>
             <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">CADD Phred</span><span class="font-mono font-semibold text-red-300">{html.escape(str(r.get('cadd_phred') or '-'))}</span></div>
-            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">REVEL Score</span><span class="font-mono font-semibold text-yellow-300">{html.escape(str(r.get('revel') or '-'))}</span></div>
-            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">GERP++ RS</span><span class="font-mono font-semibold text-green-300">{html.escape(str(r.get('gerp_score') or '-'))}</span></div>
-            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">phyloP Score</span><span class="font-mono font-semibold text-teal-300">{html.escape(str(r.get('phylop_score') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">REVEL Score</span>{_patho_badge(r.get('revel'), 'revel')}</div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">GERP++ RS (Mammal)</span>{_patho_badge(r.get('gerp_score'), 'gerp')}</div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">phyloP (Vertebrate)</span>{_patho_badge(r.get('phylop_score'), 'phylop')}</div>
             <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">Phasing Origin</span><span class="font-mono font-semibold text-indigo-200">{html.escape(str(ev.get('phasing') or '-'))}</span></div>
           </div>
         </div>
