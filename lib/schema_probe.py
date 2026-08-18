@@ -73,6 +73,7 @@ def probe(db_path):
         "sample_tot_reads": has(scols, "base__tot_reads"),
         "sample_vaf": has(scols, "base__af"),
         # --- Phasing / Haplotype blocks ---
+        "phased_gt_table": "phased_gt" if "phased_gt" in tables else None,
         "hap_block": first_present(vcols, ["vcfinfo__hap_block", "vcfinfo__ps", "vcfinfo__phase_set"]),
         "hap_strand": first_present(vcols, ["vcfinfo__hap_strand", "vcfinfo__strand"]),
         "sample_hap_block": has(scols, "base__hap_block"),

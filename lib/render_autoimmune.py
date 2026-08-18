@@ -151,12 +151,28 @@ def _pubmed_link(pub):
 
 
 def _study_rows(rec):
+    ev = rec.get("evidence", {}) or {}
+    gwas_dis = ev.get("gwas_disease") or rec.get("gwas_disease") or rec.get("gwas_catalog__disease")
+    gwas_pv = ev.get("gwas_pval") or rec.get("gwas_pval") or rec.get("gwas_catalog__pval")
+    gwas_or = ev.get("gwas_or_beta") or rec.get("gwas_or_beta") or rec.get("gwas_catalog__or_beta")
+    gwas_pmid = ev.get("gwas_pmid") or rec.get("gwas_pmid") or rec.get("gwas_catalog__pmid")
+    gwas_risk = ev.get("gwas_risk_allele") or rec.get("gwas_risk_allele") or rec.get("gwas_catalog__risk_allele")
+    rsid = rec.get("rsid")
+
+    rows = []
+    if gwas_dis and str(gwas_dis).strip() not in ("", "-", "None"):
+        traits = html.escape(str(gwas_dis).replace(";", ", "))
+        pcell = _fmt_p(gwas_pv)
+        orcell = html.escape(str(gwas_or)) if gwas_or not in (None, "") else "-"
+        risk = html.escape(str(gwas_risk or "-"))
+        rows.append(
+            f"<tr><td class='trait'>{traits}</td><td class='pv'>{pcell}</td>"
+            f"<td>{orcell}</td><td class='ra'>{risk}</td>"
+            f"<td class='pub'>{rr._pmid_link(gwas_pmid)}</td></tr>")
+
     se = rec.get("study_evidence") or {}
     snp = se.get("snp") or {}
     top = snp.get("top", []) or []
-    if not top:
-        return ""
-    rows = []
     for s in top:
         traits = html.escape(", ".join(s.get("traits", []) or []) or "-")
         pcell = _fmt_p(s.get("pvalue"))
@@ -166,16 +182,14 @@ def _study_rows(rec):
         rows.append(
             f"<tr><td class='trait'>{traits}</td><td class='pv'>{pcell}</td>"
             f"<td>{orcell}</td><td class='ra'>{risk}</td>"
-            f"<td class='pub'>{_pubmed_link(s.get('pubmed'))}</td></tr>")
-    n = snp.get("n_associations")
-    more = (f'<div class="study-more">Showing {len(top)} of {n} catalogued '
-            f'associations for {html.escape(str(snp.get("rsid")))}.</div>'
-            if n and n > len(top) else "")
-    return (f'<div class="studies"><div class="studies-h">Current GWAS Catalog '
-            f'Evidence</div><table class="study-tbl"><thead><tr>'
+            f"<td class='pub'>{rr._pmid_link(s.get('pubmed'))}</td></tr>")
+
+    if not rows:
+        return ""
+    return (f'<div class="studies" style="margin-top:12px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;"><div class="studies-h" style="font-weight:700; font-size:12px; color:#334155; margin-bottom:6px;">Current GWAS Catalog Evidence</div><table class="study-tbl" style="width:100%; font-size:12px; border-collapse:collapse;"><thead><tr style="text-align:left; color:#64748b; font-size:11px;">'
             f'<th>Trait</th><th>p-value</th><th>OR/&beta;</th><th>Risk allele</th>'
             f'<th>Study</th></tr></thead><tbody>'
-            + "".join(rows) + f'</tbody></table>{more}</div>')
+            + "".join(rows) + f'</tbody></table></div>')
 
 
 def _gene_summary_block(rec):
@@ -273,6 +287,13 @@ def _card(r):
         <div><label>REVEL</label>{html.escape(str(r.get('revel') or '-'))}</div>
         <div><label>AlphaMissense</label>{html.escape(str(r.get('am_path') or '-'))}</div>
         <div><label>SpliceAI max</label>{html.escape(str(ev.get('spliceai_max') if ev.get('spliceai_max') is not None else '-'))}</div>
+        <div><label>CADD Phred</label>{html.escape(str(r.get('cadd_phred') or '-'))}</div>
+        <div><label>LINSIGHT</label>{html.escape(str(r.get('linsight') or '-'))}</div>
+        <div><label>RegulomeDB Rank</label>{html.escape(str(r.get('regulomedb_ra') or '-'))}</div>
+        <div><label>ENCODE cCRE Element</label>{html.escape(str(r.get('ccre_group') or '-'))}</div>
+        <div><label>BayesDel Score</label>{html.escape(str(r.get('bayesdel') or '-'))}</div>
+        <div><label>ESM1b Protein LM</label>{html.escape(str(r.get('esm1b') or '-'))}</div>
+        <div><label>VARITY Score</label>{html.escape(str(r.get('varity') or '-'))}</div>
         <div><label>Panel support</label>{html.escape(str(ev.get('panel_support') or '-'))}/2</div>
       </div>
       

@@ -379,11 +379,12 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
     raw_zyg = str(row.get("zygosity") or "")
     hap_block = row.get("hap_block")
     hap_strand = row.get("hap_strand")
+    vcf_gt = str(row.get("vcf_gt") or "")
     phase_origin = None
-    if "|" in raw_zyg or (hap_strand is not None and str(hap_strand) != "") or (hap_block is not None and str(hap_block) != ""):
-        if str(hap_strand) in ("1", "1.0") or "0|1" in raw_zyg:
+    if "|" in vcf_gt or "|" in raw_zyg or (hap_strand is not None and str(hap_strand) != "") or (hap_block is not None and str(hap_block) != ""):
+        if vcf_gt == "0|1" or str(hap_strand) in ("1", "1.0") or "0|1" in raw_zyg:
             phase_origin = "Maternal"
-        elif str(hap_strand) in ("0", "0.0") or "1|0" in raw_zyg:
+        elif vcf_gt == "1|0" or str(hap_strand) in ("0", "0.0") or "1|0" in raw_zyg:
             phase_origin = "Paternal"
         else:
             phase_origin = "Phased"
@@ -543,15 +544,22 @@ def run(raw_db, panel_path, schema_path, config_path, out_sqlite, out_json, pati
     runtime = {"domain_predictors": domain_predictors, "domain_evidence": domain_evidence}
 
     select_cols = build_select(schema, domain_pull)
+    if schema.get("phased_gt_table"):
+        select_cols += ", pgt.gt AS vcf_gt"
+
     gene_join = ""
     need_gene = any(schema.get(k) for k in GENE_TABLE_KEYS) or \
         any(t == "g" for _, _, t in domain_pull)
     if need_gene and "gene" in schema.get("tables", []):
         gene_join = f'LEFT JOIN gene g ON g."{gene_hugo}" = v."{hugo_col}"'
 
+    phase_join = ""
+    if schema.get("phased_gt_table"):
+        phase_join = 'LEFT JOIN phased_gt pgt ON pgt.var_key = (v.base__chrom || ":" || v.base__pos || ":" || v.base__ref_base || ":" || v.base__alt_base)'
+
     genes = list(panel.keys())
     placeholders = ",".join("?" * len(genes))
-    sql = (f"SELECT {select_cols} FROM variant v {gene_join} "
+    sql = (f"SELECT {select_cols} FROM variant v {gene_join} {phase_join} "
            f'WHERE v."{hugo_col}" IN ({placeholders})')
     cur.execute(sql, genes)
 
