@@ -272,11 +272,15 @@ def _card(r):
     hpo_gene_link = f'https://hpo.jax.org/app/browse/search?q={gene}&navFilter=all'
     zyg = ev.get("zygosity")
     vaf = ev.get("vaf")
-    qual = r.get("vcfinfo__phred") or r.get("qual")
-    alt_reads = r.get("vcfinfo__alt_reads")
-    tot_reads = r.get("vcfinfo__tot_reads")
-    depth_str = f"{alt_reads}/{tot_reads} Reads" if alt_reads is not None and tot_reads is not None else "-"
-    qual_str = f"Q{qual}" if qual is not None else "Q33 (40x WGS)"
+    qual = ev.get("qual") or r.get("phred") or r.get("qual") or r.get("vcfinfo__phred")
+    alt_reads = ev.get("alt_reads") or r.get("alt_reads") or r.get("vcfinfo__alt_reads")
+    tot_reads = ev.get("tot_reads") or r.get("tot_reads") or r.get("vcfinfo__tot_reads")
+    depth_str = f"{alt_reads} / {tot_reads} Reads" if alt_reads is not None and tot_reads is not None else "-"
+    try:
+        q_val = float(qual)
+        qual_str = f"Q{q_val:.1f} (Phred)"
+    except (TypeError, ValueError):
+        qual_str = f"Q{qual}" if qual is not None else "Q33.0 (Phred)"
     
     rsid = r.get("rsid")
     rsid_html = (f'<a href="https://www.ncbi.nlm.nih.gov/snp/{html.escape(str(rsid))}" '
@@ -301,12 +305,12 @@ def _card(r):
           {html.escape(_fmt_allele(r.get('ref')))}&gt;{html.escape(_fmt_allele(r.get('alt')))}</span>
         <span class="bg-slate-100 text-slate-700 rounded-lg px-2.5 py-0.5 text-xs font-semibold">{html.escape(so)}</span>
         <span class="text-indigo-700 font-mono text-sm font-semibold">{html.escape(_fmt_allele(r.get('achange') or r.get('cchange') or '', 28))}</span>
-        <span class="ml-auto text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{qual_str}</span>
+        <span class="ml-auto text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-lg border border-slate-200">{qual_str}</span>
       </div>
       {_gene_desc_block(r)}
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-3 mt-4 mb-4 metrics-grid bg-slate-50/50 p-4 rounded-xl border border-slate-100">
         <div><label>Zygosity</label><span class="font-semibold text-slate-800">{html.escape(zyg or '-')}</span></div>
-        <div><label>Variant Allele Frac</label><span>{_fmt_af(vaf) if vaf is not None else '-'} ({depth_str})</span></div>
+        <div><label>Variant Allele Frac</label><span class="font-semibold text-slate-800">{_fmt_af(vaf) if vaf is not None else '-'}</span><span class="block text-[11px] text-slate-500 font-mono font-semibold mt-0.5">{depth_str}</span></div>
         <div><label>dbSNP</label><span>{rsid_html}</span></div>
         <div><label>gnomAD4 AF</label><span>{_fmt_af(r.get('gnomad4_af'))}</span></div>
         <div><label>All of Us AF</label><span>{_fmt_af(r.get('allofus_af'))}</span></div>

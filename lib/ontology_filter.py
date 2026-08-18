@@ -42,7 +42,8 @@ GENE_TABLE_KEYS = {"gene_hpo_id", "gene_hpo_term", "gene_go_bpo", "gene_go_mfo",
 PULL_KEYS = [
     "uid", "hugo", "so", "coding", "achange", "cchange", "transcript",
     "chrom", "pos", "ref", "alt", "rsid",
-    "zygosity", "alt_reads", "tot_reads", "vaf", "hap_block", "hap_strand",
+    "zygosity", "alt_reads", "tot_reads", "vaf", "hap_block", "hap_strand", "phred",
+    "gwas_disease", "gwas_pval", "gwas_or_beta", "gwas_pmid", "gwas_risk_allele",
     "gnomad4_af", "allofus_af",
     "clinvar_sig", "clinvar_id", "clinvar_disease", "clinvar_rev",
     "clingen_class", "omim_id", "clinvar_acmg_ps1", "clinvar_acmg_pm5",
@@ -423,10 +424,18 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
         "go_context": go_hits,
         "panel_support": panel.get(hugo, {}).get("support"),
         "zygosity": zyg,
+        "alt_reads": row.get("alt_reads"),
+        "tot_reads": row.get("tot_reads"),
+        "qual": row.get("phred") or row.get("qual"),
         "vaf": compute_vaf(row.get("vaf"), row.get("alt_reads"), row.get("tot_reads")),
         "phasing": phasing_str,
         "phase_origin": phase_origin,
         "hap_block": hap_block,
+        "gwas_disease": row.get("gwas_disease"),
+        "gwas_pval": row.get("gwas_pval"),
+        "gwas_or_beta": row.get("gwas_or_beta"),
+        "gwas_pmid": row.get("gwas_pmid"),
+        "gwas_risk_allele": row.get("gwas_risk_allele"),
     }
     return True, tier, reasons, evidence
 
@@ -491,12 +500,13 @@ def run(raw_db, panel_path, schema_path, config_path, out_sqlite, out_json, pati
     # the variant row. When the variant table has no vcfinfo zygosity but a
     # sample table does, build a uid -> genotype map (first sample per uid).
     sample_geno = {}
-    if not schema.get("zygosity") and schema.get("sample_uid") and schema.get("sample_zygosity"):
+    if schema.get("sample_uid"):
         s_map = {
             "uid": schema["sample_uid"],
             "zygosity": schema.get("sample_zygosity"),
             "alt_reads": schema.get("sample_alt_reads"),
             "tot_reads": schema.get("sample_tot_reads"),
+            "phred": schema.get("sample_phred"),
             "vaf": schema.get("sample_vaf"),
             "hap_block": schema.get("sample_hap_block"),
             "hap_strand": schema.get("sample_hap_strand"),

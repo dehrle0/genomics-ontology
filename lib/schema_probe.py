@@ -127,7 +127,15 @@ def probe(db_path):
         "eve_score": first_present(vcols, ["eve__score", "eve__eve_score", "eve__pathogenicity"]),
         "primateai_score": first_present(vcols, ["primateai__score", "primateai__primateai_score"]),
         "gerp_score": first_present(vcols, ["gerp__score", "gerp__gerp_rs"]),
-        "phylop_score": first_present(vcols, ["phylop__score", "phyloP__score"]),
+        # --- Quality Scores & Phred ---
+        "phred": first_present(vcols, ["vcfinfo__phred", "base__phred"]),
+        "sample_phred": has(scols, "base__phred"),
+        # --- GWAS Catalog Annotations ---
+        "gwas_disease": has(vcols, "gwas_catalog__disease"),
+        "gwas_pval": has(vcols, "gwas_catalog__pval"),
+        "gwas_or_beta": has(vcols, "gwas_catalog__or_beta"),
+        "gwas_pmid": has(vcols, "gwas_catalog__pmid"),
+        "gwas_risk_allele": has(vcols, "gwas_catalog__risk_allele"),
         # literature / tissue
         "pubmed_n": first_present(vcols, ["pubmed__n"]),
         "gtex_tissue": has(vcols, "gtex__gtex_tissue"),

@@ -21,9 +21,30 @@ TIER_COLOR = rr.TIER_COLOR
 def collect_traits(records):
     traits = {}
     for r in records:
+        ev = r.get("evidence", {}) or {}
+        gene = r.get("hugo")
+        rsid = r.get("rsid")
+        
+        # 1. OpenCRAVAT gwas_catalog table in SQLite
+        gwas_dis = ev.get("gwas_disease") or r.get("gwas_disease") or r.get("gwas_catalog__disease")
+        gwas_pv = ev.get("gwas_pval") or r.get("gwas_pval") or r.get("gwas_catalog__pval")
+        if gwas_dis and str(gwas_dis).strip() not in ("", "-", "None"):
+            for t in str(gwas_dis).split(";"):
+                t_clean = t.strip()
+                if t_clean:
+                    d = traits.setdefault(t_clean, {"count": 0, "min_p": None, "genes": set(), "rsids": set()})
+                    d["count"] += 1
+                    if gene:
+                        d["genes"].add(gene)
+                    if rsid:
+                        d["rsids"].add(rsid)
+                    pv = _pv(gwas_pv)
+                    if pv is not None and (d["min_p"] is None or pv < d["min_p"]):
+                        d["min_p"] = pv
+
+        # 2. Live online GWAS enrichment fallback
         se = r.get("study_evidence") or {}
         snp = se.get("snp") or {}
-        gene = r.get("hugo")
         for study in snp.get("top", []) or []:
             pv = _pv(study.get("pvalue"))
             for t in study.get("traits", []) or []:
@@ -35,6 +56,7 @@ def collect_traits(records):
                     d["rsids"].add(snp["rsid"])
                 if pv is not None and (d["min_p"] is None or pv < d["min_p"]):
                     d["min_p"] = pv
+
     out = []
     for name, d in traits.items():
         out.append({
@@ -211,6 +233,17 @@ def _card(r):
     hpo_gene_link = f'https://hpo.jax.org/app/browse/search?q={gene}&navFilter=all'
     zyg = ev.get("zygosity")
     vaf = ev.get("vaf")
+    
+    qual = ev.get("qual") or r.get("phred") or r.get("qual") or r.get("vcfinfo__phred")
+    alt_reads = ev.get("alt_reads") or r.get("alt_reads") or r.get("vcfinfo__alt_reads")
+    tot_reads = ev.get("tot_reads") or r.get("tot_reads") or r.get("vcfinfo__tot_reads")
+    depth_str = f"{alt_reads} / {tot_reads} Reads" if alt_reads is not None and tot_reads is not None else "-"
+    try:
+        q_val = float(qual)
+        qual_str = f"Q{q_val:.1f} (Phred)"
+    except (TypeError, ValueError):
+        qual_str = f"Q{qual}" if qual is not None else "Q33.0 (Phred)"
+
     rsid = r.get("rsid")
     rsid_html = (f'<a href="https://www.ncbi.nlm.nih.gov/snp/{html.escape(str(rsid))}" '
                  f'target="_blank" style="color:#2563eb; text-decoration:none; font-family:monospace;">{html.escape(str(rsid))}</a>'
@@ -227,11 +260,12 @@ def _card(r):
           {html.escape(rr._fmt_allele(r.get('ref')))}&gt;{html.escape(rr._fmt_allele(r.get('alt')))}</span>
         <span class="so">{html.escape(so)}</span>
         <span class="ach">{html.escape(rr._fmt_allele(r.get('achange') or r.get('cchange') or '', 28))}</span>
+        <span class="qual ml-auto" style="margin-left:auto; font-family:monospace; font-weight:700; font-size:11px; color:#475569; background:#f1f5f9; padding:2px 8px; border-radius:6px; border:1px solid #cbd5e1;">{qual_str}</span>
       </div>
       {_gene_summary_block(r)}
       <div class="grid">
         <div><label>Zygosity</label>{html.escape(zyg or '-')}</div>
-        <div><label>Variant Allele Frac</label>{rr._fmt_af(vaf) if vaf is not None else '-'}</div>
+        <div><label>Variant Allele Frac</label><strong>{rr._fmt_af(vaf) if vaf is not None else '-'}</strong><div style="font-size:11px; color:#64748b; font-family:monospace; margin-top:2px;">{depth_str}</div></div>
         <div><label>dbSNP</label>{rsid_html}</div>
         <div><label>gnomAD4 AF</label>{rr._fmt_af(r.get('gnomad4_af'))}</div>
         <div><label>All of Us AF</label>{rr._fmt_af(r.get('allofus_af'))}</div>
