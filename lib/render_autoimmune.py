@@ -1,23 +1,5 @@
 #!/usr/bin/env python3
-"""
-render_autoimmune.py
-A domain-specific renderer for the autoimmunity report. It reuses the generic
-renderer's helpers (formatting, TSV, text) but adds two things the autoimmune
-story needs and the generic tier view does not:
-
-  1. A TRAIT-BURDEN VISUALIZATION — an inline SVG chart (no external libraries,
-     works offline) summarising, across all kept variants, how many catalogued
-     GWAS risk-allele associations point at each autoimmune trait, coloured by
-     the strongest (smallest) p-value seen for that trait.
-
-  2. LIVE STUDY-EVIDENCE CARDS — per variant, the current GWAS Catalog
-     associations pulled by lib/enrich_report.py: trait, p-value, odds
-     ratio / beta, risk allele, and a PubMed link to the underlying study.
-
-Gene cards also surface the NCBI Gene description (from the same enrichment).
-Everything degrades gracefully when enrichment was skipped or offline: the
-report still renders, just without the live layers.
-"""
+# render_autoimmune.py
 import argparse
 import html
 import json
@@ -26,7 +8,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import render_report as rr  # noqa: E402  (shared helpers, TSV/text writers)
+import render_report as rr
 
 TIER_LABEL = {
     "Tier1": "Tier 1 — Monogenic / high-impact",
@@ -36,11 +18,7 @@ TIER_LABEL = {
 TIER_COLOR = rr.TIER_COLOR
 
 
-# --------------------------------------------------------------------------- #
-# Aggregation for the visualization
-# --------------------------------------------------------------------------- #
 def collect_traits(records):
-    """Aggregate GWAS associations across all records into per-trait rollups."""
     traits = {}
     for r in records:
         se = r.get("study_evidence") or {}
@@ -49,8 +27,7 @@ def collect_traits(records):
         for study in snp.get("top", []) or []:
             pv = _pv(study.get("pvalue"))
             for t in study.get("traits", []) or []:
-                d = traits.setdefault(t, {"count": 0, "min_p": None,
-                                          "genes": set(), "rsids": set()})
+                d = traits.setdefault(t, {"count": 0, "min_p": None, "genes": set(), "rsids": set()})
                 d["count"] += 1
                 if gene:
                     d["genes"].add(gene)
@@ -77,12 +54,10 @@ def _pv(x):
 
 
 def _p_color(min_p):
-    """Colour a bar by association strength: deeper red = stronger (smaller p)."""
     if not min_p or min_p <= 0:
         return "#95a5a6"
-    nlp = -math.log10(min_p)            # e.g. p=5e-8 -> 7.3
+    nlp = -math.log10(min_p)
     nlp = max(0.0, min(nlp, 50.0))
-    # interpolate light-blue (weak) -> crimson (strong) over 0..30
     t = min(nlp / 30.0, 1.0)
     r = int(41 + t * (192 - 41))
     g = int(128 + t * (57 - 128))
@@ -100,13 +75,10 @@ def _fmt_p(x):
 
 
 def trait_chart_svg(trait_rows, top_n=14):
-    """Inline SVG horizontal bar chart of the top autoimmune traits by number of
-    catalogued risk-allele associations across this genome."""
     rows = trait_rows[:top_n]
     if not rows:
         return ('<p class="empty">No catalogued GWAS trait associations were '
-                'available (run with study enrichment online to populate this '
-                'chart).</p>')
+                'available (run with study enrichment online to populate this chart).</p>')
     max_count = max(r["count"] for r in rows)
     row_h, gap, left, right, top = 26, 8, 260, 90, 14
     width = 900
@@ -143,15 +115,11 @@ def _truncate(s, n):
     return s if len(s) <= n else s[: n - 1] + "…"
 
 
-# --------------------------------------------------------------------------- #
-# Per-variant study evidence + gene description
-# --------------------------------------------------------------------------- #
 def _pubmed_link(pub):
     if not pub:
         return ""
     pid = pub.get("pubmed_id")
-    cite = " ".join(x for x in [pub.get("author"), pub.get("journal"),
-                                (pub.get("date") or "")[:4]] if x)
+    cite = " ".join(x for x in [pub.get("author"), pub.get("journal"), (pub.get("date") or "")[:4]] if x)
     label = html.escape(cite or (f"PMID {pid}" if pid else "study"))
     if pid:
         return (f'<a href="https://pubmed.ncbi.nlm.nih.gov/{html.escape(str(pid))}/" '
@@ -182,7 +150,7 @@ def _study_rows(rec):
             f'associations for {html.escape(str(snp.get("rsid")))}.</div>'
             if n and n > len(top) else "")
     return (f'<div class="studies"><div class="studies-h">Current GWAS Catalog '
-            f'evidence</div><table class="study-tbl"><thead><tr>'
+            f'Evidence</div><table class="study-tbl"><thead><tr>'
             f'<th>Trait</th><th>p-value</th><th>OR/&beta;</th><th>Risk allele</th>'
             f'<th>Study</th></tr></thead><tbody>'
             + "".join(rows) + f'</tbody></table>{more}</div>')
@@ -194,27 +162,59 @@ def _gene_summary_block(rec):
     summ = gi.get("summary")
     gid = gi.get("ncbi_gene_id")
     loc = gi.get("map_location")
-    if not (desc or summ or gid):
-        return ""
-    link = (f' <a href="https://www.ncbi.nlm.nih.gov/gene/{html.escape(str(gid))}" '
-            f'target="_blank">NCBI&#8599;</a>') if gid else ""
-    loc_txt = f' <span class="cyto">{html.escape(loc)}</span>' if loc else ""
-    head = (f'<div class="gene-desc"><span class="gd-label">NCBI Gene</span>'
-            f'{html.escape(desc or "")}{loc_txt}{link}</div>') if (desc or gid) else ""
-    body = (f'<div class="gene-summary">{html.escape(_truncate(summ, 420))}</div>'
-            if summ else "")
-    return head + body
+    omim_id = rec.get("omim_id")
+    clin_dis = rec.get("clinvar_disease")
+    
+    parts = []
+    if desc or gid:
+        link = (f' <a href="https://www.ncbi.nlm.nih.gov/gene/{html.escape(str(gid))}" '
+                f'target="_blank" style="color:#2563eb; font-weight:600; text-decoration:none;">NCBI&#8599;</a>') if gid else ""
+        loc_txt = f' <span style="font-family:monospace; color:#64748b; font-weight:normal;">[{html.escape(loc)}]</span>' if loc else ""
+        parts.append(f'<div class="gene-desc-bold"><span class="gd-label">NCBI Gene</span>'
+                     f'<strong>{html.escape(desc or "")}</strong>{loc_txt}{link}</div>')
+    
+    if omim_id or clin_dis:
+        omim_parts = []
+        if omim_id:
+            omim_link = f'<a href="https://omim.org/entry/{html.escape(str(omim_id))}" target="_blank" style="color:#7c3aed; font-weight:700; text-decoration:none;">OMIM #{html.escape(str(omim_id))}&#8599;</a>'
+            omim_parts.append(omim_link)
+        if clin_dis:
+            omim_parts.append(f'<span style="color:#334155; font-weight:500;">{html.escape(str(clin_dis))}</span>')
+        parts.append(f'<div class="omim-block"><span class="omim-label">OMIM Clinical Synopsis</span>'
+                     f'{" &nbsp;|&nbsp; ".join(omim_parts)}</div>')
+                     
+    if summ and summ != desc:
+        parts.append(f'<div class="gene-summary">{html.escape(_truncate(summ, 450))}</div>')
+        
+    return "".join(parts)
+
+
+def _phase_badge(ev):
+    ph = ev.get("phasing") or ""
+    origin = ev.get("phase_origin")
+    if not ph or ph == "Unphased (Short-Read WGS)":
+        return '<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">Unphased (40x WGS)</span>'
+    cls = "bg-purple-100 text-purple-800 border-purple-200"
+    if origin == "Maternal":
+        cls = "bg-pink-100 text-pink-800 border-pink-200 font-semibold"
+    elif origin == "Paternal":
+        cls = "bg-blue-100 text-blue-800 border-blue-200 font-semibold"
+    label = html.escape(ph)
+    return f'<span class="px-2 py-0.5 rounded text-[11px] border {cls}" title="Parental / chromosomal phase assignment">{label}</span>'
 
 
 def _card(r):
     ev = r.get("evidence", {})
     so = rr.SO_NAME.get(r.get("so"), r.get("so") or "?")
     gene = html.escape(r.get("hugo") or "?")
+    gene_link = f'https://search.thegencc.org/genes?q={gene}'
+    hpo_gene_link = f'https://hpo.jax.org/app/browse/search?q={gene}&navFilter=all'
     zyg = ev.get("zygosity")
+    vaf = ev.get("vaf")
     rsid = r.get("rsid")
     rsid_html = (f'<a href="https://www.ncbi.nlm.nih.gov/snp/{html.escape(str(rsid))}" '
-                 f'target="_blank">{html.escape(str(rsid))}</a>'
-                 ) if rsid and str(rsid).startswith("rs") else "-"
+                 f'target="_blank" style="color:#2563eb; text-decoration:none; font-family:monospace;">{html.escape(str(rsid))}</a>'
+                 ) if rsid and str(rsid).startswith("rs") else (html.escape(str(rsid)) if rsid else "-")
     hpo_ctx = ", ".join(ev.get("hpo_context", []) or []) or "-"
     go_ctx = ", ".join(ev.get("go_context", []) or []) or "-"
     return f"""
@@ -222,6 +222,7 @@ def _card(r):
       <div class="card-head">
         <span class="gene">{gene}</span>
         {rr._zyg_badge(zyg)}
+        {_phase_badge(ev)}
         <span class="loc">{html.escape(str(r.get('chrom','')))}:{html.escape(str(r.get('pos','')))}
           {html.escape(rr._fmt_allele(r.get('ref')))}&gt;{html.escape(rr._fmt_allele(r.get('alt')))}</span>
         <span class="so">{html.escape(so)}</span>
@@ -230,26 +231,36 @@ def _card(r):
       {_gene_summary_block(r)}
       <div class="grid">
         <div><label>Zygosity</label>{html.escape(zyg or '-')}</div>
+        <div><label>Variant Allele Frac</label>{rr._fmt_af(vaf) if vaf is not None else '-'}</div>
         <div><label>dbSNP</label>{rsid_html}</div>
         <div><label>gnomAD4 AF</label>{rr._fmt_af(r.get('gnomad4_af'))}</div>
         <div><label>All of Us AF</label>{rr._fmt_af(r.get('allofus_af'))}</div>
         <div><label>ClinVar</label>{rr._clinvar_link(r.get('clinvar_id'), r.get('clinvar_sig'))}</div>
         <div><label>REVEL</label>{html.escape(str(r.get('revel') or '-'))}</div>
         <div><label>AlphaMissense</label>{html.escape(str(r.get('am_path') or '-'))}</div>
+        <div><label>SpliceAI max</label>{html.escape(str(ev.get('spliceai_max') if ev.get('spliceai_max') is not None else '-'))}</div>
         <div><label>Panel support</label>{html.escape(str(ev.get('panel_support') or '-'))}/2</div>
       </div>
-      <div class="onto">
-        <div><label>HPO phenotype context</label>{html.escape(hpo_ctx)}</div>
-        <div><label>GO function context</label>{html.escape(go_ctx)}</div>
+      
+      <!-- Detailed Bottom Ontology Box -->
+      <div class="onto-box">
+        <div class="onto-item">
+          <label>HPO Phenotype Context</label>
+          <span class="onto-text">{html.escape(hpo_ctx)}</span>
+          &nbsp;<a href="{hpo_gene_link}" target="_blank" class="onto-link">HPO&#8599;</a>
+        </div>
+        <div class="onto-item">
+          <label>GO Biological Function Context</label>
+          <span class="onto-text">{html.escape(go_ctx)}</span>
+          &nbsp;<a href="{gene_link}" target="_blank" class="onto-link">GenCC&#8599;</a>
+        </div>
       </div>
+      
       {_study_rows(r)}
-      <div class="reasons">{rr._reason_badges(r.get('reason_codes', []))}</div>
+      <div class="reasons-wrap">{rr._reason_badges(r.get('reason_codes', []))}</div>
     </div>"""
 
 
-# --------------------------------------------------------------------------- #
-# Document
-# --------------------------------------------------------------------------- #
 def write_html(data, path):
     tc = data["tier_counts"]
     title = data.get("report_title", "Autoimmune Risk & Evidence Report")
@@ -280,7 +291,7 @@ def write_html(data, path):
     if enr:
         if enr.get("offline"):
             enr_note = ("Live enrichment ran in <b>offline</b> mode — gene "
-                        "descriptions and study evidence shown are from cache only.")
+                        "descriptions and study evidence shown are from cache / local DB.")
         else:
             enr_note = (f"Live enrichment: {enr.get('records_with_gene_info', 0)} gene "
                         f"descriptions and {enr.get('records_with_study_evidence', 0)} "
@@ -292,74 +303,80 @@ def write_html(data, path):
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(title)} — {html.escape(data['patient'])}</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-:root {{ --bg:#f4f6f9; --card:#fff; --ink:#22303f; --muted:#6b7c8f; }}
+:root {{ --bg:#f4f6f9; --card:#fff; --ink:#1e293b; --muted:#64748b; }}
 * {{ box-sizing:border-box; }}
-body {{ font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+body {{ font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   margin:0; background:var(--bg); color:var(--ink); }}
-header {{ background:linear-gradient(135deg,#4a1c40,#7b2d5e,#b0355f); color:#fff; padding:28px 32px; }}
-header h1 {{ margin:0 0 6px; font-size:22px; }}
-header .sub {{ opacity:.9; font-size:14px; }}
-.summary {{ display:flex; gap:16px; flex-wrap:wrap; padding:18px 32px 6px; }}
-.stat {{ background:var(--card); border-radius:10px; padding:14px 18px; min-width:120px;
-  box-shadow:0 1px 3px rgba(0,0,0,.08); }}
-.stat b {{ display:block; font-size:26px; }}
-.stat span {{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }}
-.viz {{ margin:8px 32px 4px; background:var(--card); border-radius:12px; padding:18px 22px;
-  box-shadow:0 1px 3px rgba(0,0,0,.08); }}
-.viz h2 {{ margin:0 0 4px; font-size:16px; }}
-.viz .cap {{ color:var(--muted); font-size:12.5px; margin:0 0 12px; }}
-.trait-chart .t-lbl {{ font-size:12.5px; fill:var(--ink); }}
-.trait-chart .t-cnt {{ font-size:12px; fill:var(--muted); }}
-.trait-chart .t-gene {{ font-size:10.5px; fill:#fff; opacity:.85; }}
-.legend {{ font-size:11.5px; color:var(--muted); margin-top:8px; display:flex; gap:8px; align-items:center; }}
+header {{ background:linear-gradient(135deg,#4a1c40,#7b2d5e,#b0355f); color:#fff; padding:28px 32px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }}
+header h1 {{ margin:0 0 6px; font-size:24px; font-weight:800; }}
+header .sub {{ opacity:.95; font-size:14px; }}
+.summary {{ display:flex; gap:16px; flex-wrap:wrap; padding:20px 32px 8px; }}
+.stat {{ background:var(--card); border-radius:12px; padding:14px 20px; min-width:130px;
+  box-shadow:0 1px 3px rgba(0,0,0,.06); border:1px solid #e2e8f0; }}
+.stat b {{ display:block; font-size:26px; font-weight:800; }}
+.stat span {{ color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; font-weight:700; }}
+.viz {{ margin:10px 32px 6px; background:var(--card); border-radius:12px; padding:20px 24px;
+  box-shadow:0 1px 3px rgba(0,0,0,.06); border:1px solid #e2e8f0; }}
+.viz h2 {{ margin:0 0 4px; font-size:17px; font-weight:700; }}
+.viz .cap {{ color:var(--muted); font-size:13px; margin:0 0 14px; }}
+.trait-chart .t-lbl {{ font-size:12.5px; fill:var(--ink); font-weight:500; }}
+.trait-chart .t-cnt {{ font-size:12px; fill:var(--muted); font-weight:700; }}
+.trait-chart .t-gene {{ font-size:10.5px; fill:#fff; opacity:.9; }}
+.legend {{ font-size:12px; color:var(--muted); margin-top:10px; display:flex; gap:8px; align-items:center; }}
 .legend .bar {{ height:10px; width:160px; border-radius:5px;
   background:linear-gradient(90deg, rgb(41,128,185), rgb(192,57,43)); display:inline-block; }}
-.enr-note {{ margin:0 32px 6px; font-size:12.5px; color:var(--muted); }}
-.controls {{ padding:6px 32px 8px; }}
-.controls input {{ padding:8px 12px; border:1px solid #cdd6e0; border-radius:8px; width:280px; }}
-section.tier {{ padding:8px 32px 24px; }}
-section.tier h2 {{ font-size:17px; padding-left:12px; }}
-section.tier h2 .count {{ background:#e8edf3; border-radius:12px; padding:1px 10px; font-size:13px; margin-left:8px; }}
-.card {{ background:var(--card); border-radius:10px; padding:14px 16px; margin:10px 0;
-  box-shadow:0 1px 3px rgba(0,0,0,.07); }}
-.card-head {{ display:flex; gap:12px; align-items:baseline; flex-wrap:wrap; border-bottom:1px solid #eef2f6; padding-bottom:8px; }}
-.card-head .gene {{ font-weight:700; font-size:16px; }}
+.enr-note {{ margin:0 32px 8px; font-size:13px; color:var(--muted); }}
+.controls {{ padding:8px 32px 12px; display:flex; gap:12px; }}
+.controls input {{ padding:10px 14px; border:1px solid #cbd5e1; border-radius:10px; width:320px; font-size:14px; outline:none; }}
+.controls input:focus {{ border-color:#7b2d5e; }}
+.controls button {{ padding:10px 18px; background:#fff; border:1px solid #cbd5e1; border-radius:10px; font-weight:600; cursor:pointer; font-size:13px; }}
+.controls button:hover {{ background:#f8fafc; }}
+
+section.tier {{ padding:12px 32px 28px; }}
+section.tier h2 {{ font-size:18px; padding-left:14px; font-weight:800; }}
+section.tier h2 .count {{ background:#e2e8f0; border-radius:12px; padding:2px 12px; font-size:13px; margin-left:8px; font-weight:700; }}
+
+.card {{ background:var(--card); border-radius:12px; padding:18px 22px; margin:14px 0;
+  box-shadow:0 2px 6px rgba(0,0,0,.05); border:1px solid #e2e8f0; }}
+.card-head {{ display:flex; gap:12px; align-items:baseline; flex-wrap:wrap; border-bottom:1px solid #f1f5f9; padding-bottom:10px; }}
+.card-head .gene {{ font-weight:800; font-size:18px; color:#0f172a; }}
 .card-head .loc {{ font-family:ui-monospace,Menlo,monospace; color:var(--muted); font-size:13px; }}
-.card-head .so {{ background:#eef2f6; border-radius:6px; padding:1px 8px; font-size:12px; }}
-.card-head .ach {{ color:#7b2d5e; font-size:13px; font-family:ui-monospace,monospace; }}
-.zyg {{ font-size:11px; font-weight:600; border-radius:6px; padding:1px 8px; }}
-.z-het {{ background:#fef5e7; color:#b9770e; }}
-.z-hom {{ background:#fdecea; color:#c0392b; }}
-.z-hemi {{ background:#f4ecf7; color:#7d3c98; }}
-.z-other {{ background:#eef2f6; color:#566573; }}
-.gene-desc {{ font-size:13px; color:#34495e; margin:8px 0 2px; line-height:1.4; }}
-.gene-desc .gd-label {{ font-size:10px; text-transform:uppercase; letter-spacing:.04em;
-  color:#fff; background:#7b2d5e; border-radius:4px; padding:1px 6px; margin-right:6px; }}
-.gene-desc .cyto {{ color:var(--muted); font-family:ui-monospace,monospace; }}
-.gene-summary {{ font-size:12.5px; color:var(--muted); margin:2px 0 6px; line-height:1.45; }}
-.grid {{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px 18px; margin:10px 0; }}
-.grid label, .onto label {{ display:block; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; }}
-.grid div, .onto div {{ font-size:14px; }}
-.onto {{ display:grid; grid-template-columns:1fr 1fr; gap:6px 18px; margin:6px 0 10px; }}
-.studies {{ margin:8px 0 6px; }}
-.studies-h {{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:#7b2d5e; font-weight:600; margin-bottom:4px; }}
+.card-head .so {{ background:#f1f5f9; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:600; }}
+.card-head .ach {{ color:#7b2d5e; font-size:13.5px; font-family:ui-monospace,monospace; font-weight:600; }}
+
+.gene-desc-bold {{ font-size:14.5px; color:#0f172a; margin:12px 0 6px; line-height:1.5; font-weight:600; }}
+.gene-desc-bold strong {{ color:#0f172a; font-weight:700; }}
+.gd-label {{ font-size:10px; text-transform:uppercase; letter-spacing:.05em; font-weight:700;
+  color:#fff; background:#1e40af; border-radius:4px; padding:2px 7px; margin-right:8px; display:inline-block; }}
+.omim-block {{ font-size:13px; color:#475569; margin:4px 0 8px; padding:6px 12px; background:#faf5ff; border-left:3px solid #7c3aed; border-radius:4px; }}
+.omim-label {{ font-size:10px; text-transform:uppercase; letter-spacing:.05em; font-weight:700; color:#7c3aed; margin-right:8px; }}
+.gene-summary {{ font-size:13px; color:#475569; margin:4px 0 8px; line-height:1.45; }}
+
+.grid {{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px 16px; margin:12px 0; background:#f8fafc; padding:10px 14px; border-radius:8px; border:1px solid #f1f5f9; }}
+.grid label {{ display:block; font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-weight:700; margin-bottom:2px; }}
+.grid div {{ font-size:13.5px; color:#1e293b; font-weight:500; }}
+
+.onto-box {{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; padding:12px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; }}
+.onto-item label {{ display:block; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:3px; }}
+.onto-text {{ font-size:13px; color:#1e293b; font-weight:500; }}
+.onto-link {{ font-size:11.5px; color:#2563eb; font-weight:600; text-decoration:none; margin-left:4px; }}
+.onto-link:hover {{ text-decoration:underline; }}
+
+.studies {{ margin:12px 0 8px; }}
+.studies-h {{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#7b2d5e; font-weight:700; margin-bottom:6px; }}
 .study-tbl {{ width:100%; border-collapse:collapse; font-size:12.5px; }}
-.study-tbl th {{ text-align:left; color:var(--muted); font-weight:600; border-bottom:1px solid #eef2f6; padding:3px 6px; font-size:11px; }}
-.study-tbl td {{ padding:3px 6px; border-bottom:1px solid #f4f6f9; vertical-align:top; }}
-.study-tbl td.trait {{ max-width:320px; }}
-.study-tbl td.pv {{ font-family:ui-monospace,monospace; color:#c0392b; }}
+.study-tbl th {{ text-align:left; color:var(--muted); font-weight:700; border-bottom:1px solid #e2e8f0; padding:5px 8px; font-size:11px; text-transform:uppercase; }}
+.study-tbl td {{ padding:5px 8px; border-bottom:1px solid #f1f5f9; vertical-align:top; }}
+.study-tbl td.trait {{ max-width:320px; font-weight:500; }}
+.study-tbl td.pv {{ font-family:ui-monospace,monospace; color:#c0392b; font-weight:600; }}
 .study-tbl td.ra {{ font-family:ui-monospace,monospace; }}
-.study-more {{ font-size:11px; color:var(--muted); margin-top:4px; }}
-.reasons {{ margin-top:6px; }}
-.badge {{ display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px; margin:2px 3px 0 0; }}
-.b-pheno {{ background:#eafaf1; color:#1e8449; }}
-.b-geno {{ background:#eaf2fb; color:#2471a3; }}
-.b-strong {{ background:#fdecea; color:#c0392b; font-weight:600; }}
-.b-warn {{ background:#fef5e7; color:#b9770e; }}
-.empty {{ color:var(--muted); font-style:italic; }}
-footer {{ padding:18px 32px 40px; color:var(--muted); font-size:12px; }}
-.noprint {{}} @media print {{ .noprint {{ display:none; }} .card {{ page-break-inside:avoid; }} }}
+.study-more {{ font-size:11.5px; color:var(--muted); margin-top:4px; }}
+.reasons-wrap {{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }}
+
+footer {{ padding:24px 32px 48px; color:var(--muted); font-size:12px; border-top:1px solid #e2e8f0; margin-top:24px; }}
+@media print {{ .noprint {{ display:none; }} .card {{ page-break-inside:avoid; box-shadow:none !important; }} }}
 </style></head>
 <body>
 <header>
@@ -368,16 +385,16 @@ footer {{ padding:18px 32px 40px; color:var(--muted); font-size:12px; }}
    &nbsp;|&nbsp; Panel derived from HPO autoimmune phenotypes + GO immune functions ({data['panel_gene_count']} genes)</div>
 </header>
 <div class="summary">
-  <div class="stat"><b>{data['actionable_count']}</b><span>Risk variants</span></div>
-  <div class="stat"><b style="color:{TIER_COLOR['Tier1']}">{tc['Tier1']}</b><span>Tier 1</span></div>
-  <div class="stat"><b style="color:{TIER_COLOR['Tier2']}">{tc['Tier2']}</b><span>Tier 2</span></div>
-  <div class="stat"><b style="color:{TIER_COLOR['Tier3']}">{tc['Tier3']}</b><span>Tier 3</span></div>
-  <div class="stat"><b>{n_traits}</b><span>Traits implicated</span></div>
-  <div class="stat"><b>{n_studies}</b><span>GWAS associations</span></div>
+  <div class="stat"><b>{data['actionable_count']}</b><span>Risk Variants</span></div>
+  <div class="stat"><b style="color:{TIER_COLOR['Tier1']}">{tc['Tier1']}</b><span>Tier 1 Monogenic</span></div>
+  <div class="stat"><b style="color:{TIER_COLOR['Tier2']}">{tc['Tier2']}</b><span>Tier 2 Supported</span></div>
+  <div class="stat"><b style="color:{TIER_COLOR['Tier3']}">{tc['Tier3']}</b><span>Tier 3 Risk Alleles</span></div>
+  <div class="stat"><b>{n_traits}</b><span>Traits Implicated</span></div>
+  <div class="stat"><b>{n_studies}</b><span>GWAS Associations</span></div>
 </div>
 {f'<div class="enr-note noprint">{enr_note}</div>' if enr_note else ''}
 <div class="viz">
-  <h2>Autoimmune trait burden across your risk variants</h2>
+  <h2>Autoimmune Trait Burden Across Risk Variants</h2>
   <p class="cap">Bars count catalogued GWAS risk-allele associations pointing at each
   trait; colour encodes the strongest reported association (deeper red = smaller p-value).
   Hover a bar for the contributing genes and best p-value.</p>
@@ -386,24 +403,24 @@ footer {{ padding:18px 32px 40px; color:var(--muted); font-size:12px; }}
     p-value scale (&minus;log<sub>10</sub> p, 0&ndash;30)</div>
 </div>
 <div class="controls noprint">
-  <input id="flt" type="text" placeholder="Filter by gene or reason code…"
+  <input id="flt" type="text" placeholder="Filter by gene, RSID, or reason code…"
     oninput="filterCards(this.value)">
   <button onclick="window.print()">Print / Export PDF</button>
 </div>
 {body}
 <footer>
   Generated by <code>ontology_report</code> (domain: {html.escape(str(data['domain']))},
-  renderer: autoimmune). Gene panel derived from the OpenCRAVAT <code>hpo</code> and
+  renderer: autoimmune). Gene panel derived from OpenCRAVAT <code>hpo</code> and
   <code>go</code> annotators; catalogued risk alleles from <code>gwas_catalog</code>;
   live study evidence from the EBI GWAS Catalog REST API; gene descriptions from
-  NCBI Gene (E-utilities). Autoimmune risk is polygenic and context-dependent —
-  this report summarises evidence, it is not a diagnosis.
+  NCBI Gene & OMIM. Autoimmune risk is polygenic and context-dependent —
+  this report summarises evidence, it is not a direct medical diagnosis.
 </footer>
 <script>
 function filterCards(q){{
   q=q.trim().toLowerCase();
   document.querySelectorAll('.card').forEach(function(c){{
-    var hay=(c.dataset.gene+' '+c.dataset.reasons).toLowerCase();
+    var hay=(c.dataset.gene+' '+c.dataset.reasons+' '+c.innerText).toLowerCase();
     c.style.display = (!q || hay.indexOf(q)>=0) ? '' : 'none';
   }});
 }}

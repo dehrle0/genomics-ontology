@@ -72,6 +72,11 @@ def probe(db_path):
         "sample_alt_reads": has(scols, "base__alt_reads"),
         "sample_tot_reads": has(scols, "base__tot_reads"),
         "sample_vaf": has(scols, "base__af"),
+        # --- Phasing / Haplotype blocks ---
+        "hap_block": first_present(vcols, ["vcfinfo__hap_block", "vcfinfo__ps", "vcfinfo__phase_set"]),
+        "hap_strand": first_present(vcols, ["vcfinfo__hap_strand", "vcfinfo__strand"]),
+        "sample_hap_block": has(scols, "base__hap_block"),
+        "sample_hap_strand": has(scols, "base__hap_strand"),
         # --- population ---
         "gnomad4_af": has(vcols, "gnomad4__af"),
         "allofus_af": first_present(vcols, ["allofus250k__gvs_all_af", "allofus250k__af"]),
@@ -114,6 +119,15 @@ def probe(db_path):
         # --- variant-level ontology (present only if --nogenelevelonvariantlevel off) ---
         "var_hpo_term": has(vcols, "hpo__term"),
         "var_go_bpo": has(vcols, "go__bpo_name"),
+        # --- Structural Variants & CNVs (SURVIVOR, CNV, Manta) ---
+        "svtype": first_present(vcols, ["vcfinfo__svtype", "survivor__svtype", "cnv__svtype", "manta__svtype", "base__type"]),
+        "svlen": first_present(vcols, ["vcfinfo__svlen", "survivor__svlen", "cnv__svlen", "manta__svlen"]),
+        "cnv_copy_number": first_present(vcols, ["cnv__copy_number", "cnv__cn", "vcfinfo__cn"]),
+        # --- Deep in silico predictors (EVE, PrimateAI, GERP, phyloP) ---
+        "eve_score": first_present(vcols, ["eve__score", "eve__eve_score", "eve__pathogenicity"]),
+        "primateai_score": first_present(vcols, ["primateai__score", "primateai__primateai_score"]),
+        "gerp_score": first_present(vcols, ["gerp__score", "gerp__gerp_rs"]),
+        "phylop_score": first_present(vcols, ["phylop__score", "phyloP__score"]),
         # literature / tissue
         "pubmed_n": first_present(vcols, ["pubmed__n"]),
         "gtex_tissue": has(vcols, "gtex__gtex_tissue"),

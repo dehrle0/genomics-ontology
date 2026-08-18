@@ -28,44 +28,50 @@ export OC_MODULES_DIR=/path/to/opencravat/modules
 ## 2. Running
 
 ```bash
-cd ~/My-Projects/genomics/development/ontology_report
-./run_ontology_report.sh [-c CONFIG] [-o] [-E] <INPUT> <OUTPUT_DIR> <PREFIX>
+cd ~/My-Projects/genomics/ontology_report
+./run_ontology_report.sh [-c CONFIG] [-R RENDERER] [-o] [-E] [-S] [-D] <INPUT> <OUTPUT_DIR> <PREFIX>
 ```
 
-- `-c CONFIG` — the **domain** config (default `config/cardiology.yaml`). This is
-  what makes the report cardiology, cancer, autoimmunity, neuro, etc.
-- `-o` — **offline** enrichment: never hit the network; use the enrichment cache
-  only (the report still builds, minus any un-cached live layers).
-- `-E` — skip the enrichment stage entirely.
-- `<INPUT>` — a `.vcf`/`.vcf.gz` (annotation runs first, hours on WGS) **or** an
-  existing OpenCRAVAT `.sqlite` (annotation skipped, seconds to minutes).
-- `<OUTPUT_DIR>` — where all deliverables are written.
-- `<PREFIX>` — patient/sample label used in filenames and the report header.
+### CLI Parameters & Options:
+- `-c CONFIG` — The **domain** config (e.g. `config/cardiology.yaml`, `config/hereditary_cancer.yaml`, `config/autoimmunity.yaml`).
+- `-R RENDERER` — The **visualization style**:
+  - `glass`: Modern Tailwind glassmorphism card layout with deep clinical metrics.
+  - `browser`: Desktop two-pane Variant Browser with searchable gene sidebar.
+  - `dashboard`: Executive overview with polygenic score percentiles and category filters.
+  - `autoimmune`: Specialized SVG trait-burden chart + live/cached GWAS study tables.
+- `-o` — **Offline enrichment**: Use the local cache only; make zero network calls.
+- `-E` — Skip the enrichment stage entirely.
+- `-S` — Split deliverables into monogenic and polygenic reports (dashboard mode).
+- `-D` — Automated Google Drive upload via `cloud_delivery_service.py`.
+- `<INPUT>` — An existing `.sqlite` database (annotation skipped, runs in seconds) or a raw `.vcf`/`.vcf.gz` (OpenCRAVAT annotation runs first).
+- `<OUTPUT_DIR>` — Destination directory for all reports and deliverables.
+- `<PREFIX>` — Sample/patient identifier used in filenames and report headers.
 
-Output files are namespaced by domain (`<prefix>_<domain>_report.html`, …) so you
-can run several domains into the same directory without collisions.
-
-### Example (two domains, same data)
+### Examples:
 
 ```bash
 OUT=/data/Genomes/TEST/Data/Final/2026-03-22/ontology_reports
-./run_ontology_report.sh -c config/cardiology.yaml        "$OUT/TEST.sqlite" "$OUT" TEST
-./run_ontology_report.sh -c config/hereditary_cancer.yaml "$OUT/TEST.sqlite" "$OUT" TEST
+
+# Run Cardiology in modern glassmorphism style:
+./run_ontology_report.sh -c config/cardiology.yaml -R glass "$OUT/TEST.sqlite" "$OUT" TEST
+
+# Run Two-Pane Variant Browser layout:
+./run_ontology_report.sh -c config/cardiology.yaml -R browser "$OUT/TEST.sqlite" "$OUT" TEST
+
+# Run Autoimmune domain with SVG trait-burden chart (offline):
+./run_ontology_report.sh -c config/autoimmunity.yaml -R autoimmune -o "$OUT/TEST.sqlite" "$OUT" TEST
 ```
 
-### The seven stages
+### The Seven Pipeline Stages:
 
-1. **Annotate** (skipped for `.sqlite`) — `oc run` with the full annotator set.
-2. **Build panel** — HPO + GO → `<prefix>_<domain>_panel.json`.
-3. **Probe schema** — detect which annotator columns exist (incl. genotype /
-   zygosity and dbSNP rsID) → `<prefix>_schema.json`.
-4. **Filter** — actionable selection + tiering → `<prefix>_<domain>_actionable.{sqlite,json}`.
-5. **Enrich** — NCBI Gene descriptions and (if the config asks) live GWAS Catalog
-   study evidence; cached to `<prefix>_<domain>_enrich_cache.json`. Skipped by
-   `-E`; `-o` forces cache-only.
-6. **Render** — HTML + TSV + text (renderer chosen by the config's
-   `report.renderer`: `generic` or `autoimmune`).
-7. **Native export** — OpenCRAVAT Excel + VCF of exactly the actionable set.
+1. **Annotate** (skipped for `.sqlite`) — Runs `oc run` across 100+ annotator modules.
+2. **Build Panel** — Extracts all genes annotated with target HPO phenotypes and GO functions into `<prefix>_<domain>_panel.json`.
+3. **Probe Schema** — Detects available annotator columns, zygosity fields, and dbSNP rsIDs → `<prefix>_schema.json`.
+4. **Filter & Tier** — Executes domain-agnostic actionability rules and assigns Tiers 1/2/3 with reason codes → `<prefix>_<domain>_actionable.{sqlite,json}`.
+5. **Enrich** — Injects NCBI Gene descriptions and live GWAS Catalog study evidence → cached in `<prefix>_<domain>_enrich_cache.json`.
+6. **Render** — Builds interactive HTML, flat TSV, and formatted text summary according to `-R <renderer>`.
+7. **Native Export** — Emits native OpenCRAVAT `.xlsx` and `.vcf` exports via `oc report --filtersql`.
+8. **Optional Cloud Delivery** — Dispatches report to Google Drive via `cloud_delivery_service.py` (`-D` flag).
 
 ---
 

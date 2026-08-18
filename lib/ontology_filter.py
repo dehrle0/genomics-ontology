@@ -42,7 +42,7 @@ GENE_TABLE_KEYS = {"gene_hpo_id", "gene_hpo_term", "gene_go_bpo", "gene_go_mfo",
 PULL_KEYS = [
     "uid", "hugo", "so", "coding", "achange", "cchange", "transcript",
     "chrom", "pos", "ref", "alt", "rsid",
-    "zygosity", "alt_reads", "tot_reads", "vaf",
+    "zygosity", "alt_reads", "tot_reads", "vaf", "hap_block", "hap_strand",
     "gnomad4_af", "allofus_af",
     "clinvar_sig", "clinvar_id", "clinvar_disease", "clinvar_rev",
     "clingen_class", "omim_id", "clinvar_acmg_ps1", "clinvar_acmg_pm5",
@@ -123,10 +123,45 @@ def _ontology_reasons(text, keywords):
     return sorted(set(hits))
 
 
+DEFAULT_PREDICTORS = {
+    "revel_min": 0.5,
+    "alphamissense_min": 0.564,
+    "bayesdel_min": 0.16,
+    "metarnn_min": 0.5,
+    "esm1b_max": -7.5,
+    "varity_min": 0.5,
+    "spliceai_min": 0.2,
+    "spliceai_tier1": 0.5,
+    "cadd_phred_min": 15.0,
+    "linsight_min": 0.8,
+    "ncer_min": 50.0,
+    "regulomedb_ranks": ["1a", "1b", "1c", "1d", "1e", "1f", "2a", "2b", "2c"],
+    "ccre_categories": ["PLS", "pELS", "dELS"],
+    "pp3_consensus_n": 3,
+}
+
+DEFAULT_FREQUENCY = {
+    "tier1_af": 0.005,
+    "tier2_af": 0.01,
+    "max_af": 0.05,
+}
+
+DEFAULT_NONCODING = {
+    "require_double_signal": True,
+    "cadd_phred_min": 15.0,
+    "linsight_min": 0.8,
+    "ncer_min": 50.0,
+    "ncer_percentile_min": 50.0,
+    "regulomedb_ranks": ["1a", "1b", "1c", "1d", "1e", "1f", "2a", "2b", "2c"],
+    "ccre_categories": ["PLS", "pELS", "dELS"],
+}
+
+
 def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
     """Given a dict row of pulled fields, return (keep, tier, reasons, evidence)."""
-    p = cfg["predictors"]
-    freq = cfg["frequency"]
+    p = cfg.get("predictors") or DEFAULT_PREDICTORS
+    freq = cfg.get("frequency") or DEFAULT_FREQUENCY
+    nc = cfg.get("noncoding") or DEFAULT_NONCODING
 
     reasons = []
     pheno = []
@@ -160,12 +195,14 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
     if row.get("omim_id"):
         pheno.append("OMIM_DISEASE")
 
-    hpo_hits = _ontology_reasons(row.get("gene_hpo_term"), cfg["hpo"].get("term_keywords"))
+    hpo_kws = (cfg.get("hpo") or {}).get("term_keywords") or []
+    hpo_hits = _ontology_reasons(row.get("gene_hpo_term"), hpo_kws)
     for h in hpo_hits:
         pheno.append(f"HPO_{h}")
     go_text = " ".join(t for t in (row.get("gene_go_bpo"), row.get("gene_go_mfo"),
                                     row.get("gene_go_cco")) if t)
-    go_hits = _ontology_reasons(go_text, cfg["go"].get("term_keywords"))
+    go_kws = (cfg.get("go") or {}).get("term_keywords") or []
+    go_hits = _ontology_reasons(go_text, go_kws)
     for g in go_hits:
         pheno.append(f"GO_{g}")
 
@@ -253,7 +290,7 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
         geno.append("RARE_TIER2")
 
     # Non-coding regulatory (only for non-coding-altering variants)
-    nc = cfg["noncoding"]
+    nc = cfg.get("noncoding") or DEFAULT_NONCODING
     noncoding_hits = []
     if not is_coding_altering:
         cadd = _num(row.get("cadd_phred"))
@@ -271,10 +308,22 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
     for h in noncoding_hits:
         geno.append(h)
 
+    # ---------------- Structural Variant (SV) / CNV Signals ----------------
+    svtype = str(row.get("svtype") or "").upper()
+    cnv_cn = _num(row.get("cnv_copy_number"))
+    if svtype in ("DEL", "DELETION") or cnv_cn == 0 or (cnv_cn == 1 and hugo in haploinsufficient):
+        geno.append("SV_DEL_LOF")
+        is_lof = True
+    elif svtype in ("DUP", "DUPLICATION") or (cnv_cn is not None and cnv_cn > 2):
+        geno.append("SV_DUP")
+    elif svtype in ("BND", "INV", "TRANSLOCATION", "INVERSION"):
+        geno.append("SV_BREAKPOINT")
+
     # ---------------- Actionability gate ----------------
     clinvar_plp = (cvc == "PLP")
     clinvar_vus = cvc in ("VUS", "CONFLICT")
     splice_signal = ("SPLICEAI_HIGH" in geno) or ("SPLICEAI_MOD" in geno)
+    sv_signal = ("SV_DEL_LOF" in geno) or ("SV_BREAKPOINT" in geno)
 
     keep = False
     if clinvar_plp:
@@ -284,7 +333,7 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
         keep = True
     elif over_ceiling:
         keep = False
-    elif is_coding_altering:
+    elif is_coding_altering or sv_signal:
         keep = True
     elif splice_signal:
         keep = True
@@ -303,16 +352,17 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
     strong_missense = consensus and (is_rare_t2 or is_rare_t1)
     if clinvar_plp:
         tier = "Tier3" if over_ceiling else "Tier1"
-    elif lof_in_hi:
+    elif lof_in_hi or ("SV_DEL_LOF" in geno):
         tier = "Tier1"
-        geno.append("PVS1_HAPLOINSUFFICIENT")
-    elif "SPLICEAI_HIGH" in geno:
+        if lof_in_hi:
+            geno.append("PVS1_HAPLOINSUFFICIENT")
+    elif "SPLICEAI_HIGH" in geno or ("SV_BREAKPOINT" in geno):
         tier = "Tier1"
     elif strong_missense:
         tier = "Tier1"
     elif clinvar_vus:
         tier = "Tier2"
-    elif (pred_hits and (is_rare_t2 or is_rare_t1)) or "SPLICEAI_MOD" in geno:
+    elif (pred_hits and (is_rare_t2 or is_rare_t1)) or "SPLICEAI_MOD" in geno or ("SV_DUP" in geno):
         tier = "Tier2"
     elif is_lof or (is_missense and (is_rare_t2 or is_rare_t1)):
         tier = "Tier2"
@@ -325,17 +375,58 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
 
     reasons = pheno + geno + reasons
     zyg = zygosity_label(row.get("zygosity"))
+    raw_zyg = str(row.get("zygosity") or "")
+    hap_block = row.get("hap_block")
+    hap_strand = row.get("hap_strand")
+    phase_origin = None
+    if "|" in raw_zyg or (hap_strand is not None and str(hap_strand) != "") or (hap_block is not None and str(hap_block) != ""):
+        if str(hap_strand) in ("1", "1.0") or "0|1" in raw_zyg:
+            phase_origin = "Maternal"
+        elif str(hap_strand) in ("0", "0.0") or "1|0" in raw_zyg:
+            phase_origin = "Paternal"
+        else:
+            phase_origin = "Phased"
+        if hap_block not in (None, "", "-", "None"):
+            phasing_str = f"Phased: {phase_origin} (PS #{hap_block})"
+        else:
+            phasing_str = f"Phased: {phase_origin}"
+    else:
+        phasing_str = "Unphased (Short-Read WGS)"
+
     evidence = {
         "gnomad4_af": gnomad,
         "allofus_af": aou,
         "spliceai_max": spliceai_max,
         "predictors": pred_hits,
+        "predictors_detail": {
+            "EVE": row.get("eve_score"),
+            "ClinVar": cvc or row.get("clinvar_sig"),
+            "SpliceAI": spliceai_max,
+            "PrimateAI": row.get("primateai_score"),
+            "AlphaMissense": row.get("am_path") or row.get("am_class"),
+            "ESM1b": row.get("esm1b"),
+            "BayesDel": row.get("bayesdel"),
+            "CADD": row.get("cadd_phred"),
+            "REVEL": row.get("revel"),
+            "Varity": row.get("varity"),
+            "LINSIGHT": row.get("linsight"),
+            "GERP": row.get("gerp_score"),
+            "phyloP": row.get("phylop_score"),
+            "gnomAD4_AF": gnomad,
+            "AllOfUs_AF": aou,
+            "SV_Type": row.get("svtype"),
+            "SV_Len": row.get("svlen"),
+            "CNV_CopyNumber": row.get("cnv_copy_number"),
+        },
         "clinvar_class": cvc,
         "hpo_context": hpo_hits,
         "go_context": go_hits,
         "panel_support": panel.get(hugo, {}).get("support"),
         "zygosity": zyg,
         "vaf": compute_vaf(row.get("vaf"), row.get("alt_reads"), row.get("tot_reads")),
+        "phasing": phasing_str,
+        "phase_origin": phase_origin,
+        "hap_block": hap_block,
     }
     return True, tier, reasons, evidence
 
@@ -407,6 +498,8 @@ def run(raw_db, panel_path, schema_path, config_path, out_sqlite, out_json, pati
             "alt_reads": schema.get("sample_alt_reads"),
             "tot_reads": schema.get("sample_tot_reads"),
             "vaf": schema.get("sample_vaf"),
+            "hap_block": schema.get("sample_hap_block"),
+            "hap_strand": schema.get("sample_hap_strand"),
         }
         sel = ", ".join(f'"{col}" AS {alias}' for alias, col in s_map.items() if col)
         try:

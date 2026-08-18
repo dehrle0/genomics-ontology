@@ -1,3 +1,29 @@
+import sqlite3
+
+LOCAL_NCBIGENE_DB = "/data/opencravat/modules/annotators/ncbigene/data/ncbigene.sqlite"
+
+def local_ncbigene_info(symbol):
+    """Fallback lookup in local OpenCRAVAT ncbigene.sqlite database."""
+    if not symbol or not os.path.exists(LOCAL_NCBIGENE_DB):
+        return None
+    try:
+        conn = sqlite3.connect(f"file:{LOCAL_NCBIGENE_DB}?mode=ro", uri=True)
+        cur = conn.cursor()
+        row = cur.execute("SELECT id, description FROM ncbigene WHERE gene_symbol=?", (symbol,)).fetchone()
+        conn.close()
+        if row:
+            gid, desc = row
+            return {
+                "ncbi_gene_id": str(gid) if gid else None,
+                "description": desc,
+                "summary": desc,
+                "map_location": None,
+                "aliases": None,
+            }
+    except Exception:
+        pass
+    return None
+
 #!/usr/bin/env python3
 """
 enrich_report.py
@@ -119,6 +145,10 @@ def gene_info(fetcher, symbol):
     if ck in fetcher.cache and "ok" in fetcher.cache[ck]:
         return fetcher.cache[ck]["ok"]
     if fetcher.offline and ck not in fetcher.cache:
+        loc = local_ncbigene_info(symbol)
+        if loc:
+            fetcher.cache[ck] = {"ok": loc, "ts": int(time.time())}
+            return loc
         return None
 
     term = urllib.parse.quote(f"{symbol}[sym] AND Homo sapiens[orgn]")
@@ -127,8 +157,9 @@ def gene_info(fetcher, symbol):
     sd = fetcher.get_json(search_url, f"gene_search:{symbol}")
     ids = (sd or {}).get("esearchresult", {}).get("idlist", []) if sd else []
     if not ids:
-        fetcher.cache[ck] = {"ok": None, "ts": int(time.time())}
-        return None
+        loc = local_ncbigene_info(symbol)
+        fetcher.cache[ck] = {"ok": loc, "ts": int(time.time())}
+        return loc
     gid = ids[0]
     sum_url = fetcher._ncbi_key(
         f"{NCBI_EUTILS}/esummary.fcgi?db=gene&id={gid}&retmode=json")
@@ -252,6 +283,10 @@ def gene_trait_summary(fetcher, symbol, max_traits=8):
     if ck in fetcher.cache and "ok" in fetcher.cache[ck]:
         return fetcher.cache[ck]["ok"]
     if fetcher.offline and ck not in fetcher.cache:
+        loc = local_ncbigene_info(symbol)
+        if loc:
+            fetcher.cache[ck] = {"ok": loc, "ts": int(time.time())}
+            return loc
         return None
     url = (f"{GWAS_API}/singleNucleotidePolymorphisms/search/findByGene"
            f"?geneName={urllib.parse.quote(symbol)}")

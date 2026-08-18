@@ -96,10 +96,6 @@ def build_panel(config_path, out_path):
     with open(config_path) as f:
         cfg = yaml.safe_load(f)
 
-    hpo_cfg = cfg.get("hpo", {}) or {}
-    go_cfg = cfg.get("go", {}) or {}
-    panel_cfg = cfg.get("panel", {}) or {}
-
     if not os.path.exists(hpo_db()):
         sys.exit(f"[panel] HPO data not found: {hpo_db()}")
     if not os.path.exists(go_db()):
@@ -108,25 +104,58 @@ def build_panel(config_path, out_path):
     hcur = sqlite3.connect(f"file:{hpo_db()}?mode=ro", uri=True).cursor()
     gcur = sqlite3.connect(f"file:{go_db()}?mode=ro", uri=True).cursor()
 
-    hpo_hits = _genes_for_hpo(
-        hcur, hpo_cfg.get("term_ids", []) or [], hpo_cfg.get("term_keywords", []) or []
-    )
-    go_hits = _genes_for_go(
-        gcur,
-        go_cfg.get("term_ids", []) or [],
-        go_cfg.get("term_keywords", []) or [],
-        bool(go_cfg.get("drop_iea_only", False)),
-    )
+    # Determine if single-domain or multi-domain registry
+    domain_sections = []
+    if "hpo" in cfg or "go" in cfg or "panel" in cfg:
+        domain_sections.append(cfg)
+    else:
+        systems = cfg.get("level1_systems", cfg)
+        for k, v in systems.items():
+            if isinstance(v, dict):
+                domain_sections.append(v)
+                for l2k, l2v in (v.get("level2_subcategories") or {}).items():
+                    if isinstance(l2v, dict):
+                        domain_sections.append(l2v)
 
-    min_support = int(panel_cfg.get("min_ontology_support", 1))
-    force_include = set(panel_cfg.get("force_include", []) or [])
-    force_exclude = set(panel_cfg.get("force_exclude", []) or [])
+    hpo_hits = {}
+    go_hits = {}
+    force_include = set()
+    force_exclude = set()
+    min_support = 1
+    config_domain = cfg.get("domain", "all_domains") if "domain" in cfg else "master_hub"
+
+    for sec in domain_sections:
+        hpo_cfg = sec.get("hpo", {}) or {}
+        go_cfg = sec.get("go", {}) or {}
+        panel_cfg = sec.get("panel", {}) or {}
+
+        h_terms = (hpo_cfg.get("term_ids", []) or []) + (sec.get("hpo_terms", []) or [])
+        h_kws = (hpo_cfg.get("term_keywords", []) or []) + (sec.get("keywords", []) or [])
+
+        g_terms = (go_cfg.get("term_ids", []) or []) + (sec.get("go_terms", []) or [])
+        g_kws = (go_cfg.get("term_keywords", []) or [])
+
+        h_hits = _genes_for_hpo(hcur, h_terms, h_kws)
+        g_hits = _genes_for_go(
+            gcur,
+            g_terms,
+            g_kws,
+            bool(go_cfg.get("drop_iea_only", False)),
+        )
+
+        for g, terms in h_hits.items():
+            hpo_hits.setdefault(g, set()).update(terms)
+        for g, terms in g_hits.items():
+            go_hits.setdefault(g, set()).update(terms)
+
+        force_include.update(panel_cfg.get("force_include", []) or [])
+        force_exclude.update(panel_cfg.get("force_exclude", []) or [])
+        if "min_ontology_support" in panel_cfg:
+            min_support = int(panel_cfg["min_ontology_support"])
 
     genes = {}
-    all_genes = set(hpo_hits) | set(go_hits) | force_include
+    all_genes = (set(hpo_hits) | set(go_hits) | force_include) - force_exclude
     for g in sorted(all_genes):
-        if g in force_exclude:
-            continue
         hpo_terms = sorted(hpo_hits.get(g, set()))
         go_terms = sorted(go_hits.get(g, set()))
         support = (1 if hpo_terms else 0) + (1 if go_terms else 0)
@@ -141,7 +170,7 @@ def build_panel(config_path, out_path):
         }
 
     panel = {
-        "config_domain": cfg.get("domain", "unknown"),
+        "config_domain": config_domain,
         "genes": genes,
         "counts": {
             "total_genes": len(genes),

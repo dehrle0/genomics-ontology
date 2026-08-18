@@ -4,8 +4,11 @@ render_report.py
 Turn the actionable-variant JSON (from ontology_filter.py) into human
 deliverables: a styled interactive HTML report, a flat TSV, and a text summary.
 
-This version features a modern glassmorphism aesthetic, sleek UI layout, 
-and supports a wider array of clinical/functional annotators.
+Features:
+- Modern Glassmorphism aesthetic & responsive grid layout.
+- Bold NCBI Gene summaries & OMIM Clinical Synopsis (Gene Inspector Pro style).
+- Phasing & Parental Inheritance tracking (Maternal vs Paternal transmission).
+- Detailed bottom ontology context box with live HPO, GenCC, and OMIM reference links.
 """
 import argparse
 import html
@@ -55,12 +58,26 @@ def _fmt_af(v):
 def _clinvar_link(cid, sig):
     if cid:
         url = f"https://www.ncbi.nlm.nih.gov/clinvar/variation/{cid}/"
-        return f'<a href="{url}" target="_blank">{html.escape(sig or "see ClinVar")}</a>'
+        return f'<a href="{url}" target="_blank" class="text-blue-600 font-semibold hover:underline">{html.escape(sig or "see ClinVar")}</a>'
     return html.escape(sig or "-")
 
 
+def _phase_badge(ev):
+    ph = ev.get("phasing") or ""
+    origin = ev.get("phase_origin")
+    if not ph or ph == "Unphased (Short-Read WGS)":
+        return '<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">Unphased (40x WGS)</span>'
+    cls = "bg-purple-100 text-purple-800 border-purple-200"
+    if origin == "Maternal":
+        cls = "bg-pink-100 text-pink-800 border-pink-200 font-semibold"
+    elif origin == "Paternal":
+        cls = "bg-blue-100 text-blue-800 border-blue-200 font-semibold"
+    label = html.escape(ph)
+    return f'<span class="px-2 py-0.5 rounded text-[11px] border {cls}" title="Parental / chromosomal phase assignment">{label}</span>'
+
+
 def write_tsv(records, path):
-    cols = ["tier", "hugo", "gene_description", "zygosity", "vaf", "rsid",
+    cols = ["tier", "hugo", "gene_description", "zygosity", "phasing", "vaf", "rsid",
             "chrom", "pos", "ref", "alt", "so", "achange",
             "cchange", "transcript", "gnomad4_af", "allofus_af", "clinvar_sig",
             "clinvar_id", "revel", "am_path", "cadd_phred", "spliceai_max",
@@ -76,6 +93,8 @@ def write_tsv(records, path):
                     v = ev.get("spliceai_max")
                 elif c == "zygosity":
                     v = ev.get("zygosity")
+                elif c == "phasing":
+                    v = ev.get("phasing")
                 elif c == "vaf":
                     v = ev.get("vaf")
                 elif c == "gene_description":
@@ -91,10 +110,10 @@ def write_tsv(records, path):
 def write_text(data, path):
     title = data.get("report_title", "Ontology-Driven Actionable Report")
     lines = []
-    lines.append("=" * 70)
+    lines.append("=" * 72)
     lines.append(title.upper())
     lines.append(f"Patient: {data['patient']}    Domain: {data['domain']}")
-    lines.append("=" * 70)
+    lines.append("=" * 72)
     lines.append(f"Ontology gene panel size : {data['panel_gene_count']}")
     lines.append(f"Panel-gene variants scan : {data['scanned_panel_variants']}")
     lines.append(f"Actionable variants kept : {data['actionable_count']}")
@@ -105,23 +124,27 @@ def write_text(data, path):
         recs = [r for r in data["records"] if r["tier"] == tier]
         if not recs:
             continue
-        lines.append("-" * 70)
+        lines.append("-" * 72)
         lines.append(f"{TIER_LABEL[tier]}  ({len(recs)})")
-        lines.append("-" * 70)
+        lines.append("-" * 72)
         for r in recs:
             so = SO_NAME.get(r.get("so"), r.get("so") or "?")
             ev = r.get("evidence", {})
             zyg = ev.get("zygosity")
+            ph = ev.get("phasing")
             lines.append(
                 f"  {r['hugo']:10} {r.get('chrom','')}:{r.get('pos','')} "
                 f"{_fmt_allele(r.get('ref'))}>{_fmt_allele(r.get('alt'))}  [{so}] "
                 f"{_fmt_allele(r.get('achange'), 24) if r.get('achange') else ''}"
-                f"{('  ' + zyg) if zyg else ''}"
+                f"{('  [' + zyg + ']') if zyg else ''}"
+                f"{('  [' + ph + ']') if ph else ''}"
             )
             gi = r.get("gene_info") or {}
             if gi.get("description"):
                 lines.append(f"      NCBI: {gi['description']}"
                              f"{('  [' + gi['map_location'] + ']') if gi.get('map_location') else ''}")
+            if r.get("omim_id"):
+                lines.append(f"      OMIM: MIM #{r.get('omim_id')}  {r.get('clinvar_disease') or ''}")
             lines.append(f"      gnomAD4={_fmt_af(r.get('gnomad4_af'))} "
                          f"AoU={_fmt_af(r.get('allofus_af'))} "
                          f"ClinVar={r.get('clinvar_sig') or '-'}")
@@ -139,9 +162,9 @@ def _reason_badges(reasons):
             cls = "bg-green-100 text-green-800 border-green-200"
         if rc in ("PVS1_HAPLOINSUFFICIENT", "PP3_CONSENSUS", "SPLICEAI_HIGH", "PM2_RARE"):
             cls = "bg-red-100 text-red-800 border-red-200 font-semibold"
-        if rc == "COMMON_AF_FLAG":
+        if rc in ("COMMON_AF_FLAG", "RISK_ALLELE_COMMON"):
             cls = "bg-orange-100 text-orange-800 border-orange-200"
-        out.append(f'<span class="px-2 py-0.5 rounded-full text-[10px] border {cls}">{html.escape(rc)}</span>')
+        out.append(f'<span class="px-2 py-0.5 rounded-full text-[11px] border {cls}">{html.escape(rc)}</span>')
     return "".join(out)
 
 
@@ -151,23 +174,38 @@ def _zyg_badge(zyg):
     cls = {"Heterozygous": "bg-yellow-100 text-yellow-800 border-yellow-200", 
            "Homozygous": "bg-red-100 text-red-800 border-red-200",
            "Hemizygous": "bg-purple-100 text-purple-800 border-purple-200"}.get(zyg, "bg-gray-100 text-gray-800 border-gray-200")
-    return f'<span class="px-2 py-0.5 rounded-md text-xs font-semibold border {cls}">{html.escape(zyg)}</span>'
+    return f'<span class="px-2.5 py-0.5 rounded-md text-xs font-bold border {cls}">{html.escape(zyg)}</span>'
 
 
 def _gene_desc_block(r):
-    gi = r.get("gene_info")
-    if not gi:
-        return ""
+    gi = r.get("gene_info") or {}
     gid = gi.get("ncbi_gene_id")
     desc = gi.get("description") or ""
     loc = gi.get("map_location")
-    link = (f'<a href="https://www.ncbi.nlm.nih.gov/gene/{html.escape(str(gid))}" '
-            f'target="_blank" class="text-indigo-500 hover:text-indigo-600 transition-colors">NCBI&#8599;</a>') if gid else ""
-    loc_txt = f' <span class="font-mono text-gray-500">{html.escape(loc)}</span>' if loc else ""
-    if not (desc or gid):
-        return ""
-    return (f'<div class="text-sm text-gray-700 mt-2 mb-1 leading-relaxed"><span class="text-[10px] uppercase tracking-wider text-white bg-indigo-600 rounded px-1.5 py-0.5 mr-1.5">NCBI Gene</span> '
-            f'{html.escape(desc)}{loc_txt} {link}</div>')
+    omim_id = r.get("omim_id")
+    clin_dis = r.get("clinvar_disease")
+    
+    parts = []
+    if desc or gid:
+        link = (f'<a href="https://www.ncbi.nlm.nih.gov/gene/{html.escape(str(gid))}" '
+                f'target="_blank" class="text-indigo-600 font-semibold hover:underline">NCBI&#8599;</a>') if gid else ""
+        loc_txt = f' <span class="font-mono text-slate-500 font-normal text-xs">[{html.escape(loc)}]</span>' if loc else ""
+        parts.append(f'<div class="text-[14.5px] text-slate-900 mt-2.5 mb-1.5 leading-relaxed font-semibold">'
+                     f'<span class="text-[10px] uppercase tracking-wider text-white bg-indigo-600 rounded px-2 py-0.5 mr-2 font-bold">NCBI Gene</span>'
+                     f'{html.escape(desc)}{loc_txt} {link}</div>')
+    
+    if omim_id or clin_dis:
+        omim_parts = []
+        if omim_id:
+            omim_link = f'<a href="https://omim.org/entry/{html.escape(str(omim_id))}" target="_blank" class="text-purple-600 font-bold hover:underline">OMIM #{html.escape(str(omim_id))}&#8599;</a>'
+            omim_parts.append(omim_link)
+        if clin_dis:
+            omim_parts.append(f'<span class="text-slate-700 font-medium text-xs">{html.escape(str(clin_dis))}</span>')
+        parts.append(f'<div class="text-xs text-slate-700 mt-1 mb-2 bg-purple-50/70 border-l-4 border-purple-500 p-2 rounded-r-lg">'
+                     f'<span class="text-[10px] uppercase tracking-wider font-bold text-purple-700 mr-2">OMIM Clinical Synopsis</span>'
+                     f'{" &nbsp;|&nbsp; ".join(omim_parts)}</div>')
+    
+    return "".join(parts)
 
 
 def _card(r):
@@ -182,9 +220,8 @@ def _card(r):
     vaf = ev.get("vaf")
     rsid = r.get("rsid")
     rsid_html = (f'<a href="https://www.ncbi.nlm.nih.gov/snp/{html.escape(str(rsid))}" '
-                 f'target="_blank" class="text-blue-500 hover:underline">{html.escape(str(rsid))}</a>') if rsid and str(rsid).startswith("rs") else (html.escape(str(rsid)) if rsid else "-")
+                 f'target="_blank" class="text-blue-600 hover:underline font-mono font-medium">{html.escape(str(rsid))}</a>') if rsid and str(rsid).startswith("rs") else (html.escape(str(rsid)) if rsid else "-")
     
-    # Extra annotations
     pharm = r.get("pharmgkb__chemicals")
     pharm_html = f'<div><label>PharmGKB</label><span class="truncate block" title="{html.escape(str(pharm))}">{html.escape(str(pharm))}</span></div>' if pharm else ""
     civic = r.get("civic__clinical_significance")
@@ -195,38 +232,64 @@ def _card(r):
     denovo_html = f'<div><label>DeNovo PMID</label><span>{html.escape(str(denovo))}</span></div>' if denovo else ""
     
     return f"""
-    <div class="variant-card bg-white/80 backdrop-blur-xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl p-5 mb-5 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-0.5" data-gene="{gene}" data-reasons="{html.escape(' '.join(r.get('reason_codes', [])))}">
+    <div class="variant-card bg-white/85 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl p-6 mb-6 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-0.5" data-gene="{gene}" data-reasons="{html.escape(' '.join(r.get('reason_codes', [])))}">
       <div class="flex flex-wrap items-baseline gap-3 pb-3 border-b border-slate-100">
-        <span class="font-bold text-lg text-slate-800">{gene}</span>
+        <span class="font-extrabold text-xl text-slate-900">{gene}</span>
         {_zyg_badge(zyg)}
-        <span class="font-mono text-slate-500 text-sm">{html.escape(str(r.get('chrom','')))}:{html.escape(str(r.get('pos','')))}
+        {_phase_badge(ev)}
+        <span class="font-mono text-slate-500 text-sm font-medium">{html.escape(str(r.get('chrom','')))}:{html.escape(str(r.get('pos','')))}
           {html.escape(_fmt_allele(r.get('ref')))}&gt;{html.escape(_fmt_allele(r.get('alt')))}</span>
-        <span class="bg-slate-100 text-slate-600 rounded-lg px-2.5 py-0.5 text-xs font-medium">{html.escape(so)}</span>
-        <span class="text-indigo-700 font-mono text-sm">{html.escape(_fmt_allele(r.get('achange') or r.get('cchange') or '', 28))}</span>
+        <span class="bg-slate-100 text-slate-700 rounded-lg px-2.5 py-0.5 text-xs font-semibold">{html.escape(so)}</span>
+        <span class="text-indigo-700 font-mono text-sm font-semibold">{html.escape(_fmt_allele(r.get('achange') or r.get('cchange') or '', 28))}</span>
       </div>
       {_gene_desc_block(r)}
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-3 mt-4 mb-4 metrics-grid">
-        <div><label>Zygosity</label><span>{html.escape(zyg or '-')}</span></div>
-        <div><label>Variant allele frac</label><span>{_fmt_af(vaf) if vaf is not None else '-'}</span></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-3 mt-4 mb-4 metrics-grid bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+        <div><label>Zygosity</label><span class="font-semibold text-slate-800">{html.escape(zyg or '-')}</span></div>
+        <div><label>Variant Allele Frac</label><span>{_fmt_af(vaf) if vaf is not None else '-'}</span></div>
         <div><label>dbSNP</label><span>{rsid_html}</span></div>
         <div><label>gnomAD4 AF</label><span>{_fmt_af(r.get('gnomad4_af'))}</span></div>
         <div><label>All of Us AF</label><span>{_fmt_af(r.get('allofus_af'))}</span></div>
         <div><label>ClinVar</label><span>{_clinvar_link(r.get('clinvar_id'), r.get('clinvar_sig'))}</span></div>
         <div><label>REVEL</label><span>{html.escape(str(r.get('revel') or '-'))}</span></div>
         <div><label>AlphaMissense</label><span>{html.escape(str(r.get('am_path') or '-'))}</span></div>
-        <div><label>SpliceAI max</label><span>{html.escape(str(ev.get('spliceai_max') if ev.get('spliceai_max') is not None else '-'))}</span></div>
-        <div><label>CADD phred</label><span>{html.escape(str(r.get('cadd_phred') or '-'))}</span></div>
-        <div><label>Panel support</label><span>{html.escape(str(ev.get('panel_support') or '-'))}/2</span></div>
+        <div><label>SpliceAI Max</label><span>{html.escape(str(ev.get('spliceai_max') if ev.get('spliceai_max') is not None else '-'))}</span></div>
+        <div><label>CADD Phred</label><span>{html.escape(str(r.get('cadd_phred') or '-'))}</span></div>
+        <div><label>Panel Support</label><span class="font-bold text-indigo-700">{html.escape(str(ev.get('panel_support') or '-'))}/2</span></div>
         {pharm_html}
         {civic_html}
         {interpro_html}
         {denovo_html}
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 mt-3 mb-4 text-sm bg-slate-50/50 p-3 rounded-xl border border-slate-100/50">
-        <div><label class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold block mb-0.5">HPO phenotype context</label><span class="text-slate-700">{html.escape(hpo_ctx)}</span>
-          &nbsp;<a href="{hpo_gene_link}" target="_blank" class="text-indigo-500 hover:underline text-xs">HPO&#8599;</a></div>
-        <div><label class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold block mb-0.5">GO function context</label><span class="text-slate-700">{html.escape(go_ctx)}</span>
-          &nbsp;<a href="{gene_link}" target="_blank" class="text-indigo-500 hover:underline text-xs">GenCC&#8599;</a></div>
+
+      <!-- Collapsible Deep Predictor Drawer -->
+      <div class="mt-2 border-t border-slate-100 pt-2">
+        <button onclick="togglePredictorDrawer(this)" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 focus:outline-none transition-colors py-1">
+          <span class="drawer-icon inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 font-mono font-bold text-xs">+</span>
+          <span>Expand Deep Predictor Annotations (EVE, ClinVar, SpliceAI, PrimateAI, ESM1b, BayesDel, CADD, GERP++)</span>
+        </button>
+        <div class="predictor-drawer hidden mt-3 p-4 bg-slate-900 text-slate-100 rounded-xl border border-slate-700 text-xs shadow-inner">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">EVE Pathogenicity</span><span class="font-mono font-semibold text-amber-300">{html.escape(str(r.get('eve_score') or ev.get('predictors_detail',{}).get('EVE') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">ClinVar Class</span><span class="font-mono font-semibold text-emerald-300">{html.escape(str(r.get('clinvar_sig') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">SpliceAI Max</span><span class="font-mono font-semibold text-cyan-300">{html.escape(str(ev.get('spliceai_max') if ev.get('spliceai_max') is not None else '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">PrimateAI Score</span><span class="font-mono font-semibold text-blue-300">{html.escape(str(r.get('primateai_score') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">AlphaMissense</span><span class="font-mono font-semibold text-indigo-300">{html.escape(str(r.get('am_path') or r.get('am_class') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">ESM1b Score</span><span class="font-mono font-semibold text-purple-300">{html.escape(str(r.get('esm1b') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">BayesDel Score</span><span class="font-mono font-semibold text-pink-300">{html.escape(str(r.get('bayesdel') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">CADD Phred</span><span class="font-mono font-semibold text-red-300">{html.escape(str(r.get('cadd_phred') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">REVEL Score</span><span class="font-mono font-semibold text-yellow-300">{html.escape(str(r.get('revel') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">GERP++ RS</span><span class="font-mono font-semibold text-green-300">{html.escape(str(r.get('gerp_score') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">phyloP Score</span><span class="font-mono font-semibold text-teal-300">{html.escape(str(r.get('phylop_score') or '-'))}</span></div>
+            <div><span class="text-slate-400 block font-bold text-[10px] uppercase tracking-wider">Phasing Origin</span><span class="font-mono font-semibold text-indigo-200">{html.escape(str(ev.get('phasing') or '-'))}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 mt-3 mb-4 text-sm bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/60">
+        <div><label class="text-[10px] uppercase tracking-wider text-slate-500 font-bold block mb-1">HPO Phenotype Context</label><span class="text-slate-800 font-medium">{html.escape(hpo_ctx)}</span>
+          &nbsp;<a href="{hpo_gene_link}" target="_blank" class="text-indigo-600 font-semibold hover:underline text-xs">HPO&#8599;</a></div>
+        <div><label class="text-[10px] uppercase tracking-wider text-slate-500 font-bold block mb-1">GO Function Context</label><span class="text-slate-800 font-medium">{html.escape(go_ctx)}</span>
+          &nbsp;<a href="{gene_link}" target="_blank" class="text-indigo-600 font-semibold hover:underline text-xs">GenCC&#8599;</a></div>
       </div>
       <div class="flex flex-wrap gap-1.5 mt-2">{_reason_badges(r.get('reason_codes', []))}</div>
     </div>"""
@@ -245,13 +308,12 @@ def write_html(data, path):
         <section class="mb-10" id="{tier}">
           <h2 class="text-xl font-bold mb-5 flex items-center gap-3" style="color: {TIER_COLOR[tier]}">
             {html.escape(TIER_LABEL[tier])} 
-            <span class="bg-white/60 text-slate-700 text-sm px-3 py-0.5 rounded-full border border-slate-200 shadow-sm">{len(recs)}</span>
+            <span class="bg-white/70 text-slate-800 text-sm px-3 py-0.5 rounded-full border border-slate-200 shadow-sm font-bold">{len(recs)}</span>
           </h2>
           {cards}
         </section>""")
     body = "\n".join(sections)
     
-    # Modern Glassmorphism CSS + Tailwind via CDN
     doc = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -259,7 +321,7 @@ def write_html(data, path):
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{html.escape(title)} — {html.escape(data['patient'])}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {{
             font-family: 'Inter', sans-serif;
@@ -267,49 +329,38 @@ def write_html(data, path):
             background-attachment: fixed;
             color: #1e293b;
         }}
-        /* Pattern overlay for texture */
-        body::before {{
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2394a3b8' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            z-index: -1;
-        }}
         .metrics-grid label {{
             display: block;
             font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             color: #64748b;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 2px;
         }}
         .metrics-grid span {{
-            font-size: 14px;
-            color: #334155;
-            font-weight: 400;
+            font-size: 13.5px;
+            color: #1e293b;
         }}
         @media print {{ 
             .noprint {{ display: none; }} 
             .variant-card {{ page-break-inside: avoid; box-shadow: none !important; border: 1px solid #ccc !important; }}
             body {{ background: white !important; }}
-            body::before {{ display: none; }}
         }}
     </style>
 </head>
 <body class="antialiased min-h-screen">
     
     <header class="relative overflow-hidden bg-slate-900 text-white px-8 py-10 shadow-xl">
-        <!-- Decorative gradients -->
         <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-indigo-500 blur-3xl opacity-20 pointer-events-none"></div>
         <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-blue-500 blur-3xl opacity-20 pointer-events-none"></div>
         
         <div class="relative z-10 max-w-7xl mx-auto">
-            <h1 class="text-3xl font-bold tracking-tight mb-2">{html.escape(title)}</h1>
+            <h1 class="text-3xl font-extrabold tracking-tight mb-2">{html.escape(title)}</h1>
             <div class="text-slate-300 font-medium tracking-wide text-sm flex items-center flex-wrap gap-x-6 gap-y-2">
                 <span>Patient: <b class="text-white">{html.escape(data['patient'])}</b></span>
                 <span class="text-slate-600">|</span>
-                <span>Domain: <span class="text-indigo-300">{html.escape(str(data['domain']))}</span></span>
+                <span>Domain: <span class="text-indigo-300 font-bold">{html.escape(str(data['domain']))}</span></span>
                 <span class="text-slate-600">|</span>
                 <span>Ontology Panel: <b class="text-white">{data['panel_gene_count']}</b> genes</span>
             </div>
@@ -320,36 +371,36 @@ def write_html(data, path):
         
         <!-- Summary Stats -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div class="bg-white/60 backdrop-blur-lg border border-white/40 shadow-sm rounded-2xl p-5 flex flex-col justify-center">
-                <span class="text-3xl font-bold text-slate-800">{data['actionable_count']}</span>
-                <span class="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mt-1">Actionable Variants</span>
+            <div class="bg-white/70 backdrop-blur-lg border border-white/50 shadow-sm rounded-2xl p-5 flex flex-col justify-center">
+                <span class="text-3xl font-extrabold text-slate-800">{data['actionable_count']}</span>
+                <span class="text-[11px] uppercase tracking-wider font-bold text-slate-500 mt-1">Actionable Variants</span>
             </div>
-            <div class="bg-white/60 backdrop-blur-lg border border-white/40 shadow-sm rounded-2xl p-5 flex flex-col justify-center">
-                <span class="text-3xl font-bold" style="color: {TIER_COLOR['Tier1']}">{tc['Tier1']}</span>
-                <span class="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mt-1">Tier 1</span>
+            <div class="bg-white/70 backdrop-blur-lg border border-white/50 shadow-sm rounded-2xl p-5 flex flex-col justify-center">
+                <span class="text-3xl font-extrabold" style="color: {TIER_COLOR['Tier1']}">{tc['Tier1']}</span>
+                <span class="text-[11px] uppercase tracking-wider font-bold text-slate-500 mt-1">Tier 1 Pathogenic</span>
             </div>
-            <div class="bg-white/60 backdrop-blur-lg border border-white/40 shadow-sm rounded-2xl p-5 flex flex-col justify-center">
-                <span class="text-3xl font-bold" style="color: {TIER_COLOR['Tier2']}">{tc['Tier2']}</span>
-                <span class="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mt-1">Tier 2</span>
+            <div class="bg-white/70 backdrop-blur-lg border border-white/50 shadow-sm rounded-2xl p-5 flex flex-col justify-center">
+                <span class="text-3xl font-extrabold" style="color: {TIER_COLOR['Tier2']}">{tc['Tier2']}</span>
+                <span class="text-[11px] uppercase tracking-wider font-bold text-slate-500 mt-1">Tier 2 VUS</span>
             </div>
-            <div class="bg-white/60 backdrop-blur-lg border border-white/40 shadow-sm rounded-2xl p-5 flex flex-col justify-center">
-                <span class="text-3xl font-bold" style="color: {TIER_COLOR['Tier3']}">{tc['Tier3']}</span>
-                <span class="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mt-1">Tier 3</span>
+            <div class="bg-white/70 backdrop-blur-lg border border-white/50 shadow-sm rounded-2xl p-5 flex flex-col justify-center">
+                <span class="text-3xl font-extrabold" style="color: {TIER_COLOR['Tier3']}">{tc['Tier3']}</span>
+                <span class="text-[11px] uppercase tracking-wider font-bold text-slate-500 mt-1">Tier 3 Monitor</span>
             </div>
-            <div class="bg-white/60 backdrop-blur-lg border border-white/40 shadow-sm rounded-2xl p-5 flex flex-col justify-center">
-                <span class="text-3xl font-bold text-slate-700">{data['scanned_panel_variants']}</span>
-                <span class="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mt-1">Panel Variants Scanned</span>
+            <div class="bg-white/70 backdrop-blur-lg border border-white/50 shadow-sm rounded-2xl p-5 flex flex-col justify-center">
+                <span class="text-3xl font-extrabold text-slate-700">{data['scanned_panel_variants']}</span>
+                <span class="text-[11px] uppercase tracking-wider font-bold text-slate-500 mt-1">Panel Variants Scanned</span>
             </div>
         </div>
 
         <div class="flex items-center gap-4 mb-8 noprint">
             <div class="relative flex-1 max-w-md">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input id="flt" type="text" placeholder="Filter by gene or reason code..."
-                    class="w-full pl-10 pr-4 py-2.5 bg-white/70 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                <input id="flt" type="text" placeholder="Filter by gene, RSID, or reason code..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-white/80 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium transition-all"
                     oninput="filterCards(this.value)">
             </div>
-            <button onclick="window.print()" class="px-5 py-2.5 bg-white/80 border border-slate-200 text-slate-700 rounded-xl shadow-sm hover:bg-white hover:shadow transition-all font-medium text-sm flex items-center gap-2">
+            <button onclick="window.print()" class="px-5 py-2.5 bg-white/90 border border-slate-200 text-slate-700 rounded-xl shadow-sm hover:bg-white font-semibold text-sm flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                 Print / Export PDF
             </button>
@@ -361,19 +412,31 @@ def write_html(data, path):
 
     <footer class="bg-slate-50 border-t border-slate-200 py-10 px-8 text-center text-slate-500 text-xs leading-relaxed mt-10">
         <div class="max-w-4xl mx-auto">
-            Generated by <code class="bg-slate-100 text-slate-600 px-1 py-0.5 rounded">ontology_report</code> (domain: {html.escape(str(data['domain']))}).
+            Generated by <code class="bg-slate-100 text-slate-700 px-1 py-0.5 rounded font-mono">ontology_report</code> (domain: {html.escape(str(data['domain']))}).
             Gene selection is derived from OpenCRAVAT <code class="bg-slate-100 px-1 py-0.5 rounded">hpo</code> and <code class="bg-slate-100 px-1 py-0.5 rounded">go</code> annotators.
             Clinical evidence from <code class="bg-slate-100 px-1 py-0.5 rounded">clinvar</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">clingen</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">omim</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">pharmgkb</code>.
-            Deleteriousness from REVEL, AlphaMissense, BayesDel, MetaRNN, ESM1b, VARITY, SpliceAI, CADD plus configured domain-specific predictors.
-            <br><span class="font-semibold text-slate-600 mt-2 block">Research/screening use — not a substitute for clinical diagnostic interpretation.</span>
+            Deleteriousness from REVEL, AlphaMissense, BayesDel, MetaRNN, ESM1b, VARITY, SpliceAI, CADD plus configured domain predictors.
+            <br><span class="font-bold text-slate-600 mt-2 block">Screening and research use — consult your clinical geneticist or counselor for definitive interpretation.</span>
         </div>
     </footer>
 
     <script>
+    function togglePredictorDrawer(btn) {{
+        var drawer = btn.nextElementSibling;
+        var icon = btn.querySelector('.drawer-icon');
+        if (drawer.classList.contains('hidden')) {{
+            drawer.classList.remove('hidden');
+            icon.textContent = '−';
+        }} else {{
+            drawer.classList.add('hidden');
+            icon.textContent = '+';
+        }}
+    }}
+
     function filterCards(q){{
         q = q.trim().toLowerCase();
         document.querySelectorAll('.variant-card').forEach(function(c){{
-            var hay = (c.dataset.gene + ' ' + c.dataset.reasons).toLowerCase();
+            var hay = (c.dataset.gene + ' ' + c.dataset.reasons + ' ' + c.innerText).toLowerCase();
             c.style.display = (!q || hay.indexOf(q) >= 0) ? '' : 'none';
         }});
     }}
