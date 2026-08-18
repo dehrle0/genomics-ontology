@@ -427,7 +427,7 @@ def render_master_hub(data, output_path, domain_reg=None):
         </div>
 
         <!-- Master Interactive Domain Selector (Level 1 + Level 2) -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mb-8 noprint sticky top-4 z-40">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 shadow-sm mb-8 noprint relative z-10">
             <div class="mb-4">
                 <label class="text-xs uppercase font-bold text-slate-500 tracking-wider block mb-2">Select Ontology Level 1 System:</label>
                 <div class="flex flex-wrap gap-2" id="level1Container">
