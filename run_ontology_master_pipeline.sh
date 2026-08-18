@@ -136,12 +136,15 @@ case "$RENDERER" in
 esac
 
 # -----------------------------------------------------------------------------
-# Stage 6: Google Drive Delivery ("Ontology" folder)
+# Stage 7: Google Drive Delivery ("Ontology" folder + iOS ZIP package)
 # -----------------------------------------------------------------------------
 echo "[7/7] Delivering reports to Google Drive ('Ontology')..."
+ZIP_OUT="$OUTDIR/${PREFIX}_ontology_reports_iOS.zip"
+(cd "$OUTDIR" && zip -q -r "$ZIP_OUT" "$(basename "$HTML")" "$(basename "$TSV")" "$(basename "$TEXT")") || true
 python3 "$SCRIPT_DIR/cloud_delivery_service.py" "$HTML" "Ontology" || true
 python3 "$SCRIPT_DIR/cloud_delivery_service.py" "$TSV" "Ontology" || true
 python3 "$SCRIPT_DIR/cloud_delivery_service.py" "$TEXT" "Ontology" || true
+python3 "$SCRIPT_DIR/cloud_delivery_service.py" "$ZIP_OUT" "Ontology" || true
 
 echo "=================================================================="
 echo "SUCCESS. Master Ontology Deliverables:"

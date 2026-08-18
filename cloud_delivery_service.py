@@ -35,44 +35,31 @@ def get_gdrive_service():
     return build('drive', 'v3', credentials=creds)
 
 def upload_to_drive(file_path: str, folder_name: str = "Ontology"):
-    service = get_gdrive_service()
-    if not service:
-        print("[Warning] Could not initialize Google Drive Service. Save to GDrive skipped.")
-        return None
+    import subprocess
+    import shutil
 
-    # Find or create target folder
-    query = f"name = '{folder_name}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
-    results = service.files().list(q=query, fields="files(id)").execute()
-    folders = results.get('files', [])
+    # 1. Direct Rclone Google Drive Upload with explicit mimeType for HTML preview
+    rclone_bin = shutil.which("rclone") or os.path.expanduser("~/micromamba/envs/cravat_env/bin/rclone")
+    if rclone_bin and os.path.exists(rclone_bin):
+        cmd = [rclone_bin, "copy", file_path, f"drive:{folder_name}/"]
+        if file_path.endswith(".html"):
+            cmd.extend(["--header", "Content-Type: text/html"])
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        if res.returncode == 0:
+            print(f"[rclone Cloud Sync] Uploaded '{os.path.basename(file_path)}' -> Google Drive: '{folder_name}/{os.path.basename(file_path)}'")
+        else:
+            print(f"[rclone Warning] {res.stderr.strip()}")
 
-    if not folders:
-        # Create folder
-        folder_metadata = {
-            'name': folder_name,
-            'mimeType': 'application/vnd.google-apps.folder'
-        }
-        folder = service.files().create(body=folder_metadata, fields='id').execute()
-        folder_id = folder.get('id')
-        print(f"Created new GDrive folder: '{folder_name}' (ID: {folder_id})")
-    else:
-        folder_id = folders[0]['id']
-        print(f"Found existing GDrive folder: '{folder_name}' (ID: {folder_id})")
+    # 2. Local Google Drive sync directory fallback
+    gdrive_local_root = os.path.expanduser("~/Google Drive/My Drive")
+    if os.path.exists(gdrive_local_root):
+        target_dir = os.path.join(gdrive_local_root, folder_name)
+        os.makedirs(target_dir, exist_ok=True)
+        dest_file = os.path.join(target_dir, os.path.basename(file_path))
+        shutil.copy2(file_path, dest_file)
+        print(f"[Local Sync] Copied '{os.path.basename(file_path)}' to '{dest_file}'")
 
-    # Upload file
-    file_name = os.path.basename(file_path)
-    file_metadata = {
-        'name': file_name,
-        'parents': [folder_id]
-    }
-    
-    # Simple media upload
-    from googleapiclient.http import MediaFileUpload
-    media = MediaString = MediaFileUpload(file_path, resumable=True)
-    uploaded_file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-    
-    file_id = uploaded_file.get('id')
-    print(f"Successfully uploaded '{file_name}' to GDrive folder '{folder_name}' (File ID: {file_id})")
-    return file_id
+    return True
 
 def send_email_notification(patient_id: str, report_filepath: str, recipient_email: str):
     sender_email = os.environ.get("SENDER_EMAIL", "pipeline@genomics-ontology.org")
