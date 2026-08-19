@@ -83,11 +83,17 @@ def render_master_hub(data, output_path, domain_reg=None):
     trait_rows = ra.collect_traits(records)
     chart_svg = ra.trait_chart_svg(trait_rows, top_n=12)
 
+    import collections
+    gene_groups = collections.OrderedDict()
+    for r in records:
+        hugo = r.get("hugo", "UNKNOWN")
+        gene_groups.setdefault(hugo, []).append(r)
+
     l1_buttons_html = []
-    l1_buttons_html.append(f'<button class="domain-pill active" data-l1="all" onclick="selectLevel1(\'all\')">All Systems <span class="count">{len(records)}</span></button>')
+    l1_buttons_html.append(f'<button class="domain-pill active" data-l1="all" onclick="selectLevel1(\'all\')">All Systems <span class="count">{len(gene_groups)}</span></button>')
     
     for l1_key, l1_data in domain_reg.items():
-        count = sum(1 for r in records if l1_key in r.get("matched_level1", []))
+        count = sum(1 for g_vars in gene_groups.values() if any(l1_key in r.get("matched_level1", []) for r in g_vars))
         icon = l1_data.get("icon", "")
         title_s = l1_data.get("title", l1_key)
         l1_buttons_html.append(f'<button class="domain-pill" data-l1="{l1_key}" onclick="selectLevel1(\'{l1_key}\')">{icon} {html.escape(title_s)} <span class="count">{count}</span></button>')
@@ -105,15 +111,19 @@ def render_master_hub(data, output_path, domain_reg=None):
     l2_opts_str = "\n".join(l2_options_html)
 
     cards_html = []
-    for r in records:
-        ev = r.get("evidence", {})
-        tier = r.get("tier", "Tier3")
-        hugo = r.get("hugo", "UNKNOWN")
-        l1_classes = " ".join(r.get("matched_level1", []))
-        l2_classes = " ".join(r.get("matched_level2", []))
+    tier_order = {"Tier1": 0, "Tier2": 1, "Tier3": 2}
+    for hugo, g_vars in gene_groups.items():
+        best_tier = min((r.get("tier", "Tier3") for r in g_vars), key=lambda t: tier_order.get(t, 9))
+        l1_set = set()
+        l2_set = set()
+        for r in g_vars:
+            l1_set.update(r.get("matched_level1", []))
+            l2_set.update(r.get("matched_level2", []))
+        l1_classes = " ".join(sorted(l1_set))
+        l2_classes = " ".join(sorted(l2_set))
         
-        gene_card_str = ra._card(r)
-        wrapped = f'<div class="hub-card-wrapper" data-tier="{tier}" data-gene="{hugo}" data-l1="{l1_classes}" data-l2="{l2_classes}">{gene_card_str}</div>'
+        gene_card_str = ra._gene_card(hugo, g_vars)
+        wrapped = f'<div class="hub-card-wrapper" data-tier="{best_tier}" data-gene="{hugo}" data-l1="{l1_classes}" data-l2="{l2_classes}">{gene_card_str}</div>'
         cards_html.append(wrapped)
 
     body_cards = "\n".join(cards_html)
