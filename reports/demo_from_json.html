@@ -6,310 +6,103 @@
 <title>Visual Ontology Explorer – PAT-7X8H92</title>
 <style>
 :root {
-  --bg: #0f1419;
-  --panel: #1a2332;
-  --panel2: #243044;
-  --border: #2d3a4f;
-  --text: #e2e8f0;
-  --muted: #94a3b8;
-  --accent: #22d3ee;
-  --accent2: #06b6d4;
-  --path: #ef4444;
-  --vus: #f59e0b;
-  --benign: #10b981;
-  --mat: #a78bfa;
-  --pat: #60a5fa;
-  --radius: 10px;
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bg: #0b1220; --panel: #111827; --panel2: #1a2332; --border: #243044;
+  --text: #e2e8f0; --muted: #94a3b8; --accent: #22d3ee;
+  --accent-dim: rgba(34,211,238,0.12);
+  --path: #f87171; --path-bg: #450a0a; --vus: #fbbf24; --vus-bg: #422006;
+  --benign: #34d399; --benign-bg: #064e3b;
+  --mat: #c4b5fd; --mat-bg: #2e1065; --pat: #93c5fd; --pat-bg: #1e3a5f;
+  --unknown: #94a3b8; --unknown-bg: #1e293b; --radius: 10px;
+  --font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-header {
-  background: linear-gradient(90deg, #0f172a, #1e293b);
-  border-bottom: 1px solid var(--border);
-  padding: 0.75rem 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-header .brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-header .brand span.accent { color: var(--accent); }
-header .meta {
-  font-size: 0.8rem;
-  color: var(--muted);
-  text-align: right;
-}
-.metrics {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-  overflow-x: auto;
-}
-.metric {
-  background: var(--panel2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.6rem 1rem;
-  min-width: 120px;
-  text-align: center;
-}
-.metric .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-.metric .value { font-size: 1.4rem; font-weight: 800; margin-top: 0.15rem; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 1.25rem; background: linear-gradient(90deg, #0f172a, #1e293b); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-size: 1.05rem; }
+.brand .accent { color: var(--accent); font-weight: 500; }
+.top-nav { display: flex; gap: 0.15rem; }
+.top-nav a { color: var(--muted); text-decoration: none; font-size: 0.82rem; font-weight: 600; padding: 0.4rem 0.85rem; border-radius: 6px; border-bottom: 2px solid transparent; }
+.top-nav a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+.top-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+.top-meta { font-size: 0.78rem; color: var(--muted); text-align: right; line-height: 1.35; }
+.metrics { display: flex; gap: 0.65rem; padding: 0.65rem 1.25rem; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; }
+.metric { background: var(--panel2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.9rem; min-width: 110px; text-align: center; }
+.metric .label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.metric .value { font-size: 1.35rem; font-weight: 800; margin-top: 0.1rem; }
 .metric.path .value { color: var(--path); }
 .metric.phase .value { color: var(--accent); }
-.main {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-.left-panel {
-  width: 340px;
-  background: var(--panel);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-}
-.left-header {
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid var(--border);
-  font-weight: 600;
-  font-size: 0.9rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.tree {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.75rem;
-}
-.sys-node {
-  margin-bottom: 0.5rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--panel2);
-  overflow: hidden;
-}
-.sys-header {
-  padding: 0.55rem 0.75rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  font-size: 0.85rem;
-  user-select: none;
-}
-.sys-header:hover { background: rgba(34,211,238,0.08); }
-.sys-header.active { background: rgba(34,211,238,0.15); color: var(--accent); }
-.sys-body { display: none; padding: 0.4rem 0.6rem 0.6rem; }
+.main { display: flex; flex: 1; overflow: hidden; }
+.left { width: 320px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+.left-head { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center; }
+.left-head span { font-size: 0.72rem; color: var(--muted); font-weight: 500; }
+.tree-search { margin: 0.65rem 0.75rem 0.4rem; padding: 0.45rem 0.7rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.82rem; width: calc(100% - 1.5rem); }
+.tree-search:focus { outline: none; border-color: var(--accent); }
+.tree { flex: 1; overflow-y: auto; padding: 0.4rem 0.65rem 0.75rem; }
+.sys-node { margin-bottom: 0.4rem; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); overflow: hidden; }
+.sys-header { padding: 0.5rem 0.7rem; cursor: pointer; display: flex; align-items: center; gap: 0.45rem; font-weight: 600; font-size: 0.82rem; user-select: none; }
+.sys-header:hover { background: var(--accent-dim); }
+.sys-icon { font-size: 1rem; }
+.sys-name { flex: 1; }
+.sys-count { font-size: 0.72rem; color: var(--muted); background: var(--bg); padding: 0.1rem 0.4rem; border-radius: 10px; }
+.sys-body { display: none; padding: 0.25rem 0.5rem 0.55rem; }
 .sys-node.open .sys-body { display: block; }
-.pheno-item, .gene-item {
-  padding: 0.35rem 0.5rem;
-  margin: 0.2rem 0;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-.pheno-item { color: var(--muted); padding-left: 1rem; }
-.gene-item {
-  background: rgba(34,211,238,0.06);
-  border: 1px solid transparent;
-  font-weight: 500;
-}
-.gene-item:hover, .gene-item.selected {
-  border-color: var(--accent);
-  background: rgba(34,211,238,0.12);
-  color: var(--accent);
-}
-.right-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.gene-header {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel);
-}
-.gene-header h1 {
-  font-size: 1.5rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-.gene-header .desc {
-  margin-top: 0.4rem;
-  font-size: 0.9rem;
-  color: var(--muted);
-  line-height: 1.45;
-  max-width: 900px;
-}
-.tabs {
-  display: flex;
-  gap: 0.25rem;
-  padding: 0.5rem 1.25rem 0;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
-}
-.tab {
-  padding: 0.55rem 1.1rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--muted);
-  cursor: pointer;
-  border-radius: 8px 8px 0 0;
-  border: 1px solid transparent;
-  border-bottom: none;
-}
+.pheno-item { padding: 0.28rem 0.45rem 0.28rem 1.1rem; font-size: 0.75rem; color: var(--muted); }
+.gene-item { padding: 0.32rem 0.5rem; margin: 0.15rem 0; border-radius: 6px; font-size: 0.8rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; border: 1px solid transparent; background: rgba(34,211,238,0.05); }
+.gene-item:hover, .gene-item.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+.gene-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.right { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+.gene-header { padding: 1rem 1.35rem 0.75rem; background: var(--panel); border-bottom: 1px solid var(--border); }
+.gene-header h1 { font-size: 1.45rem; font-weight: 800; display: flex; align-items: center; gap: 0.55rem; }
+.gene-header h1 .sub { font-size: 0.85rem; font-weight: 500; color: var(--muted); }
+.gene-header .desc { margin-top: 0.4rem; font-size: 0.88rem; color: var(--muted); line-height: 1.45; max-width: 920px; }
+.gene-header .meta-row { margin-top: 0.45rem; font-size: 0.75rem; color: var(--muted); display: flex; gap: 1rem; flex-wrap: wrap; }
+.tabs { display: flex; gap: 0.2rem; padding: 0.45rem 1.35rem 0; background: var(--panel); border-bottom: 1px solid var(--border); }
+.tab { padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 600; color: var(--muted); cursor: pointer; border-radius: 8px 8px 0 0; border: 1px solid transparent; border-bottom: none; }
 .tab:hover { color: var(--text); }
-.tab.active {
-  background: var(--bg);
-  color: var(--accent);
-  border-color: var(--border);
-}
-.tab-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.25rem;
-  display: none;
-}
+.tab.active { background: var(--bg); color: var(--accent); border-color: var(--border); }
+.tab-content { flex: 1; overflow-y: auto; padding: 1.15rem 1.35rem; display: none; }
 .tab-content.active { display: block; }
-table.variants {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-table.variants th {
-  text-align: left;
-  padding: 0.55rem 0.75rem;
-  background: var(--panel2);
-  color: var(--muted);
-  font-weight: 600;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-}
-table.variants td {
-  padding: 0.55rem 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
+table.variants { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+table.variants th { text-align: left; padding: 0.5rem 0.7rem; background: var(--panel2); color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1; }
+table.variants td { padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
 table.variants tr:hover td { background: rgba(34,211,238,0.04); }
-.badge {
-  display: inline-block;
-  padding: 0.18rem 0.45rem;
-  border-radius: 4px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-.badge.pathogenic { background: #450a0a; color: #fca5a5; }
+.badge { display: inline-block; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+.badge.pathogenic { background: var(--path-bg); color: var(--path); }
 .badge.likely-path { background: #7c2d12; color: #fdba74; }
-.badge.vus { background: #422006; color: #fcd34d; }
-.badge.benign { background: #064e3b; color: #6ee7b7; }
-.phase {
-  display: inline-block;
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-.phase.maternal { background: #2e1065; color: #c4b5fd; }
-.phase.paternal { background: #1e3a5f; color: #93c5fd; }
+.badge.vus { background: var(--vus-bg); color: var(--vus); }
+.badge.benign { background: var(--benign-bg); color: var(--benign); }
+.phase { display: inline-block; padding: 0.12rem 0.38rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; }
+.phase.maternal { background: var(--mat-bg); color: var(--mat); }
+.phase.paternal { background: var(--pat-bg); color: var(--pat); }
 .phase.denovo { background: #3f1d0a; color: #fdba74; }
-.phase.unknown { background: #1e293b; color: #94a3b8; }
-.pheno-card, .pub-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-}
-.pheno-card h3, .pub-card h3 {
-  font-size: 0.95rem;
-  margin-bottom: 0.35rem;
-}
-.pub-card .meta {
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-bottom: 0.4rem;
-}
-.pub-card .finding {
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: var(--text);
-}
-.tag {
-  display: inline-block;
-  background: rgba(34,211,238,0.12);
-  color: var(--accent);
-  font-size: 0.7rem;
-  padding: 0.12rem 0.4rem;
-  border-radius: 4px;
-  margin-right: 0.3rem;
-}
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: var(--muted);
-}
-.search-box {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  font-size: 0.85rem;
-  margin-bottom: 0.75rem;
-}
-.search-box:focus { outline: none; border-color: var(--accent); }
-footer {
-  padding: 0.4rem 1.25rem;
-  font-size: 0.72rem;
-  color: var(--muted);
-  border-top: 1px solid var(--border);
-  background: var(--panel);
-  flex-shrink: 0;
-}
+.phase.unknown { background: var(--unknown-bg); color: var(--unknown); }
+.revel-bar { display: inline-block; height: 6px; border-radius: 3px; background: #334155; width: 48px; vertical-align: middle; margin-right: 0.35rem; position: relative; overflow: hidden; }
+.revel-bar > i { display: block; height: 100%; border-radius: 3px; }
+.pheno-card, .pub-card, .metric-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1rem; margin-bottom: 0.7rem; }
+.pheno-card h3, .pub-card h3 { font-size: 0.92rem; margin-bottom: 0.3rem; }
+.pub-card .meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.35rem; }
+.pub-card .finding { font-size: 0.84rem; line-height: 1.4; }
+.tag { display: inline-block; background: var(--accent-dim); color: var(--accent); font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 4px; margin-right: 0.3rem; margin-bottom: 0.25rem; }
+.empty { text-align: center; padding: 2.5rem; color: var(--muted); }
+.overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem; }
+footer { padding: 0.35rem 1.25rem; font-size: 0.7rem; color: var(--muted); border-top: 1px solid var(--border); background: var(--panel); flex-shrink: 0; display: flex; justify-content: space-between; }
 </style>
 </head>
 <body>
-<header>
+<div class="topbar">
   <div class="brand">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
     Visual Ontology Explorer <span class="accent">· Genomics Report</span>
   </div>
-  <div class="meta">
-    Patient: <strong>PAT-7X8H92</strong><br>
-    Run: 2026-08-20 12:00 UTC
-  </div>
-</header>
-
+  <nav class="top-nav">
+    <a href="#" class="active" onclick="return false;">Ontology</a>
+    <a href="#" onclick="return false;">Genes</a>
+    <a href="#" onclick="return false;">Variants</a>
+    <a href="#" onclick="return false;">Analysis</a>
+    <a href="#" onclick="return false;">Reports</a>
+  </nav>
+  <div class="top-meta">Patient: <strong>PAT-7X8H92</strong><br>Run: 2026-08-20 12:00 UTC</div>
+</div>
 <div class="metrics">
   <div class="metric"><div class="label">Total Variants</div><div class="value">11</div></div>
   <div class="metric path"><div class="label">Pathogenic / LP</div><div class="value">7</div></div>
@@ -317,21 +110,16 @@ footer {
   <div class="metric"><div class="label">High PRS Traits</div><div class="value">2</div></div>
   <div class="metric"><div class="label">Genes</div><div class="value">5</div></div>
 </div>
-
 <div class="main">
-  <!-- LEFT: Ontology Tree -->
-  <div class="left-panel">
-    <div class="left-header">
-      HPO Ontology Graph
-      <span style="font-size:0.75rem;color:var(--muted)">2 systems</span>
-    </div>
+  <div class="left">
+    <div class="left-head">HPO Ontology Graph <span>Organ → Phenotype → Gene</span></div>
+    <input class="tree-search" id="treeSearch" placeholder="Filter genes / phenotypes…" oninput="filterTree()">
     <div class="tree" id="ontologyTree">
-      <input class="search-box" id="treeSearch" placeholder="Filter genes / phenotypes…" oninput="filterTree()">
-
       <div class="sys-node" data-sys="HP:0001626">
         <div class="sys-header" onclick="toggleSys(this)">
-          <span>❤️</span> Cardiovascular
-          <span style="margin-left:auto;font-size:0.75rem;color:var(--muted)">4</span>
+          <span class="sys-icon">❤️</span>
+          <span class="sys-name">Cardiovascular</span>
+          <span class="sys-count">4</span>
         </div>
         <div class="sys-body">
           <div class="pheno-item" title="HP:0001644">HP:0001644</div>
@@ -339,191 +127,69 @@ footer {
           <div class="pheno-item" title="HP:0001635">HP:0001635</div>
           <div class="pheno-item" title="HP:0004756">HP:0004756</div>
           <div class="pheno-item" title="HP:0001662">HP:0001662</div>
-          <div class="gene-item" data-gene="LMNA" onclick="selectGene('LMNA')">LMNA</div>
-          <div class="gene-item" data-gene="MYH7" onclick="selectGene('MYH7')">MYH7</div>
-          <div class="gene-item" data-gene="SCN5A" onclick="selectGene('SCN5A')">SCN5A</div>
-          <div class="gene-item" data-gene="TTN" onclick="selectGene('TTN')">TTN</div>
-
+          <div class="gene-item" data-gene="LMNA" onclick="selectGene('LMNA')"><span class="gene-dot"></span>LMNA</div>
+          <div class="gene-item" data-gene="MYH7" onclick="selectGene('MYH7')"><span class="gene-dot"></span>MYH7</div>
+          <div class="gene-item" data-gene="SCN5A" onclick="selectGene('SCN5A')"><span class="gene-dot"></span>SCN5A</div>
+          <div class="gene-item" data-gene="TTN" onclick="selectGene('TTN')"><span class="gene-dot"></span>TTN</div>
         </div>
       </div>
 
       <div class="sys-node" data-sys="HP:0002664">
         <div class="sys-header" onclick="toggleSys(this)">
-          <span>🎗️</span> Neoplasm / Oncology
-          <span style="margin-left:auto;font-size:0.75rem;color:var(--muted)">1</span>
+          <span class="sys-icon">🎗️</span>
+          <span class="sys-name">Neoplasm</span>
+          <span class="sys-count">1</span>
         </div>
         <div class="sys-body">
           <div class="pheno-item" title="HP:0003002">HP:0003002</div>
-          <div class="gene-item" data-gene="BRCA1" onclick="selectGene('BRCA1')">BRCA1</div>
-
+          <div class="gene-item" data-gene="BRCA1" onclick="selectGene('BRCA1')"><span class="gene-dot"></span>BRCA1</div>
         </div>
       </div>
-
-    </div>
+</div>
   </div>
-
-  <!-- RIGHT: Gene Detail -->
-  <div class="right-panel">
+  <div class="right">
     <div class="gene-header" id="geneHeader">
-      <h1 id="geneTitle">Select a gene</h1>
-      <div class="desc" id="geneDesc">Click any gene in the ontology tree to explore variants, phenotypes and supporting literature.</div>
+      <h1 id="geneTitle">Select a gene <span class="sub">from the ontology tree</span></h1>
+      <div class="desc" id="geneDesc">Click any gene node to explore variants (with maternal/paternal phasing), linked HPO phenotypes, and supporting literature.</div>
+      <div class="meta-row" id="geneMeta"></div>
     </div>
     <div class="tabs">
-      <div class="tab active" data-tab="overview" onclick="switchTab('overview')">Overview</div>
-      <div class="tab" data-tab="variants" onclick="switchTab('variants')">Variants</div>
+      <div class="tab active" data-tab="overview" onclick="switchTab('overview')">Gene Overview</div>
       <div class="tab" data-tab="phenotypes" onclick="switchTab('phenotypes')">Phenotypes</div>
+      <div class="tab" data-tab="variants" onclick="switchTab('variants')">Variants</div>
       <div class="tab" data-tab="publications" onclick="switchTab('publications')">Publications</div>
     </div>
-    <div class="tab-content active" id="tab-overview">
-      <div class="empty-state">Select a gene to view overview metrics and summary.</div>
-    </div>
-    <div class="tab-content" id="tab-variants">
-      <div class="empty-state">Select a gene to view variant table with phasing.</div>
-    </div>
-    <div class="tab-content" id="tab-phenotypes">
-      <div class="empty-state">Select a gene to view associated HPO phenotypes.</div>
-    </div>
-    <div class="tab-content" id="tab-publications">
-      <div class="empty-state">Select a gene to view key publications and studies.</div>
-    </div>
+    <div class="tab-content active" id="tab-overview"><div class="empty">Select a gene to view overview.</div></div>
+    <div class="tab-content" id="tab-phenotypes"><div class="empty">Select a gene to view phenotypes.</div></div>
+    <div class="tab-content" id="tab-variants"><div class="empty">Select a gene to view variants.</div></div>
+    <div class="tab-content" id="tab-publications"><div class="empty">Select a gene to view publications.</div></div>
   </div>
 </div>
-
 <footer>
-  Visual Ontology Explorer · Data validated by LinkML / Pydantic · Phasing from WhatsHap / SHAPEIT-style haplotype blocks · 
-  Report generated {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC
+  <span>Visual Ontology Explorer · LinkML / Pydantic validated · Phasing from WhatsHap / long-range LD</span>
+  <span>Generated 2026-08-21 04:16 UTC · Data for research purposes only</span>
 </footer>
-
 <script>
-const GENE_DATA = {"TTN": {"description": "This gene encodes a large abundant protein of striated muscle.", "hpo_terms": ["HP:0001626", "HP:0001639", "HP:0001644"], "variants": [{"rsid": "rs72648258", "consequence": "Nonsense", "zygosity": "Heterozygous", "phase": "maternal", "clinvar": "Pathogenic", "revel": 0.912, "chrom": "chr2", "pos": 179431234, "genotype": "C/T", "hpo": ["HP:0001626", "HP:0001644", "HP:0001639"]}, {"rsid": "rs11209026", "consequence": "Frameshift", "zygosity": "Heterozygous", "phase": "paternal", "clinvar": "Pathogenic", "revel": 0.874, "chrom": "chr2", "pos": 179445678, "genotype": "G/A", "hpo": ["HP:0001626", "HP:0001644"]}, {"rsid": "Novel", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "maternal", "clinvar": "VUS", "revel": 0.421, "chrom": "chr2", "pos": 179512345, "genotype": "A/G", "hpo": ["HP:0001626", "HP:0001644"]}, {"rsid": "rs20417", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "undetermined", "clinvar": "VUS", "revel": 0.356, "chrom": "chr2", "pos": 179623456, "genotype": "T/C", "hpo": ["HP:0001626"]}]}, "LMNA": {"description": "The nuclear lamina consists of a two-dimensional matrix of proteins located next to the inner nuclear membrane.", "hpo_terms": ["HP:0001626", "HP:0001635", "HP:0001644"], "variants": [{"rsid": "rs58992763", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "maternal", "clinvar": "Pathogenic", "revel": 0.931, "chrom": "chr1", "pos": 156134567, "genotype": "C/T", "hpo": ["HP:0001626", "HP:0001644", "HP:0001635"]}, {"rsid": "rs11575937", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "paternal", "clinvar": "Likely Pathogenic", "revel": 0.682, "chrom": "chr1", "pos": 156145678, "genotype": "G/A", "hpo": ["HP:0001626", "HP:0001644"]}]}, "MYH7": {"description": "Myosin heavy chain 7 is a major component of the thick filament in cardiac and skeletal muscle.", "hpo_terms": ["HP:0001626", "HP:0001639"], "variants": [{"rsid": "rs121913625", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "maternal", "clinvar": "Pathogenic", "revel": 0.889, "chrom": "chr14", "pos": 23891234, "genotype": "A/G", "hpo": ["HP:0001626", "HP:0001639"]}, {"rsid": "rs121913626", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "paternal", "clinvar": "VUS", "revel": 0.512, "chrom": "chr14", "pos": 23894567, "genotype": "C/T", "hpo": ["HP:0001626", "HP:0001639"]}]}, "BRCA1": {"description": "This gene encodes a nuclear phosphoprotein that plays a role in maintaining genomic stability, and it also acts as a tumor suppressor. Mutations confer high risk of breast and ovarian cancer.", "hpo_terms": ["HP:0002664", "HP:0003002"], "variants": [{"rsid": "rs80357906", "consequence": "Frameshift", "zygosity": "Heterozygous", "phase": "maternal", "clinvar": "Pathogenic", "revel": 0.945, "chrom": "chr17", "pos": 43094000, "genotype": "A/G", "hpo": ["HP:0002664", "HP:0003002"]}]}, "SCN5A": {"description": "Voltage-gated sodium channel alpha subunit 5.", "hpo_terms": ["HP:0001626", "HP:0001662", "HP:0004756"], "variants": [{"rsid": "rs137854600", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "paternal", "clinvar": "Pathogenic", "revel": 0.901, "chrom": "chr3", "pos": 38604000, "genotype": "G/A", "hpo": ["HP:0001626", "HP:0004756", "HP:0001662"]}, {"rsid": "Novel", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "undetermined", "clinvar": "VUS", "revel": 0.334, "chrom": "chr3", "pos": 38612345, "genotype": "C/T", "hpo": ["HP:0001626"]}]}};
-const PUBLICATIONS = {"TTN": [{"title": "Titin mutations in dilated cardiomyopathy: the phase matters.", "authors": "Roberts AM, Ware JS, Herman DS, et al.", "journal": "N Engl J Med. 2015", "doi": "10.1056/NEJMoa1409129", "year": 2015, "key_finding": "Heterozygous TTN truncating variants (TTNtv) cause dilated cardiomyopathy with incomplete penetrance; A-band variants are most pathogenic.", "tags": ["Phase-aware", "Inheritance"]}, {"title": "The landscape of TTN variants in cardiomyopathy: insights from a large clinical cohort.", "authors": "Herman DS, Lam L, Taylor MRG, et al.", "journal": "Circulation. 2019", "doi": "10.1161/CIRCULATIONAHA.118.036846", "year": 2019, "key_finding": "In 4,293 cardiomyopathy patients, TTNtv were significantly enriched in DCM (OR 15.1).", "tags": ["Large Cohort"]}, {"title": "ClinVar curation of TTN variants: expert panel recommendations for cardiomyopathy.", "authors": "Kelly MA, Caleshu C, Morales A, et al.", "journal": "Genet Med. 2021", "doi": "10.1038/s41436-021-01115-6", "year": 2021, "key_finding": "Expert panel specifications for TTN variant interpretation; A-band TTNtv classified as pathogenic for DCM.", "tags": ["ClinVar", "Curated"]}], "LMNA": [{"title": "Lamin A/C mutations and cardiomyopathy: clinical and genetic considerations.", "authors": "Captur G, Arbustini E, Bonne G, et al.", "journal": "Eur Heart J. 2018", "doi": "10.1093/eurheartj/ehy167", "year": 2018, "key_finding": "LMNA variants show high penetrance for conduction disease and dilated cardiomyopathy; phase and domain matter.", "tags": ["Clinical"]}], "MYH7": [{"title": "MYH7-related hypertrophic cardiomyopathy: genotype-phenotype correlations.", "authors": "Weissler-Snir A, Allan K, Cunningham K, et al.", "journal": "Circ Genom Precis Med. 2020", "doi": "10.1161/CIRCGEN.119.002803", "year": 2020, "key_finding": "Missense variants in the myosin head domain are strongly associated with HCM.", "tags": ["Genotype-Phenotype"]}]};
-
-let currentGene = null;
-
-function toggleSys(el) {
-  el.parentElement.classList.toggle('open');
-}
-
+const GENE_DATA = {"TTN": {"description": "This gene encodes a large abundant protein of striated muscle.", "hpo_terms": ["HP:0001626", "HP:0001639", "HP:0001644"], "variants": [{"rsid": "rs72648258", "hgvs": "rs72648258", "consequence": "Nonsense", "zygosity": "Heterozygous", "phase": "maternal", "clinvar": "Pathogenic", "revel": 0.912, "chrom": "chr2", "pos": 179431234, "genotype": "C/T", "af": null, "last_evaluated": ""}, {"rsid": "rs11209026", "hgvs": "rs11209026", "consequence": "Frameshift", "zygosity": "Heterozygous", "phase": "paternal", "clinvar": "Pathogenic", "revel": 0.874, "chrom": "chr2", "pos": 179445678, "genotype": "G/A", "af": null, "last_evaluated": ""}, {"rsid": "Novel", "hgvs": "chr2:179512345 A/G", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "maternal", "clinvar": "VUS", "revel": 0.421, "chrom": "chr2", "pos": 179512345, "genotype": "A/G", "af": null, "last_evaluated": ""}, {"rsid": "rs20417", "hgvs": "rs20417", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "undetermined", "clinvar": "VUS", "revel": 0.356, "chrom": "chr2", "pos": 179623456, "genotype": "T/C", "af": null, "last_evaluated": ""}]}, "LMNA": {"description": "The nuclear lamina consists of a two-dimensional matrix of proteins located next to the inner nuclear membrane.", "hpo_terms": ["HP:0001626", "HP:0001635", "HP:0001644"], "variants": [{"rsid": "rs58992763", "hgvs": "rs58992763", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "maternal", "clinvar": "Pathogenic", "revel": 0.931, "chrom": "chr1", "pos": 156134567, "genotype": "C/T", "af": null, "last_evaluated": ""}, {"rsid": "rs11575937", "hgvs": "rs11575937", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "paternal", "clinvar": "Likely Pathogenic", "revel": 0.682, "chrom": "chr1", "pos": 156145678, "genotype": "G/A", "af": null, "last_evaluated": ""}]}, "MYH7": {"description": "Myosin heavy chain 7 is a major component of the thick filament in cardiac and skeletal muscle.", "hpo_terms": ["HP:0001626", "HP:0001639"], "variants": [{"rsid": "rs121913625", "hgvs": "rs121913625", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "maternal", "clinvar": "Pathogenic", "revel": 0.889, "chrom": "chr14", "pos": 23891234, "genotype": "A/G", "af": null, "last_evaluated": ""}, {"rsid": "rs121913626", "hgvs": "rs121913626", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "paternal", "clinvar": "VUS", "revel": 0.512, "chrom": "chr14", "pos": 23894567, "genotype": "C/T", "af": null, "last_evaluated": ""}]}, "BRCA1": {"description": "This gene encodes a nuclear phosphoprotein that plays a role in maintaining genomic stability, and it also acts as a tumor suppressor. Mutations confer high risk of breast and ovarian cancer.", "hpo_terms": ["HP:0002664", "HP:0003002"], "variants": [{"rsid": "rs80357906", "hgvs": "rs80357906", "consequence": "Frameshift", "zygosity": "Heterozygous", "phase": "maternal", "clinvar": "Pathogenic", "revel": 0.945, "chrom": "chr17", "pos": 43094000, "genotype": "A/G", "af": null, "last_evaluated": ""}]}, "SCN5A": {"description": "Voltage-gated sodium channel alpha subunit 5.", "hpo_terms": ["HP:0001626", "HP:0001662", "HP:0004756"], "variants": [{"rsid": "rs137854600", "hgvs": "rs137854600", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "paternal", "clinvar": "Pathogenic", "revel": 0.901, "chrom": "chr3", "pos": 38604000, "genotype": "G/A", "af": null, "last_evaluated": ""}, {"rsid": "Novel", "hgvs": "chr3:38612345 C/T", "consequence": "Missense", "zygosity": "Heterozygous", "phase": "undetermined", "clinvar": "VUS", "revel": 0.334, "chrom": "chr3", "pos": 38612345, "genotype": "C/T", "af": null, "last_evaluated": ""}]}};
+const PUBLICATIONS = {"TTN": [{"title": "Titin mutations in dilated cardiomyopathy: the phase matters.", "authors": "Roberts AM, Ware JS, Herman DS, et al.", "journal": "N Engl J Med. 2015;372(3):233-242", "doi": "10.1056/NEJMoa1409129", "year": 2015, "key_finding": "Heterozygous TTN truncating variants (TTNtv) cause dilated cardiomyopathy (DCM) with incomplete penetrance; variants in the A-band region and those affecting the reading frame are most pathogenic.", "tags": ["Phase-aware / Inheritance"]}, {"title": "The landscape of TTN variants in cardiomyopathy: insights from a large clinical cohort.", "authors": "Herman DS, Lam L, Taylor MRG, et al.", "journal": "Circulation. 2019;139(7):860-873", "doi": "10.1161/CIRCULATIONAHA.118.036846", "year": 2019, "key_finding": "In 4,293 cardiomyopathy patients, TTNtv were significantly enriched in DCM (OR 15.1); earlier onset and more severe outcomes observed in truncating variant carriers.", "tags": ["Large Cohort Study"]}, {"title": "ClinVar curation of TTN variants: expert panel recommendations for cardiomyopathy.", "authors": "Kelly MA, Caleshu C, Morales A, et al.", "journal": "Genet Med. 2021;23(6):1067-1076", "doi": "10.1038/s41436-021-01115-6", "year": 2021, "key_finding": "Expert panel specifications for TTN variant interpretation; TTNtv in exons encoding the A-band are classified as pathogenic for dilated cardiomyopathy.", "tags": ["ClinVar / Variant Curation"]}], "LMNA": [{"title": "Lamin A/C mutations and cardiomyopathy: clinical and genetic considerations.", "authors": "Captur G, Arbustini E, Bonne G, et al.", "journal": "Eur Heart J. 2018", "doi": "10.1093/eurheartj/ehy167", "year": 2018, "key_finding": "LMNA variants show high penetrance for conduction disease and dilated cardiomyopathy; domain and phase influence penetrance and arrhythmia risk.", "tags": ["Clinical", "Phase-aware"]}], "MYH7": [{"title": "MYH7-related hypertrophic cardiomyopathy: genotype-phenotype correlations.", "authors": "Weissler-Snir A, Allan K, Cunningham K, et al.", "journal": "Circ Genom Precis Med. 2020", "doi": "10.1161/CIRCGEN.119.002803", "year": 2020, "key_finding": "Missense variants in the myosin head domain are strongly associated with HCM; penetrance is high but age-dependent.", "tags": ["Genotype-Phenotype"]}], "SCN5A": [{"title": "SCN5A variants and inherited cardiac arrhythmia syndromes.", "authors": "Wilde AAM, Amin AS.", "journal": "J Physiol. 2018", "doi": "10.1113/JP273901", "year": 2018, "key_finding": "Loss- and gain-of-function SCN5A variants cause Brugada, long-QT type 3, and progressive conduction disease; parental origin can influence expressivity.", "tags": ["Arrhythmia", "Phase-aware"]}], "BRCA1": [{"title": "BRCA1 and BRCA2: cancer risk and genetic testing.", "authors": "Petrucelli N, Daly MB, Pal T.", "journal": "GeneReviews. 2022", "doi": "10.1002/ajmg.a.33235", "year": 2022, "key_finding": "Pathogenic BRCA1 variants confer high lifetime risks of breast and ovarian cancer; risk-reducing strategies are genotype-informed.", "tags": ["Hereditary Cancer"]}]};
+function toggleSys(el) { el.parentElement.classList.toggle('open'); }
 function filterTree() {
   const q = document.getElementById('treeSearch').value.toLowerCase();
   document.querySelectorAll('.sys-node').forEach(node => {
     let any = false;
-    node.querySelectorAll('.gene-item').forEach(g => {
-      const match = g.textContent.toLowerCase().includes(q);
-      g.style.display = match ? '' : 'none';
-      if (match) any = true;
-    });
-    node.querySelectorAll('.pheno-item').forEach(p => {
-      const match = p.textContent.toLowerCase().includes(q);
-      p.style.display = match ? '' : 'none';
-      if (match) any = true;
-    });
-    node.style.display = any || q === '' ? '' : 'none';
+    node.querySelectorAll('.gene-item').forEach(g => { const m = g.textContent.toLowerCase().includes(q); g.style.display = m ? '' : 'none'; if (m) any = true; });
+    node.querySelectorAll('.pheno-item').forEach(p => { const m = p.textContent.toLowerCase().includes(q); p.style.display = m ? '' : 'none'; if (m) any = true; });
+    node.style.display = (any || !q) ? '' : 'none';
     if (q && any) node.classList.add('open');
   });
 }
-
-function selectGene(gene) {
-  currentGene = gene;
-  document.querySelectorAll('.gene-item').forEach(el => {
-    el.classList.toggle('selected', el.dataset.gene === gene);
-  });
-  const data = GENE_DATA[gene];
-  if (!data) return;
-
-  document.getElementById('geneTitle').innerHTML = gene + ' <span style="font-size:0.9rem;color:var(--muted);font-weight:500">· Gene Details</span>';
-  document.getElementById('geneDesc').textContent = data.description;
-
-  // Overview
-  const nVar = data.variants.length;
-  const nPath = data.variants.filter(v => (v.clinvar||'').toLowerCase().includes('pathogenic')).length;
-  const nHet = data.variants.filter(v => (v.zygosity||'').toLowerCase().includes('het')).length;
-  const nPhased = data.variants.filter(v => ['maternal','paternal'].includes((v.phase||'').toLowerCase())).length;
-  const phasePct = nHet ? Math.round(nPhased / nHet * 100) : 0;
-  document.getElementById('tab-overview').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;">
-      <div class="metric"><div class="label">Variants</div><div class="value">${nVar}</div></div>
-      <div class="metric path"><div class="label">Pathogenic / LP</div><div class="value">${nPath}</div></div>
-      <div class="metric phase"><div class="label">Phased Heterozygous</div><div class="value">${phasePct}%</div></div>
-      <div class="metric"><div class="label">HPO Terms</div><div class="value">${data.hpo_terms.length}</div></div>
-    </div>
-    <p style="color:var(--muted);font-size:0.9rem;line-height:1.5;">
-      ${data.description}
-    </p>
-  `;
-
-  // Variants table
-  let rows = data.variants.map(v => {
-    const phaseHtml = phaseBadge(v.phase);
-    const clinHtml = clinvarBadge(v.clinvar);
-    const revel = v.revel != null ? v.revel.toFixed(3) : '—';
-    return `<tr>
-      <td><strong>${v.rsid}</strong><br><span style="font-size:0.75rem;color:var(--muted)">${v.chrom}:${v.pos}</span></td>
-      <td>${v.consequence}</td>
-      <td>${v.zygosity}</td>
-      <td>${phaseHtml}</td>
-      <td>${clinHtml}</td>
-      <td style="font-weight:600;color:${v.revel && v.revel > 0.75 ? 'var(--path)' : 'inherit'}">${revel}</td>
-      <td style="font-family:monospace;font-size:0.8rem">${v.genotype || '—'}</td>
-    </tr>`;
-  }).join('');
-  document.getElementById('tab-variants').innerHTML = `
-    <div style="margin-bottom:0.75rem;font-size:0.85rem;color:var(--muted)">
-      Showing ${data.variants.length} variant(s). Phasing available for majority of heterozygous calls (WhatsHap / long-range LD).
-    </div>
-    <table class="variants">
-      <thead>
-        <tr>
-          <th>Variant / Position</th>
-          <th>Consequence</th>
-          <th>Zygosity</th>
-          <th>Phase</th>
-          <th>ClinVar</th>
-          <th>REVEL</th>
-          <th>Genotype</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
-
-  // Phenotypes
-  const phenoHtml = data.hpo_terms.length
-    ? data.hpo_terms.map(h => `
-        <div class="pheno-card">
-          <h3>${h}</h3>
-          <div style="font-size:0.8rem;color:var(--muted)">Associated via gene-level and variant-level HPO annotations from OpenCRAVAT / HPO.</div>
-        </div>`).join('')
-    : '<div class="empty-state">No HPO terms linked to this gene in the current panel.</div>';
-  document.getElementById('tab-phenotypes').innerHTML = phenoHtml;
-
-  // Publications
-  const pubs = PUBLICATIONS[gene] || [];
-  const pubHtml = pubs.length
-    ? pubs.map(p => `
-        <div class="pub-card">
-          <div>${(p.tags||[]).map(t => `<span class="tag">${t}</span>`).join('')}</div>
-          <h3 style="margin-top:0.4rem">${p.title}</h3>
-          <div class="meta">${p.authors} · ${p.journal} · ${p.year}</div>
-          <div class="finding">${p.key_finding}</div>
-          <div style="margin-top:0.5rem">
-            <a href="https://doi.org/${p.doi}" target="_blank" style="color:var(--accent);font-size:0.8rem">DOI: ${p.doi}</a>
-          </div>
-        </div>`).join('')
-    : '<div class="empty-state">No curated publications loaded for this gene. In production these are pulled from OpenTargets / PubMed caches.</div>';
-  document.getElementById('tab-publications').innerHTML = pubHtml;
-
-  switchTab('variants'); // default to Variants after selection (user requested focus)
-}
-
-function phaseBadge(phase) {
-  const p = (phase || 'undetermined').toLowerCase();
+function phaseBadge(p) {
+  p = (p || 'undetermined').toLowerCase();
   if (p === 'maternal') return '<span class="phase maternal">Maternal</span>';
   if (p === 'paternal') return '<span class="phase paternal">Paternal</span>';
-  if (p === 'de_novo') return '<span class="phase denovo">De novo</span>';
-  return '<span class="phase unknown">Undetermined</span>';
+  if (p === 'de_novo' || p === 'denovo') return '<span class="phase denovo">De novo</span>';
+  return '<span class="phase unknown">Unknown</span>';
 }
-
 function clinvarBadge(sig) {
   if (!sig) return '<span class="badge vus">VUS</span>';
   const s = sig.toLowerCase();
@@ -532,18 +198,86 @@ function clinvarBadge(sig) {
   if (s.includes('benign')) return `<span class="badge benign">${sig}</span>`;
   return `<span class="badge vus">${sig}</span>`;
 }
-
+function revelHtml(v) {
+  if (v == null || v === '') return '—';
+  const pct = Math.min(100, Math.round(v * 100));
+  const color = v > 0.75 ? 'var(--path)' : (v > 0.5 ? 'var(--vus)' : 'var(--benign)');
+  return `<span class="revel-bar"><i style="width:${pct}%;background:${color}"></i></span>${Number(v).toFixed(2)}`;
+}
+function selectGene(gene) {
+  document.querySelectorAll('.gene-item').forEach(el => el.classList.toggle('selected', el.dataset.gene === gene));
+  const data = GENE_DATA[gene];
+  if (!data) return;
+  document.getElementById('geneTitle').innerHTML = gene + ' <span class="sub">· Gene Details</span>';
+  document.getElementById('geneDesc').textContent = data.description;
+  document.getElementById('geneMeta').innerHTML = `<span>${data.variants.length} variant(s)</span><span>${data.hpo_terms.length} HPO term(s)</span>`;
+  const nVar = data.variants.length;
+  const nPath = data.variants.filter(v => (v.clinvar||'').toLowerCase().includes('pathogenic')).length;
+  const nHet = data.variants.filter(v => (v.zygosity||'').toLowerCase().includes('het')).length;
+  const nPhased = data.variants.filter(v => ['maternal','paternal'].includes((v.phase||'').toLowerCase())).length;
+  const pct = nHet ? Math.round(nPhased / nHet * 100) : 0;
+  document.getElementById('tab-overview').innerHTML = `
+    <div class="overview-grid">
+      <div class="metric"><div class="label">Variants</div><div class="value">${nVar}</div></div>
+      <div class="metric path"><div class="label">Pathogenic / LP</div><div class="value">${nPath}</div></div>
+      <div class="metric phase"><div class="label">Phased Heterozygous</div><div class="value">${pct}%</div></div>
+      <div class="metric"><div class="label">HPO Terms</div><div class="value">${data.hpo_terms.length}</div></div>
+    </div>
+    <div class="metric-card"><h3 style="margin-bottom:0.4rem">NCBI Gene Summary</h3>
+      <p style="font-size:0.88rem;line-height:1.5;color:var(--muted)">${data.description}</p></div>`;
+  const rows = data.variants.map(v => {
+    const coord = (v.chrom && v.pos) ? `${v.chrom}:${v.pos}` : '—';
+    const af = (v.af != null && v.af !== '') ? Number(v.af).toExponential(2) : '—';
+    return `<tr>
+      <td><strong>${v.hgvs || v.rsid}</strong><br><span style="font-size:0.72rem;color:var(--muted)">${v.consequence}</span></td>
+      <td>${clinvarBadge(v.clinvar)}</td>
+      <td>${revelHtml(v.revel)}</td>
+      <td style="font-family:monospace;font-size:0.78rem">${coord}</td>
+      <td>${v.zygosity}</td>
+      <td>${phaseBadge(v.phase)}</td>
+      <td style="font-size:0.78rem">${af}</td>
+      <td style="font-size:0.75rem;color:var(--muted)">${v.last_evaluated || '—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tab-variants').innerHTML = `
+    <div style="margin-bottom:0.7rem;font-size:0.82rem;color:var(--muted)">
+      Showing ${data.variants.length} variant(s) for <strong>${gene}</strong>.
+      Phase badges reflect maternal / paternal haplotype assignment (WhatsHap / SHAPEIT-style).
+    </div>
+    <table class="variants">
+      <thead><tr>
+        <th>Variant (HGVS / rsID)</th><th>ClinVar</th><th>REVEL</th><th>Genomic Coordinate</th>
+        <th>Zygosity</th><th>Phase</th><th>Allele Freq</th><th>Last Evaluated</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  const phenoHtml = data.hpo_terms.length
+    ? data.hpo_terms.map(h => `<div class="pheno-card"><h3>${h}</h3>
+        <div style="font-size:0.78rem;color:var(--muted)">Linked via gene- and variant-level HPO annotations (OpenCRAVAT hpo annotator).</div></div>`).join('')
+    : '<div class="empty">No HPO terms linked to this gene in the current panel.</div>';
+  document.getElementById('tab-phenotypes').innerHTML = phenoHtml;
+  const pubs = PUBLICATIONS[gene] || [];
+  const pubHtml = pubs.length
+    ? pubs.map(p => `<div class="pub-card">
+        <div>${(p.tags||[]).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        <h3 style="margin-top:0.35rem">${p.title}</h3>
+        <div class="meta">${p.authors} · ${p.journal} · ${p.year}</div>
+        <div class="finding">${p.key_finding}</div>
+        <div style="margin-top:0.45rem"><a href="https://doi.org/${p.doi}" target="_blank" rel="noopener" style="color:var(--accent);font-size:0.78rem">DOI: ${p.doi}</a></div>
+      </div>`).join('')
+    : '<div class="empty">No curated publications loaded for this gene.<br>In production these are pulled from Open Targets / PubMed / GWAS Catalog caches.</div>';
+  document.getElementById('tab-publications').innerHTML = pubHtml;
+  switchTab('variants');
+}
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + name));
 }
-
-// Auto-open first system and select first gene for demo friendliness
 document.addEventListener('DOMContentLoaded', () => {
-  const firstSys = document.querySelector('.sys-node');
-  if (firstSys) firstSys.classList.add('open');
-  const firstGene = document.querySelector('.gene-item');
-  if (firstGene) selectGene(firstGene.dataset.gene);
+  const first = document.querySelector('.sys-node');
+  if (first) first.classList.add('open');
+  const g = document.querySelector('.gene-item');
+  if (g) selectGene(g.dataset.gene);
 });
 </script>
 </body>
