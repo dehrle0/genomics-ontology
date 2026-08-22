@@ -1,125 +1,191 @@
 #!/usr/bin/env python3
 """
-Visual Ontology Explorer - High-Fidelity Clinical Report Generator
-Generates a clean, modern, interactive 2-pane clinical genomics report interface.
-Features:
-- Branded Clinical 2-Pane Architecture (Left Index Panel + Right Detailed Card Stream)
-- Live Instant Search & Panel Filtering (REVEL, ClinVar, Phased, Flagged)
-- Built-in Clinical HPO & Phenotype Dictionary Resolution
-- Discrete Allele Genotype Badges, MAF Filters, and Maternal/Paternal Phasing
+Visual Ontology Explorer & Master Hub - Iteration 2
+Collapsible D3 Tree, Real Data Binding, Multi-level Domain Inference.
 """
 
+import argparse
 import json
 import os
+import re
 import sys
-import argparse
+import yaml
 from pathlib import Path
-from typing import Dict, List, Any
 
-# Clinical HPO Phenotype Dictionary for human-readable resolution
-HPO_DICTIONARY = {
-    "HP:0001626": "Cardiovascular system abnormality",
-    "HP:0001644": "Dilated cardiomyopathy",
-    "HP:0001639": "Hypertrophic cardiomyopathy",
-    "HP:0001635": "Cardiac arrhythmia / Conduction disease",
-    "HP:0001678": "Atrioventricular block",
-    "HP:0004756": "Long QT syndrome",
-    "HP:0001662": "Brugada syndrome",
-    "HP:0002664": "Neoplasm / Tumorigenesis",
-    "HP:0003002": "Breast carcinoma susceptibility",
-    "HP:0001250": "Seizure / Neurodevelopmental abnormality",
-    "HP:0000707": "Abnormality of the nervous system",
-    "HP:0000365": "Hearing impairment / Deafness",
-    "HP:0001000": "Abnormality of skin morphology / Keratosis",
-    "HP:0001427": "Mitochondrial respiratory chain deficiency",
-    "HP:0000100": "Nephrotic syndrome / Renal abnormality",
-    "HP:0003473": "Hyperkalemic periodic paralysis",
-    "HP:0003470": "Paramyotonia congenita",
-    "HP:0001249": "Intellectual disability",
-    "HP:0001297": "Stroke-like episode",
-    "HP:0000822": "Hypertension",
-    "HP:0002099": "Asthma / Respiratory allergy",
-    "HP:0002715": "Abnormality of the immune system",
-    "HP:0001903": "Anemia",
-    "HP:0001873": "Thrombocytopenia"
-}
+def load_domain_registry():
+    config_path = Path(__file__).parent / "config" / "ontology_domains.yaml"
+    if config_path.exists():
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f).get("level1_systems", {})
+        except Exception:
+            pass
+    return {}
 
-def resolve_hpo_term(hpo_id: str) -> str:
-    """Resolves an HPO ID to a clinical phenotype name with fallback."""
-    if not hpo_id:
+def extract_omim_digits(omim_val) -> str:
+    if not omim_val:
         return ""
-    clean_id = hpo_id.strip()
-    if clean_id in HPO_DICTIONARY:
-        return HPO_DICTIONARY[clean_id]
-    return clean_id
+    match = re.search(r'\d{6}|\d{5}|\d{4}', str(omim_val))
+    return match.group(0) if match else ""
 
-def generate_report_html(report_data: dict, output_filepath: str) -> str:
-    patient_id = report_data.get("patient_id", "PATIENT_WGS")
-    run_date = report_data.get("run_date", "2026-08-21 18:30 UTC")
-    monogenic = report_data.get("monogenic_findings", [])
-    polygenic = report_data.get("polygenic_findings", [])
-    pharma = report_data.get("pharma_findings", [])
-
-    # Group findings by gene
-    genes_dict = {}
-    for item in monogenic:
-        sym = item.get("gene_symbol", "Unknown")
-        if sym not in genes_dict:
-            # Resolve HPO terms
-            hpo_list = item.get("associated_hpo_terms", [])
-            resolved_hpos = []
-            for h in hpo_list:
-                term_name = resolve_hpo_term(h)
-                resolved_hpos.append({"id": h, "name": term_name})
-
-            genes_dict[sym] = {
-                "symbol": sym,
-                "name": item.get("gene_name", ""),
-                "description": item.get("ncbi_description", ""),
-                "omim_source": item.get("omim_source", "OMIM"),
-                "pathologies": item.get("pathologies", []),
-                "resolved_hpos": resolved_hpos,
-                "variants": [],
-                "max_revel": 0.0,
-                "has_pathogenic": False,
-                "has_phased": False
-            }
-
-        # Calculate max revel
-        rev = item.get("revel_score")
-        if rev is not None:
+def get_max_spliceai(r):
+    scores = []
+    for k in ['spliceai_ds_ag', 'spliceai_ds_al', 'spliceai_ds_dg', 'spliceai_ds_dl']:
+        val = r.get(k)
+        if val is not None:
             try:
-                rev_f = float(rev)
-                if rev_f > genes_dict[sym]["max_revel"]:
-                    genes_dict[sym]["max_revel"] = rev_f
-            except (ValueError, TypeError):
+                scores.append(float(val))
+            except:
                 pass
+    ev_val = (r.get("evidence") or {}).get("spliceai_max")
+    if ev_val is not None:
+        try:
+            scores.append(float(ev_val))
+        except:
+            pass
+    return max(scores) if scores else "N/A"
 
-        # Check clinvar
-        sig = str(item.get("clinvar_significance", "")).lower()
-        if "pathogenic" in sig:
-            genes_dict[sym]["has_pathogenic"] = True
+def infer_domain(r, domain_reg):
+    # Combine context
+    context_str = " ".join([
+        str(r.get("clinvar_disease") or ""),
+        " ".join(r.get("reason_codes", [])),
+        " ".join((r.get("evidence") or {}).get("hpo_context", [])),
+        (r.get("gene_hpo_term") or ""),
+        ((r.get("gene_info") or {}).get("description") or "")
+    ]).lower()
+    
+    best_l1 = None
+    best_l2 = None
+    
+    for l1_key, l1_val in domain_reg.items():
+        if l1_key.lower() in context_str or (l1_val.get("title") and l1_val["title"].lower().split()[0] in context_str):
+            best_l1 = {"id": l1_val.get("id") or l1_key, "label": l1_val["title"], "color": l1_val.get("color", "#0ea5e9")}
+            for l2_key, l2_val in l1_val.get("level2_subcategories", {}).items():
+                l2_title = l2_val.get("title", "")
+                # naive check
+                if l2_key.lower() in context_str or any(w in context_str for w in l2_title.lower().split() if len(w)>4):
+                    best_l2 = {"id": l2_val.get("id") or l2_key, "label": l2_title, "color": "#6366f1"}
+                    break
+            if not best_l2:
+                best_l2 = {"id": "GEN_" + l1_key, "label": "General " + l1_val["title"], "color": "#6366f1"}
+            break
+            
+    if not best_l1:
+        best_l1 = {"id": "SYSTEM_OTHER", "label": "Other/Unclassified Systems", "color": "#64748b"}
+        best_l2 = {"id": "SUBCAT_OTHER", "label": "General Phenotypes", "color": "#94a3b8"}
+        
+    return best_l1, best_l2
 
-        # Check phasing
-        ph = str(item.get("phasing", "")).lower()
-        if ph in ["maternal", "paternal", "de_novo", "compound_het"]:
-            genes_dict[sym]["has_phased"] = True
+def generate_upgraded_visual_report(report_data: dict, output_filepath: str):
+    domain_reg = load_domain_registry()
+    
+    patient_id = report_data.get("patient_id") or report_data.get("patient") or "DE_WGS_2026"
+    run_date = report_data.get("run_date", "2026-08-21")
+    
+    raw_records = report_data.get("records") or report_data.get("monogenic_findings") or []
+    polygenic = report_data.get("polygenic_findings") or []
+    pharma = report_data.get("pharma_findings") or []
 
-        genes_dict[sym]["variants"].append(item)
+    genes_map = {}
+    hpo_dict = {}
+    
+    for r in raw_records:
+        hugo = r.get("hugo") or r.get("gene_symbol") or "Unknown"
+        
+        # Parse HPOs
+        hpo_ids_raw = r.get("gene_hpo_id") or ""
+        hpo_terms_raw = r.get("gene_hpo_term") or ""
+        hpo_ids = [h.strip() for h in hpo_ids_raw.split(";") if h.strip()]
+        hpo_terms = [h.strip() for h in hpo_terms_raw.split(";") if h.strip()]
+        
+        primary_hpo_id = "HP:0000118"
+        primary_hpo_label = "Phenotypic abnormality"
+        
+        if hpo_ids:
+            primary_hpo_id = hpo_ids[0]
+            if len(hpo_terms) > 0:
+                primary_hpo_label = hpo_terms[0]
+                
+        for i, h_id in enumerate(hpo_ids):
+            if i < len(hpo_terms):
+                hpo_dict[h_id] = hpo_terms[i]
+            else:
+                if h_id not in hpo_dict:
+                    hpo_dict[h_id] = h_id
 
-    # Sort genes by max REVEL score descending
-    sorted_genes = sorted(genes_dict.values(), key=lambda g: g["max_revel"], reverse=True)
-    total_variants_count = len(monogenic)
+        if hugo not in genes_map:
+            omim_digits = extract_omim_digits(r.get("omim_id") or r.get("omim_source"))
+            
+            # Robust NCBI desc
+            ncbi_desc = (r.get("gene_info") or {}).get("description") or r.get("ncbi_description") or r.get("gene_desc")
+            if not ncbi_desc:
+                ncbi_desc = f"No detailed NCBI synopsis available for {hugo}."
+                
+            l1, l2 = infer_domain(r, domain_reg)
+            
+            genes_map[hugo] = {
+                "gene_symbol": hugo,
+                "ncbi_description": ncbi_desc,
+                "associated_hpo_terms": hpo_ids,
+                "associated_mondo_terms": [f"OMIM:{omim_digits}"] if omim_digits else [],
+                "domain_l1": l1,
+                "domain_l2": l2,
+                "primary_hpo": {"id": primary_hpo_id, "label": primary_hpo_label},
+                "variants": []
+            }
+            
+        # Format variant metrics
+        ev = r.get("evidence") or {}
+        zyg = r.get("zygosity") or ev.get("zygosity") or "Heterozygous"
+        phasing = r.get("phasing") or ev.get("phasing") or "Unphased"
+        
+        depth = ev.get("tot_reads") or r.get("tot_reads") or r.get("vcfinfo__tot_reads") or "N/A"
+        quality = ev.get("qual") or r.get("phred") or r.get("qual") or "N/A"
+        
+        cadd = r.get("cadd_phred") or r.get("cadd") or "N/A"
+        spliceai = get_max_spliceai(r)
+        revel = r.get("revel") or r.get("revel_score") or "N/A"
+        am_class = r.get("am_class") or "N/A"
+        
+        tier = r.get("cardio_tier") or r.get("tier") or "Tier 3"
+        if "pathogenic" in str(r.get("clinvar_sig", "")).lower():
+            tier = "Tier 1"
+        elif "vus" in str(r.get("clinvar_sig", "")).lower() or "uncertain" in str(r.get("clinvar_sig", "")).lower():
+            tier = "Tier 2"
+            
+        variant = {
+            "rsid": r.get("rsid") or r.get("dbsnp") or "Novel Variant",
+            "chromosome": r.get("chrom") or "Unknown",
+            "position": r.get("pos") or "Unknown",
+            "genotype": r.get("genotype") or f"{r.get('ref')}/{r.get('alt')}",
+            "zygosity": zyg,
+            "revel_score": revel,
+            "impact_consequence": r.get("achange") or r.get("impact_consequence") or r.get("cchange") or "Unknown",
+            "clinvar_significance": r.get("clinvar_sig") or "VUS",
+            "clinvar_disease": r.get("clinvar_disease") or "",
+            "phasing": phasing,
+            "read_depth": depth,
+            "read_quality": quality,
+            "cadd_phred": cadd,
+            "spliceai_max": spliceai,
+            "am_class": am_class,
+            "tier": tier,
+            "gnomad4_af": r.get("gnomad4_af") or "N/A",
+            "allofus_af": r.get("allofus_af") or "N/A",
+            "reason_codes": r.get("reason_codes") or [],
+            "transcript": r.get("transcript") or "Unknown",
+            "pmid": r.get("denovo__PubmedID") or ""
+        }
+        genes_map[hugo]["variants"].append(variant)
 
-    # Serialize data for client-side JavaScript
-    embedded_data_json = json.dumps({
-        "patient_id": patient_id,
-        "run_date": run_date,
-        "genes": sorted_genes,
-        "total_variants": total_variants_count,
-        "polygenic": polygenic,
-        "pharma": pharma
-    }, indent=2)
+    monogenic_findings = list(genes_map.values())
+    
+    # JSON serialize data for JS
+    monogenic_json = json.dumps(monogenic_findings, indent=2)
+    polygenic_json = json.dumps(polygenic, indent=2)
+    pharma_json = json.dumps(pharma, indent=2)
+    hpo_dict_json = json.dumps(hpo_dict, indent=2)
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -127,1174 +193,548 @@ def generate_report_html(report_data: dict, output_filepath: str) -> str:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visual Ontology Explorer - Genomics Report</title>
-    <!-- Modern typography & icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        :root {{
-            --bg-page: #f8fafc;
-            --bg-surface: #ffffff;
-            --bg-sidebar: #ffffff;
-            --border-color: #e2e8f0;
-            --border-light: #edf2f7;
-            --text-main: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #64748b;
-            --text-light: #94a3b8;
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --primary-light: #eff6ff;
-            --danger: #dc2626;
-            --danger-bg: #fee2e2;
-            --warning: #d97706;
-            --warning-bg: #fef3c7;
-            --success: #16a34a;
-            --success-bg: #dcfce7;
-            --purple: #7c3aed;
-            --purple-bg: #f3e8ff;
-            --slate-badge: #f1f5f9;
-        }}
-
-        * {{
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }}
-
-        body {{
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-page);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-        }}
-
-        /* Header Navigation */
-        .top-navbar {{
-            background: #ffffff;
-            border-bottom: 1px solid var(--border-color);
-            padding: 10px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 64px;
-            shrink: 0;
-            z-index: 30;
-        }}
-
-        .brand-section {{
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }}
-
-        .brand-logo {{
-            width: 38px;
-            height: 38px;
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
-            color: white;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
-        }}
-
-        .brand-title {{
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--text-main);
-            letter-spacing: -0.01em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }}
-
-        .brand-subtitle {{
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }}
-
-        /* Search Bar in Header */
-        .search-container {{
-            position: relative;
-            width: 440px;
-        }}
-
-        .search-icon {{
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 14px;
-        }}
-
-        .search-input {{
-            width: 100%;
-            height: 40px;
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            padding: 8px 16px 8px 38px;
-            font-size: 13px;
-            color: var(--text-main);
-            outline: none;
-            transition: all 0.2s ease;
-        }}
-
-        .search-input:focus {{
-            background: #ffffff;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-        }}
-
-        .user-meta {{
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }}
-
-        .patient-pill {{
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            text-align: right;
-            line-height: 1.3;
-        }}
-
-        .avatar-circle {{
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #0f172a;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 13px;
-        }}
-
-        /* Secondary Panel Filter Tabs Bar */
-        .panel-nav-bar {{
-            background: #ffffff;
-            border-bottom: 1px solid var(--border-color);
-            padding: 6px 24px;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }}
-
-        .nav-pill {{
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 12.5px;
-            font-weight: 600;
-            color: var(--text-muted);
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }}
-
-        .nav-pill:hover {{
-            color: var(--primary);
-            background: #f1f5f9;
-        }}
-
-        .nav-pill.active {{
-            color: var(--primary);
-            background: var(--primary-light);
-            font-weight: 700;
-        }}
-
-        /* Main Workspace Container (Two Pane) */
-        .workspace {{
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            background: var(--bg-page);
-        }}
-
-        /* Left Sidebar: Gene Index */
-        .sidebar-panel {{
-            width: 360px;
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            shrink: 0;
-            height: 100%;
-        }}
-
-        .sidebar-header {{
-            padding: 16px 18px;
-            border-bottom: 1px solid var(--border-color);
-        }}
-
-        .sidebar-title-row {{
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }}
-
-        .sidebar-title {{
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }}
-
-        .btn-report-badge {{
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            color: #1e293b;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }}
-
-        .sidebar-search-box {{
-            width: 100%;
-            height: 34px;
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 4px 10px;
-            font-size: 12px;
-            outline: none;
-        }}
-
-        .sidebar-search-box:focus {{
-            border-color: var(--primary);
-        }}
-
-        .gene-list {{
-            flex: 1;
-            overflow-y: auto;
-            list-style: none;
-        }}
-
-        .gene-item {{
-            padding: 12px 18px;
-            border-bottom: 1px solid var(--border-light);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.15s ease;
-            position: relative;
-        }}
-
-        .gene-item:hover {{
-            background: #f8fafc;
-        }}
-
-        .gene-item.active {{
-            background: #eff6ff;
-            border-left: 3px solid var(--primary);
-        }}
-
-        .gene-item-info {{
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            flex: 1;
-            overflow: hidden;
-        }}
-
-        .priority-dot {{
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #ef4444;
-            margin-top: 6px;
-            shrink: 0;
-        }}
-
-        .priority-dot.amber {{
-            background: #f59e0b;
-        }}
-
-        .gene-symbol-title {{
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--text-main);
-            line-height: 1.2;
-        }}
-
-        .gene-desc-sub {{
-            font-size: 11.5px;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
-            margin-top: 2px;
-        }}
-
-        .gene-score-badge {{
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--danger);
-            margin-left: 8px;
-            shrink: 0;
-        }}
-
-        .gene-score-badge.amber {{
-            color: var(--warning);
-        }}
-
-        /* Right Panel: Content Area */
-        .content-panel {{
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px 32px;
-            height: 100%;
-        }}
-
-        .report-summary-bar {{
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px 20px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-        }}
-
-        .summary-left {{
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }}
-
-        .panel-report-title {{
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-main);
-        }}
-
-        .detected-variants-badge {{
-            background: #64748b;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 6px;
-        }}
-
-        .summary-controls {{
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            font-size: 12.5px;
-            color: var(--text-secondary);
-        }}
-
-        .filter-select {{
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 12px;
-            color: var(--text-main);
-            outline: none;
-        }}
-
-        /* Gene Section Card */
-        .gene-card {{
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 22px 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-            scroll-margin-top: 16px;
-            transition: all 0.2s ease;
-        }}
-
-        .gene-card:hover {{
-            border-color: #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }}
-
-        .gene-card-header {{
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--text-main);
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-light);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }}
-
-        .gene-full-name-label {{
-            font-weight: 500;
-            color: var(--text-secondary);
-        }}
-
-        /* Two Column Description & Pathology */
-        .gene-details-grid {{
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 28px;
-            margin-bottom: 20px;
-            padding-bottom: 18px;
-            border-bottom: 1px solid var(--border-light);
-        }}
-
-        .section-subhead {{
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }}
-
-        .gene-description-text {{
-            font-size: 12.5px;
-            line-height: 1.6;
-            color: var(--text-secondary);
-        }}
-
-        .source-link {{
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 11.5px;
-            margin-top: 6px;
-            display: inline-block;
-            font-weight: 600;
-        }}
-
-        .source-link:hover {{
-            text-decoration: underline;
-        }}
-
-        .pathology-list {{
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }}
-
-        .pathology-item {{
-            font-size: 12.5px;
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }}
-
-        .pathology-tags {{
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }}
-
-        .badge-inheritance {{
-            font-size: 10.5px;
-            font-weight: 600;
-            padding: 2px 7px;
-            border-radius: 4px;
-            border: 1px solid #cbd5e1;
-            background: #f8fafc;
-            color: #334155;
-        }}
-
-        .badge-ad {{
-            background: #fff7ed;
-            border-color: #ffedd5;
-            color: #c2410c;
-        }}
-
-        .badge-ar {{
-            background: #f1f5f9;
-            border-color: #e2e8f0;
-            color: #475569;
-        }}
-
-        .badge-phase {{
-            background: #faf5ff;
-            border-color: #f3e8ff;
-            color: #7e22ce;
-        }}
-
-        /* Clinical Variant Table */
-        .variant-table-wrapper {{
-            width: 100%;
-            overflow-x: auto;
-        }}
-
-        .variant-table {{
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12.5px;
-            text-align: left;
-        }}
-
-        .variant-table th {{
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border-color);
-            background: #f8fafc;
-        }}
-
-        .variant-table td {{
-            padding: 12px 12px;
-            border-bottom: 1px solid var(--border-light);
-            color: var(--text-main);
-            vertical-align: middle;
-        }}
-
-        .variant-table tr:hover td {{
-            background: #f8fafc;
-        }}
-
-        /* Table Badges & Cells */
-        .rs-link {{
-            color: var(--primary);
-            text-decoration: none;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            font-weight: 600;
-        }}
-
-        .rs-link:hover {{
-            text-decoration: underline;
-        }}
-
-        .genotype-box-container {{
-            display: inline-flex;
-            gap: 4px;
-        }}
-
-        .allele-box {{
-            width: 22px;
-            height: 22px;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 12px;
-        }}
-
-        .allele-box.ref {{
-            background: #475569;
-            color: #ffffff;
-        }}
-
-        .allele-box.alt {{
-            background: #d97706;
-            color: #ffffff;
-        }}
-
-        .maf-badge {{
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11.5px;
-            font-weight: 600;
-            background: #fef9c3;
-            color: #854d0e;
-            padding: 3px 7px;
-            border-radius: 4px;
-            display: inline-block;
-        }}
-
-        .revel-score {{
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12.5px;
-            font-weight: 700;
-        }}
-
-        .revel-score.high {{
-            color: var(--danger);
-        }}
-
-        .revel-score.med {{
-            color: var(--warning);
-        }}
-
-        .revel-score.low {{
-            color: var(--success);
-        }}
-
-        .impact-pill {{
-            font-size: 11.5px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 4px;
-            display: inline-block;
-        }}
-
-        .impact-pill.missense {{
-            background: #fee2e2;
-            color: #991b1b;
-        }}
-
-        .impact-pill.frameshift {{
-            background: #fee2e2;
-            color: #b91c1c;
-        }}
-
-        .impact-pill.nonsense {{
-            background: #fee2e2;
-            color: #b91c1c;
-        }}
-
-        .impact-pill.intron {{
-            background: #f1f5f9;
-            color: #475569;
-            border: 1px solid #e2e8f0;
-        }}
-
-        .clinvar-badge {{
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 4px;
-            display: inline-block;
-            text-transform: uppercase;
-        }}
-
-        .clinvar-badge.pathogenic {{
-            background: #dc2626;
-            color: #ffffff;
-        }}
-
-        .clinvar-badge.likely-pathogenic {{
-            background: #ea580c;
-            color: #ffffff;
-        }}
-
-        .clinvar-badge.vus {{
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fde68a;
-        }}
-
-        .clinvar-badge.likely-benign {{
-            background: #dcfce7;
-            color: #166534;
-            border: 1px solid #bbf7d0;
-        }}
-
-        .clinvar-badge.benign {{
-            background: #16a34a;
-            color: #ffffff;
-        }}
-
-        .phase-badge {{
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }}
-
-        .phase-badge.maternal {{
-            background: #f3e8ff;
-            color: #6b21a8;
-            border: 1px solid #e9d5ff;
-        }}
-
-        .phase-badge.paternal {{
-            background: #dbeafe;
-            color: #1e40af;
-            border: 1px solid #bfdbfe;
-        }}
-
-        .phase-badge.undetermined {{
-            background: #f1f5f9;
-            color: #64748b;
-        }}
-
-        /* Scrollbars */
-        ::-webkit-scrollbar {{
-            width: 6px;
-            height: 6px;
-        }}
-        ::-webkit-scrollbar-track {{
-            background: transparent;
-        }}
-        ::-webkit-scrollbar-thumb {{
-            background: #cbd5e1;
-            border-radius: 3px;
-        }}
-        ::-webkit-scrollbar-thumb:hover {{
-            background: #94a3b8;
-        }}
-
-        .hidden {{
-            display: none !important;
-        }}
+        :root {{ --bg-dark: #0f172a; --border-glow: #38bdf8; }}
+        body {{ background-color: var(--bg-dark); color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }}
+        .tab-btn.active {{ border-bottom: 2px solid var(--border-glow); color: #38bdf8; }}
+        .node-link {{ fill: none; stroke: #334155; stroke-opacity: 0.6; stroke-width: 1.5px; transition: stroke 0.3s; }}
+        .node-circle {{ cursor: pointer; stroke: #1e293b; stroke-width: 1.5px; transition: fill 0.2s, stroke 0.2s, r 0.2s; }}
+        .node-circle:hover {{ stroke: #38bdf8; stroke-width: 2.5px; }}
+        ::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+        ::-webkit-scrollbar-track {{ background: #0f172a; }}
+        ::-webkit-scrollbar-thumb {{ background: #334155; border-radius: 3px; }}
+        ::-webkit-scrollbar-thumb:hover {{ background: #475569; }}
+        
+        .variant-details {{ transition: all 0.3s ease-in-out; overflow: hidden; }}
+        .expand-btn {{ cursor: pointer; color: #94a3b8; transition: color 0.2s, transform 0.2s; }}
+        .expand-btn:hover {{ color: #38bdf8; }}
+        .expand-btn.open {{ color: #ef4444; }}
+        .badge-reason {{ background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; }}
+        .badge-reason.pathogenic {{ background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }}
     </style>
 </head>
-<body>
+<body class="h-screen overflow-hidden flex flex-col">
 
-    <!-- Header Navigation -->
-    <header class="top-navbar">
-        <div class="brand-section">
-            <div class="brand-logo">
-                <i class="fa-solid fa-dna"></i>
-            </div>
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-lg shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-sky-500/20 text-sky-400 p-2 rounded-lg border border-sky-500/30"><i class="fa-solid fa-dna text-xl"></i></div>
             <div>
-                <div class="brand-title">Visual Ontology Explorer</div>
-                <div class="brand-subtitle">Genomics Report · Clinical Triage & Phased Variants</div>
+                <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
+                    Visual Ontology Explorer <span class="text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded-full border border-sky-500/30">Genomics Report</span>
+                </h1>
+                <p class="text-xs text-slate-400 mt-0.5">Collapsible HPO Hierarchy & Multi-level Phenotype-Driven Triage</p>
             </div>
         </div>
-
-        <!-- Global Search -->
-        <div class="search-container">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" id="mainSearch" class="search-input" placeholder="Search by gene's code, name, rsID, or phenotype..." oninput="onGlobalSearch(this.value)">
+        
+        <div class="relative w-96 hidden md:block">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <input type="text" id="globalSearch" class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500" placeholder="Search HPO, traits, genes (Press Enter)" onkeypress="if(event.key === 'Enter') onGlobalSearch(this.value)">
         </div>
 
-        <!-- Patient Metadata -->
-        <div class="user-meta">
-            <div class="patient-pill">
-                <div style="font-weight: 700; color: #0f172a;">Patient: {patient_id}</div>
-                <div style="color: #64748b; font-size: 11px;">{run_date} | GRCh38</div>
-            </div>
-            <div class="avatar-circle">DE</div>
+        <div class="flex items-center gap-4 text-xs text-right">
+            <div><div class="text-slate-300">Patient ID: <span class="font-bold text-white">{patient_id}</span></div><div class="text-slate-500">Date: {run_date} | GRCh38</div></div>
+            <div class="bg-slate-800 text-slate-200 w-8 h-8 rounded-full flex items-center justify-center font-bold border border-slate-700">PT</div>
         </div>
     </header>
 
-    <!-- Panel Filter Navigation Pills -->
-    <div class="panel-nav-bar">
-        <button class="nav-pill active" onclick="setPanelFilter('all', this)">All Panels</button>
-        <button class="nav-pill" onclick="setPanelFilter('revel', this)">High REVEL (&ge; 0.7)</button>
-        <button class="nav-pill" onclick="setPanelFilter('clinvar', this)">ClinVar (P/LP)</button>
-        <button class="nav-pill" onclick="setPanelFilter('phased', this)">Phased Variants</button>
-        <button class="nav-pill" onclick="setPanelFilter('flagged', this)">Flagged</button>
-    </div>
-
-    <!-- Main Workspace (Dual Pane Layout) -->
-    <div class="workspace">
+    <main class="flex-1 flex overflow-hidden">
         
-        <!-- Left Sidebar: Gene Index Panel -->
-        <aside class="sidebar-panel">
-            <div class="sidebar-header">
-                <div class="sidebar-title-row">
-                    <div class="sidebar-title" id="sidebarModeTitle">High REVEL score</div>
-                    <button class="btn-report-badge" onclick="resetAllFilters()">Panel Report</button>
+        <!-- Left Pane: D3 Collapsible Tree -->
+        <section class="w-2/5 flex flex-col border-r border-slate-800 bg-slate-950/40 relative min-w-[450px]">
+            <div class="p-4 bg-slate-900/60 border-b border-slate-800 flex justify-between items-center z-10">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project text-sky-400"></i> HPO Ontology Explorer
+                    </h2>
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mt-1">System → Subcategory → Phenotype → Gene</p>
                 </div>
-                <input type="text" id="sidebarFilter" class="sidebar-search-box" placeholder="Filter by gene's code..." oninput="onSidebarFilter(this.value)">
+                <div class="flex gap-2">
+                    <button onclick="resetZoom()" class="bg-slate-800 hover:bg-slate-700 text-xs px-2 py-1 rounded text-slate-300 border border-slate-700"><i class="fa-solid fa-arrows-to-center"></i> Reset</button>
+                    <button onclick="expandAll()" class="bg-slate-800 hover:bg-slate-700 text-xs px-2 py-1 rounded text-slate-300 border border-slate-700"><i class="fa-solid fa-expand"></i> Expand All</button>
+                </div>
             </div>
 
-            <!-- Scrollable Gene List -->
-            <ul class="gene-list" id="geneListContainer">
-                <!-- Dynamically populated by JS -->
-            </ul>
-        </aside>
+            <div class="flex-1 relative overflow-auto" id="canvasContainer">
+                <svg id="hpoTreeSvg" class="w-full h-full absolute inset-0"></svg>
+            </div>
+        </section>
 
-        <!-- Right Main Panel: Stream of Gene Cards -->
-        <main class="content-panel" id="mainContentPanel">
-            
-            <!-- Summary Bar -->
-            <div class="report-summary-bar">
-                <div class="summary-left">
-                    <div class="panel-report-title">Panel Report</div>
-                    <div class="detected-variants-badge" id="detectedCountBadge">Detected {total_variants_count} variant(s)</div>
-                </div>
-
-                <div class="summary-controls">
-                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                        <input type="checkbox" id="toggleDescriptions" checked onchange="toggleGeneDescriptions(this.checked)">
-                        Gene Descriptions
-                    </label>
-
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span>Filter by MAF:</span>
-                        <select id="mafFilterSelect" class="filter-select" onchange="onMafFilterChange(this.value)">
-                            <option value="all">Show all</option>
-                            <option value="0.01">&lt; 0.01 (1%)</option>
-                            <option value="0.001">&lt; 0.001 (0.1%)</option>
-                            <option value="0.0001">&lt; 0.0001 (0.01%)</option>
-                        </select>
+        <!-- Right Pane: Gene Inspector -->
+        <section class="w-3/5 flex flex-col bg-slate-900/20 overflow-hidden relative">
+            <div class="p-6 bg-slate-900/40 border-b border-slate-800 shrink-0">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20 text-2xl font-black shadow-inner" id="headerIcon">🧬</div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-2xl font-extrabold text-white tracking-tight" id="headerTitle">Select a Gene node</h3>
+                            <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700 hidden" id="headerTag"></span>
+                        </div>
+                        <p class="text-sm text-slate-400 font-semibold mt-1" id="headerSubtitle">Click on any gene node in the tree to view Gene Inspector details.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Gene Cards Container -->
-            <div id="geneCardsContainer">
-                <!-- Dynamically populated by JS -->
+            <div class="bg-slate-900/60 border-b border-slate-800 px-6 flex gap-6 shrink-0 z-10" id="tabsNavBar">
+                <button onclick="switchTab('overview')" class="tab-btn py-3 text-sm font-bold text-slate-400 hover:text-white transition-all active" id="tab-overview"><i class="fa-solid fa-address-card"></i> Overview</button>
+                <button onclick="switchTab('variants')" class="tab-btn py-3 text-sm font-bold text-slate-400 hover:text-white transition-all" id="tab-variants"><i class="fa-solid fa-vial-virus"></i> Variants <span class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded-full ml-1" id="variantCountTag">0</span></button>
+                <button onclick="switchTab('phenotypes')" class="tab-btn py-3 text-sm font-bold text-slate-400 hover:text-white transition-all" id="tab-phenotypes"><i class="fa-solid fa-stethoscope"></i> Phenotypes</button>
+                <button onclick="switchTab('polygenic')" class="tab-btn py-3 text-sm font-bold text-slate-400 hover:text-white transition-all" id="tab-polygenic"><i class="fa-solid fa-chart-line"></i> Polygenic Risk</button>
+                <button onclick="switchTab('publications')" class="tab-btn py-3 text-sm font-bold text-slate-400 hover:text-white transition-all" id="tab-publications"><i class="fa-solid fa-book-open"></i> Publications</button>
             </div>
 
-        </main>
-    </div>
+            <div class="flex-1 overflow-y-auto p-6" id="tabContent">
+                <div id="placeholderContent" class="h-full flex flex-col items-center justify-center text-center text-slate-500 py-12">
+                    <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-3xl mb-4 animate-bounce">💡</div>
+                    <h4 class="text-base font-bold text-slate-300">No Gene Selected</h4>
+                </div>
 
-    <!-- Client-Side Script & Data Store -->
-    <script>
-        const REPORT_DATA = {embedded_data_json};
-
-        let activePanelFilter = 'all';
-        let currentSearchQuery = '';
-        let currentMafFilter = 'all';
-        let showDescriptions = true;
-
-        // Initialize UI
-        document.addEventListener('DOMContentLoaded', () => {{
-            renderGeneList();
-            renderGeneCards();
-        }});
-
-        function setPanelFilter(panel, btnElement) {{
-            activePanelFilter = panel;
-            document.querySelectorAll('.nav-pill').forEach(el => el.classList.remove('active'));
-            if (btnElement) btnElement.classList.add('active');
-
-            const titleMap = {{
-                'all': 'All Active Genes',
-                'revel': 'High REVEL score',
-                'clinvar': 'ClinVar Pathogenic / LP',
-                'phased': 'Phased Variants (M/P)',
-                'flagged': 'Flagged Genes'
-            }};
-            document.getElementById('sidebarModeTitle').textContent = titleMap[panel] || 'Genes';
-
-            renderGeneList();
-            renderGeneCards();
-        }}
-
-        function onGlobalSearch(query) {{
-            currentSearchQuery = query.toLowerCase().trim();
-            renderGeneList();
-            renderGeneCards();
-        }}
-
-        function onSidebarFilter(query) {{
-            currentSearchQuery = query.toLowerCase().trim();
-            renderGeneList();
-            renderGeneCards();
-        }}
-
-        function onMafFilterChange(value) {{
-            currentMafFilter = value;
-            renderGeneCards();
-        }}
-
-        function toggleGeneDescriptions(visible) {{
-            showDescriptions = visible;
-            document.querySelectorAll('.gene-details-grid').forEach(el => {{
-                if (visible) {{
-                    el.classList.remove('hidden');
-                }} else {{
-                    el.classList.add('hidden');
-                }}
-            }});
-        }}
-
-        function resetAllFilters() {{
-            activePanelFilter = 'all';
-            currentSearchQuery = '';
-            currentMafFilter = 'all';
-            document.getElementById('mainSearch').value = '';
-            document.getElementById('sidebarFilter').value = '';
-            document.getElementById('mafFilterSelect').value = 'all';
-            document.querySelectorAll('.nav-pill').forEach(el => el.classList.remove('active'));
-            document.querySelector('.nav-pill').classList.add('active');
-            document.getElementById('sidebarModeTitle').textContent = 'All Active Genes';
-            renderGeneList();
-            renderGeneCards();
-        }}
-
-        function filterGenes() {{
-            return REPORT_DATA.genes.filter(gene => {{
-                // Panel Filter
-                if (activePanelFilter === 'revel' && gene.max_revel < 0.7) return false;
-                if (activePanelFilter === 'clinvar' && !gene.has_pathogenic) return false;
-                if (activePanelFilter === 'phased' && !gene.has_phased) return false;
-                if (activePanelFilter === 'flagged' && !gene.has_pathogenic && gene.max_revel < 0.9) return false;
-
-                // Search Filter
-                if (currentSearchQuery) {{
-                    const sym = (gene.symbol || '').toLowerCase();
-                    const name = (gene.name || '').toLowerCase();
-                    const desc = (gene.description || '').toLowerCase();
-                    const matchedVar = gene.variants.some(v => 
-                        (v.rsid && v.rsid.toLowerCase().includes(currentSearchQuery)) ||
-                        (v.impact_consequence && v.impact_consequence.toLowerCase().includes(currentSearchQuery))
-                    );
-                    const matchedHpo = gene.resolved_hpos.some(h => 
-                        h.name.toLowerCase().includes(currentSearchQuery) || h.id.toLowerCase().includes(currentSearchQuery)
-                    );
-                    if (!sym.includes(currentSearchQuery) && !name.includes(currentSearchQuery) && !desc.includes(currentSearchQuery) && !matchedVar && !matchedHpo) {{
-                        return false;
-                    }}
-                }}
-
-                return true;
-            }});
-        }}
-
-        function renderGeneList() {{
-            const container = document.getElementById('geneListContainer');
-            const filtered = filterGenes();
-            container.innerHTML = '';
-
-            if (filtered.length === 0) {{
-                container.innerHTML = '<li style="padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">No matching genes found</li>';
-                return;
-            }}
-
-            filtered.forEach((gene, index) => {{
-                const li = document.createElement('li');
-                li.className = 'gene-item' + (index === 0 ? ' active' : '');
-                li.id = 'sidebar-gene-' + gene.symbol;
-                li.onclick = () => scrollToGene(gene.symbol);
-
-                const isHighRevel = gene.max_revel >= 0.7;
-                const dotClass = isHighRevel ? 'priority-dot' : 'priority-dot amber';
-                const scoreClass = isHighRevel ? 'gene-score-badge' : 'gene-score-badge amber';
-
-                li.innerHTML = `
-                    <div class="gene-item-info">
-                        <div class="${{dotClass}}"></div>
-                        <div style="overflow: hidden;">
-                            <div class="gene-symbol-title">${{gene.symbol}}</div>
-                            <div class="gene-desc-sub">${{gene.name || gene.description || ''}}</div>
+                <div id="overviewContent" class="hidden space-y-6">
+                    <div class="bg-slate-800/40 border border-slate-800/60 p-5 rounded-xl">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-sky-400 mb-2">NCBI Gene Summary</h4>
+                        <p class="text-sm leading-relaxed text-slate-300 font-medium" id="ncbiSummary"></p>
+                        <div class="grid grid-cols-2 gap-4 mt-4 border-t border-slate-800/60 pt-4 text-xs">
+                            <div><span class="text-slate-500">OMIM Number:</span> <a id="mimLink" target="_blank" class="text-sky-400 hover:underline font-bold"></a></div>
+                            <div><span class="text-slate-500">Transcript:</span> <span id="transcripts" class="text-white font-mono"></span></div>
+                            <div class="col-span-2"><span class="text-slate-500">Associated Disease:</span> <span id="clinvarDisease" class="text-white"></span></div>
                         </div>
                     </div>
-                    <div class="${{scoreClass}}">${{gene.max_revel > 0 ? gene.max_revel.toFixed(3) : '—'}}</div>
-                `;
-                container.appendChild(li);
-            }});
-        }}
+                </div>
 
-        function scrollToGene(symbol) {{
-            document.querySelectorAll('.gene-item').forEach(el => el.classList.remove('active'));
-            const sideEl = document.getElementById('sidebar-gene-' + symbol);
-            if (sideEl) sideEl.classList.add('active');
-
-            const card = document.getElementById('card-' + symbol);
-            if (card) {{
-                card.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-            }}
-        }}
-
-        function renderGeneCards() {{
-            const container = document.getElementById('geneCardsContainer');
-            const filtered = filterGenes();
-            container.innerHTML = '';
-
-            let visibleVariantCount = 0;
-
-            if (filtered.length === 0) {{
-                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #64748b; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">No matching gene reports found for current filter criteria.</div>';
-                document.getElementById('detectedCountBadge').textContent = 'Detected 0 variant(s)';
-                return;
-            }}
-
-            filtered.forEach(gene => {{
-                // Filter variants by MAF if selected
-                const variants = gene.variants.filter(v => {{
-                    if (currentMafFilter === 'all') return true;
-                    const maxAf = parseFloat(currentMafFilter);
-                    const af = v.gnomad_af !== undefined && v.gnomad_af !== null ? parseFloat(v.gnomad_af) : 0;
-                    return af <= maxAf;
-                }});
-
-                visibleVariantCount += variants.length;
-
-                const card = document.createElement('div');
-                card.className = 'gene-card';
-                card.id = 'card-' + gene.symbol;
-
-                // Pathologies HTML
-                let pathologyHtml = '';
-                if (gene.pathologies && gene.pathologies.length > 0) {{
-                    const items = gene.pathologies.map(p => {{
-                        const badges = (p.inheritance || []).map(inh => {{
-                            let cls = 'badge-inheritance';
-                            if (inh.includes('Dominant')) cls += ' badge-ad';
-                            else if (inh.includes('Recessive')) cls += ' badge-ar';
-                            return `<span class="${{cls}}">${{inh}}</span>`;
-                        }}).join(' ');
-                        return `
-                            <li class="pathology-item">
-                                <div>• ${{p.name}}</div>
-                                <div class="pathology-tags">${{badges}}</div>
-                            </li>
-                        `;
-                    }}).join('');
-                    pathologyHtml = `<ul class="pathology-list">${{items}}</ul>`;
-                }} else if (gene.resolved_hpos && gene.resolved_hpos.length > 0) {{
-                    const items = gene.resolved_hpos.map(h => `
-                        <li class="pathology-item">
-                            <div>• ${{h.name}}</div>
-                            <div class="pathology-tags"><span class="badge-inheritance badge-ar">${{h.id}}</span></div>
-                        </li>
-                    `).join('');
-                    pathologyHtml = `<ul class="pathology-list">${{items}}</ul>`;
-                }} else {{
-                    pathologyHtml = '<div style="font-size: 12px; color: #94a3b8;">No specific OMIM pathology annotations recorded.</div>';
-                }}
-
-                // Variant Rows HTML
-                let variantRowsHtml = '';
-                variants.forEach(v => {{
-                    // Genotype boxes
-                    const gt = v.genotype || 'N/A';
-                    let gtBoxes = '';
-                    if (gt.includes('/')) {{
-                        const alleles = gt.split('/');
-                        gtBoxes = `
-                            <div class="genotype-box-container">
-                                <span class="allele-box ref">${{alleles[0]}}</span>
-                                <span class="allele-box alt">${{alleles[1]}}</span>
-                            </div>
-                        `;
-                    }} else {{
-                        gtBoxes = `<span class="allele-box alt">${{gt}}</span>`;
-                    }}
-
-                    // MAF
-                    const afVal = v.gnomad_af !== undefined && v.gnomad_af !== null ? Number(v.gnomad_af).toFixed(6).replace(/0+$/, '').replace(/\\.$/, '') : '—';
-                    const mafHtml = afVal !== '—' ? `<span class="maf-badge">${{afVal}}</span>` : '<span style="color:#94a3b8;">—</span>';
-
-                    // REVEL
-                    const rev = v.revel_score !== undefined && v.revel_score !== null ? parseFloat(v.revel_score).toFixed(3) : '—';
-                    let revCls = 'revel-score';
-                    if (rev !== '—') {{
-                        const num = parseFloat(rev);
-                        if (num >= 0.7) revCls += ' high';
-                        else if (num >= 0.5) revCls += ' med';
-                        else revCls += ' low';
-                    }}
-
-                    // Impact
-                    const impact = v.impact_consequence || '—';
-                    let impactCls = 'impact-pill';
-                    if (impact.toLowerCase().includes('missense')) impactCls += ' missense';
-                    else if (impact.toLowerCase().includes('frameshift')) impactCls += ' frameshift';
-                    else if (impact.toLowerCase().includes('nonsense')) impactCls += ' nonsense';
-                    else impactCls += ' intron';
-
-                    // ClinVar
-                    const clinSig = v.clinvar_significance || 'VUS';
-                    let clinCls = 'clinvar-badge vus';
-                    const sigLow = clinSig.toLowerCase();
-                    if (sigLow.includes('likely pathogenic')) clinCls = 'clinvar-badge likely-pathogenic';
-                    else if (sigLow.includes('pathogenic')) clinCls = 'clinvar-badge pathogenic';
-                    else if (sigLow.includes('likely benign')) clinCls = 'clinvar-badge likely-benign';
-                    else if (sigLow.includes('benign')) clinCls = 'clinvar-badge benign';
-
-                    // Phase
-                    const phase = (v.phasing || 'undetermined').toLowerCase();
-                    let phaseBadge = '<span class="phase-badge undetermined">Unknown</span>';
-                    if (phase === 'maternal') {{
-                        phaseBadge = '<span class="phase-badge maternal"><i class="fa-solid fa-venus"></i> Maternal</span>';
-                    }} else if (phase === 'paternal') {{
-                        phaseBadge = '<span class="phase-badge paternal"><i class="fa-solid fa-mars"></i> Paternal</span>';
-                    }}
-
-                    // rsID link
-                    const rsLink = v.rsid ? `<a href="https://www.ncbi.nlm.nih.gov/snp/${{v.rsid}}" target="_blank" class="rs-link">${{v.rsid}}</a>` : `<span style="color:#64748b; font-family:monospace;">${{v.chromosome}}:${{v.position}}</span>`;
-
-                    variantRowsHtml += `
-                        <tr>
-                            <td>${{rsLink}}</td>
-                            <td>${{gtBoxes}}</td>
-                            <td>${{mafHtml}}</td>
-                            <td><span class="${{revCls}}">${{rev}}</span></td>
-                            <td><span class="${{impactCls}}">${{impact}}</span></td>
-                            <td><span class="${{clinCls}}">${{clinSig}}</span></td>
-                            <td>${{phaseBadge}}</td>
-                        </tr>
-                    `;
-                }});
-
-                card.innerHTML = `
-                    <div class="gene-card-header">
-                        <span>${{gene.symbol}}</span>
-                        <span class="gene-full-name-label">— ${{gene.name || ''}}</span>
-                    </div>
-
-                    <div class="gene-details-grid ${{showDescriptions ? '' : 'hidden'}}">
-                        <div>
-                            <div class="section-subhead">Gene Description</div>
-                            <div class="gene-description-text">${{gene.description || 'No description available.'}}</div>
-                            <div>
-                                <a href="https://www.omim.org/entry/${{gene.omim_source ? gene.omim_source.replace('OMIM:', '') : ''}}" target="_blank" class="source-link">(Source: ${{gene.omim_source || 'OMIM'}})</a>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="section-subhead">Associated Pathology</div>
-                            ${{pathologyHtml}}
-                        </div>
-                    </div>
-
-                    <div class="variant-table-wrapper">
-                        <table class="variant-table">
-                            <thead>
+                <div id="variantsContent" class="hidden space-y-4">
+                    <div class="w-full overflow-x-auto bg-slate-800/30 border border-slate-700/60 rounded-lg shadow-lg">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="text-xs text-slate-400 uppercase bg-slate-900/80 border-b border-slate-700/80">
                                 <tr>
-                                    <th>rs ID</th>
-                                    <th>Genotype</th>
-                                    <th>MAF</th>
-                                    <th>REVEL</th>
-                                    <th>Impact of the variant</th>
-                                    <th>ClinVar records</th>
-                                    <th>Phasing</th>
+                                    <th class="px-4 py-3 w-8"></th>
+                                    <th class="px-4 py-3">Variant (RSID / Pos)</th>
+                                    <th class="px-4 py-3">Alleles / Effect</th>
+                                    <th class="px-4 py-3">ClinVar Signif.</th>
+                                    <th class="px-4 py-3">Phasing / Tier</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                ${{variantRowsHtml}}
-                            </tbody>
+                            <tbody id="variantTableBody" class="divide-y divide-slate-700/50"></tbody>
                         </table>
                     </div>
-                `;
+                </div>
 
-                container.appendChild(card);
+                <div id="phenotypesContent" class="hidden space-y-4">
+                    <div class="bg-slate-800/40 border border-slate-800/60 p-5 rounded-xl">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-sky-400 mb-3">Associated Clinical Phenotypes</h4>
+                        <div class="flex flex-col gap-2" id="hpoTags"></div>
+                    </div>
+                </div>
+                
+                <div id="polygenicContent" class="hidden space-y-4">
+                    <div class="bg-slate-800/40 border border-slate-800/60 p-5 rounded-xl">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-sky-400 mb-3 flex items-center justify-between">
+                            <span>📊 Polygenic Risk & Interpretation (EFO)</span>
+                            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono">PGS Catalog</span>
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="prsGrid"></div>
+                    </div>
+                </div>
+
+                <div id="publicationsContent" class="hidden space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-md">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[9px] px-2 py-0.5 rounded font-extrabold uppercase tracking-wider">Literature / GWAS</span>
+                        </div>
+                        <h5 class="text-sm font-extrabold text-white leading-snug" id="pubTitle">Clinical significance of variants</h5>
+                        <div class="flex justify-between items-center text-[10px] text-slate-500 pt-3 mt-3 border-t border-slate-800/60">
+                            <a id="pubLink" href="#" target="_blank" class="text-sky-400 hover:underline flex items-center gap-1"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open in PubMed</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const monogenicFindings = {monogenic_json};
+        const polygenicFindings = {polygenic_json};
+        const hpoDict = {hpo_dict_json};
+
+        let currentActiveGene = null;
+        let rootNode = null;
+        let svgGroup = null;
+        let d3ZoomBehavior = null;
+        let treeLayout = null;
+        let d3Link = null;
+        let d3Node = null;
+        const iWidth = 800;
+        const margin = {{top: 20, right: 120, bottom: 20, left: 120}};
+
+        function resolveHpo(id) {{ return hpoDict[id] || id; }}
+
+        function buildHierarchy() {{
+            const tree = {{ name: "Patient", type: "root", children: [] }};
+            const l1Map = {{}};
+
+            monogenicFindings.forEach(gene => {{
+                const l1 = gene.domain_l1;
+                const l2 = gene.domain_l2;
+                const hpo = gene.primary_hpo;
+                
+                if (!l1Map[l1.id]) {{
+                    l1Map[l1.id] = {{ name: l1.label, type: "level1", color: l1.color, children: [], l2Map: {{}} }};
+                    tree.children.push(l1Map[l1.id]);
+                }}
+                
+                if (!l1Map[l1.id].l2Map[l2.id]) {{
+                    l1Map[l1.id].l2Map[l2.id] = {{ name: l2.label, type: "level2", color: l2.color, children: [], hpoMap: {{}} }};
+                    l1Map[l1.id].children.push(l1Map[l1.id].l2Map[l2.id]);
+                }}
+                
+                if (!l1Map[l1.id].l2Map[l2.id].hpoMap[hpo.id]) {{
+                    l1Map[l1.id].l2Map[l2.id].hpoMap[hpo.id] = {{ name: hpo.label, type: "phenotype", color: "#10b981", children: [] }};
+                    l1Map[l1.id].l2Map[l2.id].children.push(l1Map[l1.id].l2Map[l2.id].hpoMap[hpo.id]);
+                }}
+                
+                let tier = "Tier 3";
+                if(gene.variants.length > 0) tier = gene.variants[0].tier;
+                const gColor = tier === "Tier 1" ? "#ef4444" : (tier === "Tier 2" ? "#f59e0b" : "#a855f7");
+                
+                l1Map[l1.id].l2Map[l2.id].hpoMap[hpo.id].children.push({{
+                    name: gene.gene_symbol, type: "gene", color: gColor
+                }});
+            }});
+            return tree;
+        }}
+
+        function initializeD3Tree() {{
+            const data = buildHierarchy();
+            const container = document.getElementById('canvasContainer');
+            
+            const svg = d3.select("#hpoTreeSvg");
+            svg.selectAll("*").remove();
+
+            svgGroup = svg.append("g").attr("transform", `translate(${{margin.left}},${{margin.top}})`);
+            
+            d3ZoomBehavior = d3.zoom().scaleExtent([0.1, 4]).on("zoom", (e) => {{
+                svgGroup.attr("transform", e.transform);
+            }});
+            svg.call(d3ZoomBehavior).on("dblclick.zoom", null);
+
+            rootNode = d3.hierarchy(data);
+            rootNode.x0 = container.clientHeight / 2;
+            rootNode.y0 = 0;
+
+            // Collapse after level 1
+            rootNode.descendants().forEach(d => {{
+                if (d.depth > 1) {{
+                    d._children = d.children;
+                    d.children = null;
+                }}
             }});
 
-            document.getElementById('detectedCountBadge').textContent = `Detected ${{visibleVariantCount}} variant(s)`;
+            treeLayout = d3.tree().nodeSize([25, 220]);
+            updateTree(rootNode);
+            
+            // Auto-select first Tier 1 gene
+            const firstGene = monogenicFindings.find(g => g.variants.some(v => v.tier === 'Tier 1'));
+            if(firstGene) inspectGene(firstGene.gene_symbol);
         }}
+
+        function updateTree(source) {{
+            const treeData = treeLayout(rootNode);
+            const nodes = treeData.descendants();
+            const links = treeData.descendants().slice(1);
+
+            nodes.forEach(d => {{ d.y = d.depth * 220; }});
+
+            const node = svgGroup.selectAll('g.node')
+                .data(nodes, d => d.id || (d.id = ++window.i));
+
+            const nodeEnter = node.enter().append('g')
+                .attr('class', 'node')
+                .attr("transform", d => `translate(${{source.y0}},${{source.x0}})`)
+                .on('click', clickNode);
+
+            nodeEnter.append('circle')
+                .attr('class', 'node-circle')
+                .attr('r', 1e-6)
+                .style("fill", d => d._children ? "#1e293b" : d.data.color)
+                .style("stroke", d => d.data.color);
+
+            nodeEnter.append('text')
+                .attr("dy", ".35em")
+                .attr("x", d => d.children || d._children ? -13 : 13)
+                .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+                .text(d => d.data.name.length > 25 ? d.data.name.substring(0,23)+'...' : d.data.name)
+                .attr("fill", "#e2e8f0").attr("font-size", "11px");
+
+            const nodeUpdate = nodeEnter.merge(node);
+            nodeUpdate.transition().duration(400)
+                .attr("transform", d => `translate(${{d.y}},${{d.x}})`);
+
+            nodeUpdate.select('circle.node-circle')
+                .attr('r', d => d.data.type === 'gene' ? 7 : (d.data.type === 'root' ? 10 : 8))
+                .style("fill", d => d._children ? "#1e293b" : d.data.color)
+                .attr('cursor', 'pointer');
+
+            const nodeExit = node.exit().transition().duration(400)
+                .attr("transform", d => `translate(${{source.y}},${{source.x}})`)
+                .remove();
+            nodeExit.select('circle').attr('r', 1e-6);
+
+            const link = svgGroup.selectAll('path.node-link')
+                .data(links, d => d.id);
+
+            const linkEnter = link.enter().insert('path', "g")
+                .attr("class", "node-link")
+                .attr('d', d => {{
+                    const o = {{x: source.x0, y: source.y0}};
+                    return diagonal(o, o);
+                }});
+
+            const linkUpdate = linkEnter.merge(link);
+            linkUpdate.transition().duration(400)
+                .attr('d', d => diagonal(d, d.parent));
+
+            link.exit().transition().duration(400)
+                .attr('d', d => {{
+                    const o = {{x: source.x, y: source.y}};
+                    return diagonal(o, o);
+                }}).remove();
+
+            nodes.forEach(d => {{ d.x0 = d.x; d.y0 = d.y; }});
+        }}
+
+        function diagonal(s, d) {{
+            return `M ${{s.y}} ${{s.x}}
+                    C ${{(s.y + d.y) / 2}} ${{s.x}},
+                      ${{(s.y + d.y) / 2}} ${{d.x}},
+                      ${{d.y}} ${{d.x}}`;
+        }}
+
+        function clickNode(event, d) {{
+            if (d.data.type === 'gene') {{
+                inspectGene(d.data.name);
+                return;
+            }}
+            if (d.children) {{
+                d._children = d.children;
+                d.children = null;
+            }} else {{
+                d.children = d._children;
+                d._children = null;
+            }}
+            updateTree(d);
+        }}
+        
+        function expandAll() {{
+            rootNode.descendants().forEach(d => {{
+                if(d._children) {{ d.children = d._children; d._children = null; }}
+            }});
+            updateTree(rootNode);
+        }}
+
+        function resetZoom() {{
+            d3.select("#hpoTreeSvg").transition().duration(500).call(d3ZoomBehavior.transform, d3.zoomIdentity.translate(margin.left, margin.top));
+        }}
+
+        function inspectGene(geneSymbol) {{
+            currentActiveGene = geneSymbol;
+            const record = monogenicFindings.find(f => f.gene_symbol === geneSymbol);
+            if (!record) return;
+
+            document.getElementById("placeholderContent").classList.add("hidden");
+            document.getElementById("overviewContent").classList.remove("hidden");
+            switchTab("overview");
+
+            document.getElementById("headerTitle").innerText = geneSymbol;
+            document.getElementById("headerTag").classList.remove("hidden");
+            document.getElementById("headerTag").innerText = record.variants[0]?.tier || "TIER";
+
+            document.getElementById("ncbiSummary").innerText = record.ncbi_description;
+            const omim = record.associated_mondo_terms.length > 0 ? record.associated_mondo_terms[0] : "";
+            document.getElementById("mimLink").innerText = omim || "Search OMIM";
+            document.getElementById("mimLink").href = omim ? "https://omim.org/entry/" + omim.replace("OMIM:", "") : "https://omim.org/search/?search=" + geneSymbol;
+            document.getElementById("transcripts").innerText = record.variants[0]?.transcript || "Canonical";
+            document.getElementById("clinvarDisease").innerText = record.variants[0]?.clinvar_disease || "Not specified";
+
+            const prsGrid = document.getElementById("prsGrid");
+            prsGrid.innerHTML = "";
+            polygenicFindings.forEach(prs => {{
+                let riskColor = prs.risk_category === "HIGH" ? "text-red-400" : (prs.risk_category === "MODERATE" ? "text-yellow-400" : "text-sky-400");
+                let prsBg = prs.risk_category === "HIGH" ? "bg-red-500/20" : (prs.risk_category === "MODERATE" ? "bg-yellow-500/20" : "bg-sky-500/20");
+                prsGrid.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-lg text-center">
+                        <span class="text-[10px] uppercase font-bold text-slate-400">` + prs.trait_name + `</span>
+                        <div class="text-2xl font-black text-white mt-1">` + prs.percentile + ` %</div>
+                        <span class="text-[10px] font-bold mt-2 inline-block ` + riskColor + ` ` + prsBg + ` px-2 rounded-full border border-current/20">` + prs.risk_category + `</span>
+                    </div>`;
+            }});
+
+            document.getElementById("variantCountTag").innerText = record.variants.length;
+            const vBody = document.getElementById("variantTableBody");
+            vBody.innerHTML = "";
+
+            record.variants.forEach((v, idx) => {{
+                const sigCls = v.clinvar_significance.toLowerCase().includes("pathogenic") ? "text-red-400 bg-red-500/10 border-red-500/20" : "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
+                
+                let caddCls = "text-slate-200";
+                if(v.cadd_phred !== "N/A" && parseFloat(v.cadd_phred) >= 20) caddCls = "text-amber-400";
+                if(v.cadd_phred !== "N/A" && parseFloat(v.cadd_phred) >= 30) caddCls = "text-red-400";
+                
+                const amCls = v.am_class.includes("pathogenic") ? "text-red-400" : "text-emerald-400";
+                
+                let reasonsHtml = (v.reason_codes || []).map(r => {{
+                    let c = "badge-reason";
+                    if(r.includes("PATH") || r.includes("PVS") || r.includes("CONFLICT")) c += " pathogenic";
+                    return `<span class="${{c}}">${{r}}</span>`;
+                }}).join(" ");
+
+                vBody.innerHTML += `
+                <tr class="hover:bg-slate-800/40 transition-colors">
+                    <td class="px-4 py-3">
+                        <button class="expand-btn" id="btn-exp-${{idx}}" onclick="toggleDrawer(${{idx}})">
+                            <i class="fa-solid fa-plus text-lg"></i>
+                        </button>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="font-mono font-bold text-white">${{v.rsid}}</div>
+                        <div class="text-[10px] text-slate-500">${{v.chromosome}}:${{v.position}}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="font-mono text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded inline-block text-xs">${{v.genotype}}</div>
+                        <div class="text-xs text-slate-400 mt-1">${{v.impact_consequence}}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border ${{sigCls}}">${{v.clinvar_significance}}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="text-xs font-semibold text-indigo-400">${{v.phasing}}</div>
+                        <div class="text-[10px] text-slate-500">${{v.tier}}</div>
+                    </td>
+                </tr>
+                <tr id="drawer-${{idx}}" class="variant-details hidden bg-slate-950/60 border-b border-slate-700/80">
+                    <td colspan="5" class="px-6 py-4">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-md">
+                                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">CADD Phred</div>
+                                <div class="font-mono ${{caddCls}} font-bold text-sm">${{v.cadd_phred}}</div>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-md">
+                                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Read Depth & Qual</div>
+                                <div class="text-slate-200 font-bold text-xs">${{v.read_depth}} <span class="text-slate-500 font-normal">| Q:${{v.read_quality}}</span></div>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-md">
+                                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">AlphaMissense</div>
+                                <div class="${{amCls}} font-bold text-xs">${{v.am_class}}</div>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-md">
+                                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">SpliceAI Delta Max</div>
+                                <div class="font-mono text-slate-200 font-bold text-sm">${{v.spliceai_max}}</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-md">
+                                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">gnomAD4 AF</div>
+                                <div class="font-mono text-slate-200 text-xs">${{v.gnomad4_af}}</div>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-md">
+                                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">All of Us AF</div>
+                                <div class="font-mono text-slate-200 text-xs">${{v.allofus_af}}</div>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-3 rounded-md col-span-2">
+                                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">ACMG Reason Codes</div>
+                                <div class="flex flex-wrap gap-1">${{reasonsHtml}}</div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            }});
+
+            const hpoTags = document.getElementById("hpoTags");
+            hpoTags.innerHTML = "";
+            record.associated_hpo_terms.forEach(hpo => {{
+                hpoTags.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-lg text-sm flex items-center justify-between">
+                        <span class="font-semibold text-slate-200">${{resolveHpo(hpo)}}</span>
+                        <span class="text-[10px] font-mono text-sky-400">${{hpo}}</span>
+                    </div>
+                `;
+            }});
+            
+            document.getElementById("pubTitle").innerText = `Clinical significance of variants in ${{geneSymbol}}`;
+            const pmid = record.variants[0]?.pmid;
+            const pmidUrl = pmid ? `https://pubmed.ncbi.nlm.nih.gov/${{pmid}}` : `https://pubmed.ncbi.nlm.nih.gov/?term=${{geneSymbol}}`;
+            document.getElementById("pubLink").href = pmidUrl;
+        }}
+
+        function toggleDrawer(idx) {{
+            const drawer = document.getElementById(`drawer-${{idx}}`);
+            const btn = document.getElementById(`btn-exp-${{idx}}`);
+            if (drawer.classList.contains('hidden')) {{
+                drawer.classList.remove('hidden');
+                btn.classList.add('open');
+                btn.innerHTML = '<i class="fa-solid fa-minus text-lg"></i>';
+            }} else {{
+                drawer.classList.add('hidden');
+                btn.classList.remove('open');
+                btn.innerHTML = '<i class="fa-solid fa-plus text-lg"></i>';
+            }}
+        }}
+
+        function switchTab(tabId) {{
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById("tab-" + tabId).classList.add('active');
+            ['overview', 'variants', 'phenotypes', 'polygenic', 'publications'].forEach(t => {{
+                document.getElementById(t + "Content").classList.add("hidden");
+            }});
+            document.getElementById(tabId + "Content").classList.remove("hidden");
+        }}
+
+        function onGlobalSearch(term) {{
+            term = term.toLowerCase().trim();
+            if (!term) return;
+            
+            // Search tree
+            let foundNode = null;
+            rootNode.descendants().forEach(d => {{
+                if (d.data.name.toLowerCase().includes(term) || (d.data.type==='phenotype' && d.data.id && d.data.id.toLowerCase().includes(term))) {{
+                    if(!foundNode || d.data.type === 'gene') foundNode = d; 
+                }}
+            }});
+            
+            if (foundNode) {{
+                let curr = foundNode;
+                while (curr.parent) {{
+                    curr.parent.children = curr.parent.children || curr.parent._children;
+                    curr.parent._children = null;
+                    curr = curr.parent;
+                }}
+                updateTree(rootNode);
+                
+                if (foundNode.data.type === 'gene') {{
+                    inspectGene(foundNode.data.name);
+                }}
+            }}
+        }}
+
+        window.addEventListener('load', () => {{
+            window.i = 0;
+            initializeD3Tree();
+        }});
     </script>
 </body>
 </html>"""
 
     with open(output_filepath, "w", encoding="utf-8") as f:
         f.write(html_content)
-    
-    print(f"Successfully generated Visual Ontology Explorer report at: {output_filepath}")
-    return output_filepath
+    print(f"Successfully generated visual upgraded HTML at: {output_filepath}")
 
-def main():
-    parser = argparse.ArgumentParser(description="Visual Ontology Explorer HTML Report Generator")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Genomic & Polygenic Visual Explorer HTML Generator")
     parser.add_argument("-i", "--input", help="Path to input JSON file containing variant report data")
-    parser.add_argument("-o", "--output", default="reports/visual_ontology_explorer.html", help="Path to output HTML file")
-    parser.add_argument("-d", "--demo", "--mock", action="store_true", help="Generate report using demo sample dataset")
+    parser.add_argument("-o", "--output", default="reports/visual_ontology_explorer.html", help="Path to output HTML")
+    parser.add_argument("-d", "--demo", "--mock", action="store_true", help="Generate report using mel_actionable dataset")
     args = parser.parse_args()
 
     out_dir = os.path.dirname(args.output)
@@ -1302,27 +742,17 @@ def main():
         os.makedirs(out_dir, exist_ok=True)
 
     if args.demo:
-        demo_path = Path(__file__).parent / "samples" / "demo_variant_report.json"
-        if demo_path.exists():
-            with open(demo_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        else:
-            data = {
-                "patient_id": "DE_WGS_2026",
-                "run_date": "2026-08-21 18:30 UTC",
-                "monogenic_findings": []
-            }
-        generate_report_html(data, args.output)
-    else:
-        if not args.input:
-            parser.print_help()
+        mel_path = Path(__file__).parent / "logs" / "mel_actionable.json"
+        if not mel_path.exists():
+            print(f"Error: Demo file not found at {mel_path}")
             sys.exit(1)
-        if not os.path.exists(args.input):
-            print(f"Error: Input file does not exist: {args.input}")
+        with open(mel_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        generate_upgraded_visual_report(data, args.output)
+    else:
+        if not args.input or not os.path.exists(args.input):
+            print("Error: Input file missing.")
             sys.exit(1)
         with open(args.input, "r", encoding="utf-8") as f:
             data = json.load(f)
-        generate_report_html(data, args.output)
-
-if __name__ == "__main__":
-    main()
+        generate_upgraded_visual_report(data, args.output)
