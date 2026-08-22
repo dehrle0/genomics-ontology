@@ -1,0 +1,193 @@
+# =============================================================================
+# cardiology.yaml  —  EXAMPLE DOMAIN CONFIG for the generic ontology_report engine
+#
+# The engine itself knows nothing about cardiology. A "domain" is defined
+# entirely by this file: the ontology terms that build the gene panel and the
+# evidence thresholds that define "actionable". Copy config/template.yaml to
+# create a config for ANY phenotype domain (see config/hereditary_cancer.yaml
+# for a second worked example).
+# =============================================================================
+
+domain: cardiology
+report_title: Ontology-Driven Actionable Cardiology Report
+description: >
+  Actionable variant selection for cardiovascular & cardiometabolic longevity.
+  Genes are selected dynamically from HPO (phenotype) and GO (function)
+  ontology annotations installed in OpenCRAVAT, not from a static gene list.
+
+# -----------------------------------------------------------------------------
+# HPO (Human Phenotype Ontology) seeds
+#   A gene enters the panel if it is annotated (in the installed `hpo` module)
+#   with ANY of these terms. `term_ids` are exact HPO IDs (high precision).
+#   `term_keywords` are case-insensitive substrings matched against the HPO
+#   term NAME (broader recall). Use both.
+# -----------------------------------------------------------------------------
+hpo:
+  term_ids:
+    - HP:0001638   # Cardiomyopathy
+    - HP:0001639   # Hypertrophic cardiomyopathy
+    - HP:0001644   # Dilated cardiomyopathy
+    - HP:0011663   # Right ventricular cardiomyopathy (ARVC)
+    - HP:0001635   # Congestive heart failure
+    - HP:0011675   # Arrhythmia
+    - HP:0004308   # Ventricular arrhythmia
+    - HP:0001695   # Cardiac arrest
+    - HP:0001645   # Sudden cardiac death
+    - HP:0001279   # Syncope
+    - HP:0001657   # Prolonged QT interval
+    - HP:0001692   # Atrial arrhythmia
+    - HP:0005110   # Atrial fibrillation
+    - HP:0001962   # Palpitations
+    - HP:0001658   # Myocardial infarction
+    - HP:0001677   # Coronary artery atherosclerosis
+    - HP:0003119   # Abnormal circulating lipid concentration
+    - HP:0003124   # Hypercholesterolemia
+    - HP:0000822   # Hypertension
+    - HP:0004942   # Aortic aneurysm
+    - HP:0002647   # Aortic dissection
+  term_keywords:
+    - cardiomyopathy
+    - arrhythmia
+    - myocard
+    - ventricular tachycardia
+    - prolonged qt
+    - atrial fibrillation
+    - heart block
+    - cardiac conduction
+    - sudden cardiac death
+    - aortic aneurysm
+    - aortic dissection
+    - hypercholesterol
+    - hyperlipid
+    - cardiac amyloidosis
+
+# -----------------------------------------------------------------------------
+# GO (Gene Ontology) seeds
+#   A gene enters the panel if it has a GO annotation whose term NAME matches
+#   any keyword, or whose GO ID is in `term_ids`. Aspects: bpo (process),
+#   mfo (molecular function), cco (cellular component).
+# -----------------------------------------------------------------------------
+go:
+  term_ids:
+    - GO:0060047   # heart contraction
+    - GO:0008016   # regulation of heart contraction
+    - GO:0060048   # cardiac muscle contraction
+    - GO:0086001   # cardiac muscle cell action potential
+    - GO:0086091   # regulation of heart rate by cardiac conduction
+    - GO:1903779   # regulation of cardiac conduction
+    - GO:0055010   # ventricular cardiac muscle tissue morphogenesis
+  term_keywords:
+    - heart contraction
+    - cardiac muscle contraction
+    - cardiac conduction
+    - cardiac muscle cell action potential
+    - sarcomere
+    - myofibril
+    - regulation of heart rate
+    - sodium channel activity
+    - potassium channel activity
+    - calcium channel activity
+    - lipoprotein
+    - cholesterol
+    - sterol transport
+  drop_iea_only: false
+
+# -----------------------------------------------------------------------------
+# Panel controls
+# -----------------------------------------------------------------------------
+panel:
+  min_ontology_support: 1     # 1 = union (recall). 2 = gene must hit BOTH HPO and GO.
+  force_include:
+    - TTR      # ATTR amyloidosis — treatable, age 65+ priority
+    - LDLR     # Familial hypercholesterolemia
+    - APOB
+    - PCSK9
+  force_exclude: []
+
+# -----------------------------------------------------------------------------
+# Population frequency thresholds (rarity = genotype evidence)
+# -----------------------------------------------------------------------------
+frequency:
+  max_af: 0.01        # hard ceiling; above this a variant is not actionable
+  tier2_af: 0.001     # <= this can support Tier 2
+  tier1_af: 0.0001    # <= this (PM2-grade) can support Tier 1
+
+# -----------------------------------------------------------------------------
+# Core (pan-disease) predictor thresholds — these annotators are generic and
+# apply to every domain. Domain-specific predictors go under `domain_predictors`.
+# -----------------------------------------------------------------------------
+predictors:
+  revel_min: 0.75
+  alphamissense_min: 0.564        # AM "likely_pathogenic" cutoff
+  bayesdel_min: 0.16
+  metarnn_min: 0.80
+  esm1b_max: -7.5                 # ESM1b: more negative = more damaging
+  varity_min: 0.75
+  spliceai_min: 0.20              # splice-altering
+  spliceai_tier1: 0.50
+  pp3_consensus_n: 2              # predictors that must agree for PP3 consensus
+
+# -----------------------------------------------------------------------------
+# OPTIONAL domain-specific predictors. Each is a disease-tuned model exposed as
+# an OpenCRAVAT column. Absent columns are silently ignored, so this list is
+# safe to leave populated. Firing adds a `PP3_<code>` reason and counts toward
+# the predictor consensus.
+# -----------------------------------------------------------------------------
+domain_predictors:
+  - code: CARDIOBOOST
+    score_cols: [cardioboost__cardiomyopathy, cardioboost__arrhythmias]
+    text_cols:  [cardioboost__cardiomyopathy1, cardioboost__arrhythmias1]
+    min: 0.90
+  - code: MUTPRED
+    score_cols: [mutpred1__mutpred_score]
+    text_cols: []
+    min: 0.85
+  - code: MUT_ASSESSOR
+    score_cols: []
+    text_cols: [mutation_assessor__pred]
+    min: 0.0
+
+# -----------------------------------------------------------------------------
+# OPTIONAL domain-specific evidence columns. If ANY listed column is non-empty
+# for a variant, the given reason code is added (and makes the variant
+# actionable). `kind` is phenotype or genotype (affects badge colour only).
+# -----------------------------------------------------------------------------
+domain_evidence:
+  - code: ARRVARS_KNOWN
+    kind: phenotype
+    columns: [arrvars__lqt, arrvars__brs, arrvars__function]
+  - code: PHARMGKB_DRUG
+    kind: phenotype
+    columns: [pharmgkb__chemicals]
+  - code: INTERPRO_DOMAIN
+    kind: genotype
+    columns: [interpro__domain]
+  - code: DENOVO_EVIDENCE
+    kind: phenotype
+    columns: [denovo__PubmedID]
+
+# -----------------------------------------------------------------------------
+# Non-coding regulatory thresholds (genotype evidence, panel genes only)
+# -----------------------------------------------------------------------------
+noncoding:
+  cadd_phred_min: 15
+  linsight_min: 0.4
+  regulomedb_rank_max: "3a"
+  ncer_percentile_min: 0.90
+
+# -----------------------------------------------------------------------------
+# Genes where loss-of-function is the established disease mechanism
+# (used for PVS1-style Tier 1 upgrade). Curated per domain; keep short.
+# -----------------------------------------------------------------------------
+haploinsufficient_genes:
+  - LMNA
+  - DSP
+  - PKP2
+  - DSG2
+  - FLNC
+  - MYBPC3
+  - BAG3
+  - RBM20
+  - TNNT2
+  - SCN5A
+  - LDLR

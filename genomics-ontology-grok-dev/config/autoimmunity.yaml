@@ -1,0 +1,208 @@
+# =============================================================================
+# autoimmunity.yaml  —  THIRD EXAMPLE DOMAIN (and a showcase of "live" reporting)
+#
+# Autoimmune disease is overwhelmingly POLYGENIC: risk is carried by many common
+# variants (GWAS risk alleles, HLA haplotypes) rather than a handful of rare
+# high-penetrance mutations. That breaks the usual "rare + damaging" actionability
+# model, so this domain turns on two extra, engine-generic mechanisms:
+#
+#   1. domain_evidence with `bypass_frequency: true` — a variant catalogued as a
+#      GWAS risk allele (OpenCRAVAT `gwas_catalog` annotator) is kept even when it
+#      is population-common, because commonness is expected for risk alleles.
+#
+#   2. Live study enrichment — run the report with `--studies` (or the
+#      autoimmune renderer) and each kept variant/gene is annotated on the fly
+#      with CURRENT GWAS Catalog associations (trait, p-value, odds ratio, risk
+#      allele) and their PubMed citations. See lib/enrich_report.py.
+#
+# The engine is still domain-agnostic: everything below is just config.
+# =============================================================================
+
+domain: autoimmunity
+report_title: Ontology-Driven Autoimmune Risk & Evidence Report
+description: >
+  Polygenic autoimmune-risk report. The gene panel is derived from HPO
+  autoimmune phenotypes and GO immune-system functions; kept variants combine
+  monogenic (ClinVar/coding) signals with catalogued GWAS risk alleles, and are
+  enriched live with current GWAS Catalog study evidence and NCBI gene context.
+
+# -----------------------------------------------------------------------------
+# HPO (phenotype) seeds — autoimmune / inflammatory disease terms.
+# Keyword matching (substring vs HPO term name) gives broad, robust recall.
+# -----------------------------------------------------------------------------
+hpo:
+  term_ids:
+    - HP:0002960   # Autoimmunity
+    - HP:0002633   # Vasculitis
+    - HP:0002665   # Lymphoma (autoimmune lymphoproliferative overlap)
+    - HP:0000206   # Autoimmune thrombocytopenia (immune context)
+  term_keywords:
+    - autoimmun
+    - rheumatoid
+    - lupus
+    - systemic sclerosis
+    - scleroderma
+    - sjogren
+    - psoriasis
+    - psoriatic
+    - type 1 diabetes
+    - insulin-dependent diabetes
+    - thyroiditis
+    - graves
+    - hashimoto
+    - multiple sclerosis
+    - inflammatory bowel
+    - crohn
+    - ulcerative colitis
+    - celiac
+    - coeliac
+    - vitiligo
+    - myasthenia
+    - ankylosing spondylitis
+    - vasculitis
+    - alopecia areata
+    - autoimmune hepatitis
+    - primary biliary
+    - immune dysregulation
+
+# -----------------------------------------------------------------------------
+# GO (function) seeds — adaptive/innate immunity, tolerance, cytokine signalling.
+# -----------------------------------------------------------------------------
+go:
+  term_ids:
+    - GO:0002250   # adaptive immune response
+    - GO:0050776   # regulation of immune response
+    - GO:0042110   # T cell activation
+    - GO:0002456   # T cell mediated immunity
+    - GO:0002460   # adaptive immune response (somatic recombination)
+    - GO:0045058   # T cell selection
+    - GO:0002520   # immune system development
+  term_keywords:
+    - adaptive immune response
+    - regulation of immune response
+    - t cell activation
+    - t cell differentiation
+    - regulatory t cell
+    - b cell activation
+    - antigen processing and presentation
+    - mhc class ii
+    - interleukin
+    - interferon
+    - tumor necrosis factor
+    - cytokine-mediated signaling
+    - inflammatory response
+    - tolerance induction
+    - complement activation
+  drop_iea_only: false
+
+# -----------------------------------------------------------------------------
+# Panel controls. Union (1) for recall; the canonical autoimmune-risk loci are
+# force-included so the panel is anchored even where ontology coverage is thin
+# (HLA genes, cytokine receptors, and monogenic-autoimmunity genes).
+# -----------------------------------------------------------------------------
+panel:
+  min_ontology_support: 1
+  force_include:
+    # --- classic polygenic risk loci (GWAS) ---
+    - PTPN22       # rs2476601 — T1D, RA, lupus, etc.
+    - CTLA4
+    - IL2RA
+    - IL23R        # ankylosing spondylitis, IBD, psoriasis
+    - STAT4
+    - TNFAIP3      # A20 — lupus, RA
+    - IRF5
+    - TYK2         # protective P1104A across many autoimmune diseases
+    - SH2B3
+    - BLK
+    - PTPN2
+    - IL7R         # multiple sclerosis
+    - INS          # type 1 diabetes
+    - NOD2         # Crohn disease
+    - ATG16L1
+    - IL10
+    - FCGR2A
+    - BANK1
+    - CD40
+    - TNFSF13B     # BAFF — lupus/MS
+    # --- HLA (dominant autoimmune-risk region) ---
+    - HLA-DRB1
+    - HLA-DQB1
+    - HLA-DQA1
+    - HLA-B        # HLA-B*27 (ankylosing spondylitis), B*57:01
+    - HLA-A
+    - HLA-C
+    # --- monogenic autoimmunity / immune dysregulation ---
+    - AIRE         # APECED
+    - FOXP3        # IPEX
+    - STAT3        # gain-of-function autoimmunity
+    - LRBA         # LRBA deficiency / CTLA4 pathway
+    - FAS          # ALPS
+  force_exclude: []
+
+# -----------------------------------------------------------------------------
+# Frequency thresholds. GWAS risk alleles are COMMON, so the generic rarity
+# tiers rarely apply here — they still gate rare monogenic variants. The
+# gwas_catalog domain_evidence below is what keeps common risk alleles.
+# -----------------------------------------------------------------------------
+frequency:
+  max_af: 0.05        # a little looser than the rare-disease default
+  tier2_af: 0.001
+  tier1_af: 0.0001
+
+predictors:
+  revel_min: 0.75
+  alphamissense_min: 0.564
+  bayesdel_min: 0.16
+  metarnn_min: 0.80
+  esm1b_max: -7.5
+  varity_min: 0.75
+  spliceai_min: 0.20
+  spliceai_tier1: 0.50
+  pp3_consensus_n: 2
+
+domain_predictors: []
+
+# -----------------------------------------------------------------------------
+# GWAS catalog membership = autoimmune-risk evidence. `bypass_frequency: true`
+# means: keep the variant even if it is population-common (the normal ceiling
+# would otherwise drop it). Columns are resolved against the DB at runtime, so
+# if the `gwas_catalog` annotator was not installed this rule simply no-ops and
+# the live --studies enrichment still fills in current associations by rsID.
+# -----------------------------------------------------------------------------
+domain_evidence:
+  - code: GWAS_RISK_ALLELE
+    kind: phenotype
+    bypass_frequency: true
+    columns:
+      - gwas_catalog__disease
+      - gwas_catalog__trait
+      - gwas_catalog__pmid
+      - gwas_catalog__risk_allele
+
+noncoding:
+  cadd_phred_min: 15
+  linsight_min: 0.4
+  regulomedb_rank_max: "3a"
+  ncer_percentile_min: 0.90
+
+# Monogenic autoimmunity genes acting through loss-of-function.
+haploinsufficient_genes:
+  - AIRE
+  - FOXP3
+  - CTLA4
+  - LRBA
+  - FAS
+  - TNFAIP3
+
+# -----------------------------------------------------------------------------
+# Autoimmune-specific report extras (consumed by lib/render_autoimmune.py).
+#   enrichment.studies  -> pull live GWAS Catalog associations per variant/gene
+#   enrichment.genes    -> pull NCBI gene descriptions
+#   visualization       -> render the trait-burden chart
+# -----------------------------------------------------------------------------
+report:
+  renderer: autoimmune
+  enrichment:
+    genes: true
+    studies: true
+  visualization: true

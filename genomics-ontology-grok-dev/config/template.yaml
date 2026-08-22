@@ -1,0 +1,70 @@
+# =============================================================================
+# template.yaml  —  Copy this to config/<your_domain>.yaml and fill it in.
+#
+# The engine is domain-agnostic. Everything specific to a phenotype area lives
+# here. Run with:  ./run_ontology_report.sh -c config/<your_domain>.yaml ...
+# =============================================================================
+
+domain: my_domain                      # short id, used in filenames/headers
+report_title: Ontology-Driven Actionable <Domain> Report
+description: >
+  One-line description of what this report targets.
+
+# --- Gene panel is DERIVED from these ontology seeds (not hand-listed) --------
+hpo:
+  term_ids: []          # exact HPO IDs, e.g. HP:0001638  (high precision)
+  term_keywords: []     # substrings matched vs HPO term names (broader recall)
+
+go:
+  term_ids: []          # exact GO IDs, e.g. GO:0006281
+  term_keywords: []     # substrings matched vs GO term names
+  drop_iea_only: false  # true = ignore electronic-only (IEA) GO evidence
+
+panel:
+  min_ontology_support: 1   # 1 = HPO OR GO (recall). 2 = HPO AND GO (precision).
+  force_include: []         # genes always kept regardless of ontology
+  force_exclude: []         # genes always dropped
+
+# --- Actionability thresholds -------------------------------------------------
+frequency:
+  max_af: 0.01
+  tier2_af: 0.001
+  tier1_af: 0.0001
+
+predictors:                 # generic pan-disease predictors
+  revel_min: 0.75
+  alphamissense_min: 0.564
+  bayesdel_min: 0.16
+  metarnn_min: 0.80
+  esm1b_max: -7.5
+  varity_min: 0.75
+  spliceai_min: 0.20
+  spliceai_tier1: 0.50
+  pp3_consensus_n: 2
+
+domain_predictors: []       # optional: disease-tuned predictor columns + thresholds
+                            # - code: MYMODEL
+                            #   score_cols: [mymodel__score]
+                            #   text_cols:  [mymodel__class]
+                            #   min: 0.9
+
+domain_evidence: []         # optional: OC columns whose presence adds a reason
+                            # - code: MY_EVIDENCE
+                            #   kind: phenotype        # or genotype
+                            #   bypass_frequency: false  # true = keep even if common
+                            #   columns: [some_ann__col]
+
+noncoding:
+  cadd_phred_min: 15
+  linsight_min: 0.4
+  regulomedb_rank_max: "3a"
+  ncer_percentile_min: 0.90
+
+haploinsufficient_genes: [] # genes where LoF -> Tier 1 upgrade
+
+# --- Optional: enrichment + renderer selection --------------------------------
+report:
+  renderer: generic         # "generic" (default) or "autoimmune"
+  enrichment:
+    genes: true             # fetch NCBI Gene descriptions (E-utilities)
+    studies: false          # fetch live GWAS Catalog study evidence per variant

@@ -1,0 +1,234 @@
+# =============================================================================
+# ontology_domains.yaml — Master Registry of Ontology Domains (Level 1 + Level 2)
+# =============================================================================
+# Comprehensive ontology mapping supporting personal genomics reporting across
+# all major organ systems and disease categories.
+# =============================================================================
+
+version: "2026.1"
+
+level1_systems:
+  cardiovascular:
+    id: "HP:0001626"
+    title: "Cardiovascular System"
+    description: "Cardiac, vascular, and cardiometabolic disorders"
+    icon: "🫀"
+    color: "#dc2626"
+    level2_subcategories:
+      arrhythmia:
+        id: "HP:0011675"
+        title: "Arrhythmia & Conduction Disorders"
+        hpo_terms: ["HP:0011675", "HP:0001657", "HP:0004308", "HP:0001663", "HP:0005110"]
+        go_terms: ["GO:0003015", "GO:0086001", "GO:0005272"]
+      cardiomyopathy:
+        id: "HP:0001638"
+        title: "Cardiomyopathy (HCM, DCM, ARVC, RCM)"
+        hpo_terms: ["HP:0001638", "HP:0001639", "HP:0001644", "HP:0011663", "HP:0001723"]
+        go_terms: ["GO:0006936", "GO:0030049", "GO:0030017"]
+      aortopathy_vascular:
+        id: "HP:0002597"
+        title: "Aortopathy & Vascular Disease"
+        hpo_terms: ["HP:0002597", "HP:0002616", "HP:0004942", "HP:0002617", "HP:0000822"]
+        go_terms: ["GO:0042310", "GO:0045766", "GO:0030198"]
+      valvular_congenital:
+        id: "HP:0001654"
+        title: "Valvular & Congenital Heart Defects"
+        hpo_terms: ["HP:0001654", "HP:0001636", "HP:0001627", "HP:0001631", "HP:0001680"]
+        go_terms: ["GO:0003170", "GO:0060038"]
+      lipid_metabolism:
+        id: "HP:0003124"
+        title: "Dyslipidemia & Familial Hypercholesterolemia"
+        hpo_terms: ["HP:0003124", "HP:0002155", "HP:0003141", "HP:0003362"]
+        go_terms: ["GO:0006629", "GO:0034375", "GO:0008203"]
+
+  autoimmune_immune:
+    id: "HP:0002715"
+    title: "Immune System & Autoimmunity"
+    description: "Autoimmune, autoinflammatory, and immune deficiency conditions"
+    icon: "🛡️"
+    color: "#b0355f"
+    level2_subcategories:
+      autoimmune_systemic:
+        id: "HP:0002960"
+        title: "Systemic Autoimmunity (SLE, RA, Sjogren, SSc)"
+        hpo_terms: ["HP:0002960", "HP:0001370", "HP:0002964", "HP:0003493"]
+        go_terms: ["GO:0002376", "GO:0002474", "GO:0002250"]
+      immunodeficiency:
+        id: "HP:0002721"
+        title: "Primary Immunodeficiency & Infection Susceptibility"
+        hpo_terms: ["HP:0002721", "HP:0005406", "HP:0002844", "HP:0002718"]
+        go_terms: ["GO:0002449", "GO:0002443", "GO:0042110"]
+      autoinflammatory:
+        id: "HP:0012649"
+        title: "Autoinflammatory & Periodic Fever Syndromes"
+        hpo_terms: ["HP:0012649", "HP:0001945", "HP:0002829"]
+        go_terms: ["GO:0006954", "GO:0050727", "GO:0032496"]
+      organ_specific_autoimmunity:
+        id: "HP:0000819"
+        title: "Organ-Specific Autoimmunity (T1D, Celiac, Thyroiditis, MS)"
+        hpo_terms: ["HP:0000819", "HP:0002608", "HP:0000820", "HP:0000726"]
+        go_terms: ["GO:0042101", "GO:0050853"]
+
+  neoplasm_cancer:
+    id: "HP:0002664"
+    title: "Neoplasms & Cancer Predisposition"
+    description: "Hereditary cancer predisposition syndromes and DNA repair defects"
+    icon: "🔬"
+    color: "#e11d48"
+    level2_subcategories:
+      breast_gynecologic:
+        id: "HP:0003002"
+        title: "Hereditary Breast & Ovarian Cancer (HBOC)"
+        hpo_terms: ["HP:0003002", "HP:0000138", "HP:0000137", "HP:0000139"]
+        go_terms: ["GO:0006281", "GO:0006302", "GO:0000724"]
+      gastrointestinal_colorectal:
+        id: "HP:0002665"
+        title: "Colorectal & Gastrointestinal Neoplasms (Lynch, FAP)"
+        hpo_terms: ["HP:0002665", "HP:0002027", "HP:0005227", "HP:0002671"]
+        go_terms: ["GO:0006298", "GO:0000725"]
+      cns_endocrine_melanoma:
+        id: "HP:0009592"
+        title: "CNS, Endocrine & Melanoma Predisposition (Li-Fraumeni, MEN, VHL)"
+        hpo_terms: ["HP:0009592", "HP:0000818", "HP:0002861", "HP:0002688"]
+        go_terms: ["GO:0007049", "GO:0008630", "GO:0042770"]
+
+  neurological_neurodevelopmental:
+    id: "HP:0000707"
+    title: "Nervous System & Neurological"
+    description: "Neurodegenerative, neuromuscular, epilepsy, and neurodevelopmental conditions"
+    icon: "🧠"
+    color: "#7c3aed"
+    level2_subcategories:
+      neurodegenerative:
+        id: "HP:0002180"
+        title: "Neurodegenerative Disorders (ALS, Parkinson, Alzheimer, Ataxia)"
+        hpo_terms: ["HP:0002180", "HP:0001300", "HP:0001250", "HP:0001251", "HP:0007360"]
+        go_terms: ["GO:0050877", "GO:0007268", "GO:0043005"]
+      epilepsy_seizures:
+        id: "HP:0001250"
+        title: "Epilepsy & Channelopathies"
+        hpo_terms: ["HP:0001250", "HP:0002069", "HP:0007359", "HP:0011153"]
+        go_terms: ["GO:0034765", "GO:0005216"]
+      neuromuscular_myopathy:
+        id: "HP:0003198"
+        title: "Neuromuscular & Myopathies (SMA, CMT, Myopathy)"
+        hpo_terms: ["HP:0003198", "HP:0001324", "HP:0003470", "HP:0003202"]
+        go_terms: ["GO:0007517", "GO:0030048"]
+
+  metabolic_endocrine:
+    id: "HP:0001939"
+    title: "Metabolism & Endocrine System"
+    description: "Inborn errors of metabolism, mitochondrial, and endocrine disorders"
+    icon: "⚗️"
+    color: "#d97706"
+    level2_subcategories:
+      inborn_errors_lysosomal:
+        id: "HP:0001939"
+        title: "Inborn Errors of Metabolism & Lysosomal Storage"
+        hpo_terms: ["HP:0001939", "HP:0002633", "HP:0001942", "HP:0001997"]
+        go_terms: ["GO:0008152", "GO:0006629", "GO:0005764"]
+      mitochondrial:
+        id: "HP:0003287"
+        title: "Mitochondrial & Oxidative Phosphorylation"
+        hpo_terms: ["HP:0003287", "HP:0003737", "HP:0003477", "HP:0008316"]
+        go_terms: ["GO:0006119", "GO:0022900", "GO:0005739"]
+      endocrine_glucose:
+        id: "HP:0000818"
+        title: "Endocrine & Glycemic Homeostasis (MODY, Congenital Adrenal)"
+        hpo_terms: ["HP:0000818", "HP:0000819", "HP:0000820", "HP:0000834"]
+        go_terms: ["GO:0006112", "GO:0042593"]
+
+  renal_genitourinary:
+    id: "HP:0000119"
+    title: "Renal & Genitourinary System"
+    description: "Polycystic kidney, glomerulopathies, tubulopathies, and nephrolithiasis"
+    icon: "🫘"
+    color: "#0284c7"
+    level2_subcategories:
+      cystic_glomerulopathy:
+        id: "HP:0000107"
+        title: "Cystic Kidney & Glomerulopathies (PKD, Alport)"
+        hpo_terms: ["HP:0000107", "HP:0000077", "HP:0000100", "HP:0000093"]
+        go_terms: ["GO:0072001", "GO:0001655"]
+      tubulopathy_electrolytes:
+        id: "HP:0000121"
+        title: "Tubulopathies, Bartter/Gitelman & Nephrolithiasis"
+        hpo_terms: ["HP:0000121", "HP:0000787", "HP:0001987", "HP:0001944"]
+        go_terms: ["GO:0072073", "GO:0006811"]
+
+  hematology_coagulation:
+    id: "HP:0001871"
+    title: "Blood & Hematologic System"
+    description: "Coagulopathies, thrombophilia, hereditary anemias, and platelet disorders"
+    icon: "🩸"
+    color: "#b91c1c"
+    level2_subcategories:
+      coagulation_thrombosis:
+        id: "HP:0001977"
+        title: "Coagulation & Thrombophilia (Hemophilia, vWD, Factor V)"
+        hpo_terms: ["HP:0001977", "HP:0001892", "HP:0001928", "HP:0005521"]
+        go_terms: ["GO:0007596", "GO:0050817"]
+      hereditary_anemias:
+        id: "HP:0001878"
+        title: "Hereditary Anemias (Thalassemia, Sickle Cell, Spherocytosis)"
+        hpo_terms: ["HP:0001878", "HP:0001903", "HP:0001880", "HP:0004810"]
+        go_terms: ["GO:0006826", "GO:0020037"]
+
+  musculoskeletal_connective:
+    id: "HP:0033127"
+    title: "Musculoskeletal & Connective Tissue"
+    description: "Marfan, Ehlers-Danlos, osteogenesis imperfecta, and muscular dystrophies"
+    icon: "🦴"
+    color: "#475569"
+    level2_subcategories:
+      connective_tissue:
+        id: "HP:0001382"
+        title: "Heritable Disorders of Connective Tissue (Marfan, EDS, LDS)"
+        hpo_terms: ["HP:0001382", "HP:0000977", "HP:0001388", "HP:0001166"]
+        go_terms: ["GO:0030198", "GO:0005578", "GO:0007155"]
+      skeletal_dysplasia:
+        id: "HP:0002652"
+        title: "Skeletal Dysplasias & Bone Mineralization (OI, Achondroplasia)"
+        hpo_terms: ["HP:0002652", "HP:0000924", "HP:0004322", "HP:0000938"]
+        go_terms: ["GO:0001501", "GO:0001503"]
+
+  respiratory:
+    id: "HP:0002086"
+    title: "Respiratory System"
+    description: "Interstitial lung disease, pulmonary hypertension, and ciliary disorders"
+    icon: "🫁"
+    color: "#0891b2"
+    level2_subcategories:
+      fibrosis_pulmonary_hypertension:
+        id: "HP:0006530"
+        title: "Pulmonary Fibrosis & Pulmonary Hypertension"
+        hpo_terms: ["HP:0006530", "HP:0002092", "HP:0002206", "HP:0002099"]
+        go_terms: ["GO:0030324", "GO:0048754"]
+      ciliary_dyskinesia:
+        id: "HP:0002110"
+        title: "Primary Ciliary Dyskinesia & Cystic Fibrosis"
+        hpo_terms: ["HP:0002110", "HP:0002205", "HP:0002098", "HP:0002788"]
+        go_terms: ["GO:0060271", "GO:0003341"]
+
+  pharmacogenomics:
+    id: "PHARMA:00001"
+    title: "Pharmacogenomics (PGx)"
+    description: "Drug-gene interactions, metabolizer phenotypes, and prescribing guidelines"
+    icon: "💊"
+    color: "#1e40af"
+    level2_subcategories:
+      phase1_cyp450:
+        id: "PGX:CYP"
+        title: "Phase I Cytochrome P450 Enzymes (CYP2D6, CYP2C19, CYP2C9, CYP3A5)"
+        hpo_terms: ["HP:0001425"]
+        go_terms: ["GO:0004497", "GO:0005506"]
+      phase2_conjugation:
+        id: "PGX:CONJ"
+        title: "Phase II Conjugation (TPMT, DPYD, NUDT15, UGT1A1)"
+        hpo_terms: ["HP:0001425"]
+        go_terms: ["GO:0008415", "GO:0004849"]
+      transporters_targets:
+        id: "PGX:TRANS"
+        title: "Drug Transporters & Receptors (SLCO1B1, VKORC1, HLA-B)"
+        hpo_terms: ["HP:0001425"]
+        go_terms: ["GO:0015075", "GO:0004872"]
