@@ -1,0 +1,545 @@
+{
+  "patient_id": "DE_WGS_2026",
+  "run_date": "2026-08-21 18:30 UTC",
+  "monogenic_findings": [
+    {
+      "gene_symbol": "GJB3",
+      "gene_name": "Gap Junction Protein Beta 3",
+      "ncbi_description": "Gap junctions are conduits that allow the direct cell-to-cell passage of small cytoplasmic molecules, including ions, metabolic intermediates, and second messengers, and thereby mediate intercellular metabolic and electrical communication. Gap junction channels consist of connexin protein subunits, which are encoded by a multigene family that includes GJB3.",
+      "omim_source": "OMIM:603324",
+      "pathologies": [
+        {
+          "name": "Erythrokeratodermia variabilis et progressiva 1",
+          "inheritance": [
+            "Autosomal Dominant",
+            "Autosomal Recessive"
+          ]
+        },
+        {
+          "name": "Deafness, digenic, GJB2/GJB3",
+          "inheritance": [
+            "Autosomal Recessive",
+            "Digenic Dominant"
+          ]
+        },
+        {
+          "name": "Deafness, autosomal dominant 2B",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        },
+        {
+          "name": "Deafness, autosomal dominant, with peripheral neuropathy",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        }
+      ],
+      "rsid": "rs370476720",
+      "chromosome": "chr1",
+      "position": 35281240,
+      "genotype": "C/T",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 0.000329,
+      "revel_score": 0.943,
+      "impact_consequence": "Missense R75C",
+      "clinvar_significance": "VUS",
+      "clinvar_records": [
+        "VUS",
+        "Likely benign"
+      ],
+      "phasing": "maternal",
+      "associated_hpo_terms": [
+        "HP:0000365",
+        "HP:0001000"
+      ]
+    },
+    {
+      "gene_symbol": "SMIM12",
+      "gene_name": "Small Integral Membrane Protein 12",
+      "ncbi_description": "Encodes a small transmembrane protein localized to intracellular vesicular compartments and involved in mitochondrial cristae morphology and cellular respiration.",
+      "omim_source": "OMIM:619012",
+      "pathologies": [
+        {
+          "name": "Mitochondrial complex IV deficiency, nuclear type",
+          "inheritance": [
+            "Autosomal Recessive"
+          ]
+        }
+      ],
+      "rsid": "rs370476720",
+      "chromosome": "chr19",
+      "position": 18294012,
+      "genotype": "C/T",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 0.000329,
+      "revel_score": 0.943,
+      "impact_consequence": "Intron NMD",
+      "clinvar_significance": "VUS",
+      "clinvar_records": [
+        "VUS",
+        "Likely benign"
+      ],
+      "phasing": "paternal",
+      "associated_hpo_terms": [
+        "HP:0001427"
+      ]
+    },
+    {
+      "gene_symbol": "SMIM12",
+      "gene_name": "Small Integral Membrane Protein 12",
+      "ncbi_description": "Encodes a small transmembrane protein localized to intracellular vesicular compartments.",
+      "omim_source": "OMIM:619012",
+      "pathologies": [
+        {
+          "name": "Mitochondrial complex IV deficiency, nuclear type",
+          "inheritance": [
+            "Autosomal Recessive"
+          ]
+        }
+      ],
+      "rsid": "rs79193415",
+      "chromosome": "chr19",
+      "position": 18295530,
+      "genotype": "C/G",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 0.028743,
+      "revel_score": 0.688,
+      "impact_consequence": "Intron NMD",
+      "clinvar_significance": "Benign",
+      "clinvar_records": [
+        "Benign"
+      ],
+      "phasing": "maternal",
+      "associated_hpo_terms": [
+        "HP:0001427"
+      ]
+    },
+    {
+      "gene_symbol": "NSMCE1",
+      "gene_name": "NSE1 Homolog, SMC5-SMC6 Complex Component",
+      "ncbi_description": "Structural maintenance of chromosomes (SMC) proteins have ATPase activity and play central roles in chromosome organization and dynamics. NSMCE1 forms specific heterodimers with non-SMC proteins in the SMC5-SMC6 complex involved in DNA repair.",
+      "omim_source": "OMIM:617983",
+      "pathologies": [
+        {
+          "name": "Chromosome fragility syndrome",
+          "inheritance": [
+            "Autosomal Recessive"
+          ]
+        }
+      ],
+      "rsid": "rs764839210",
+      "chromosome": "chr16",
+      "position": 89412033,
+      "genotype": "G/A",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 0.000142,
+      "revel_score": 0.937,
+      "impact_consequence": "Missense V142M",
+      "clinvar_significance": "VUS",
+      "clinvar_records": [
+        "VUS"
+      ],
+      "phasing": "maternal",
+      "associated_hpo_terms": [
+        "HP:0001250"
+      ]
+    },
+    {
+      "gene_symbol": "TNS2",
+      "gene_name": "Tensin 2",
+      "ncbi_description": "Tensin 2 belongs to the tensin family of focal adhesion proteins. It regulates cell migration, proliferation, and apoptosis by binding to actin filaments and integrin beta tails.",
+      "omim_source": "OMIM:607057",
+      "pathologies": [
+        {
+          "name": "Nephrotic syndrome, type 19",
+          "inheritance": [
+            "Autosomal Recessive"
+          ]
+        }
+      ],
+      "rsid": "rs61742918",
+      "chromosome": "chr12",
+      "position": 53201945,
+      "genotype": "C/T",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 8.5e-05,
+      "revel_score": 0.926,
+      "impact_consequence": "Missense R1195W",
+      "clinvar_significance": "VUS",
+      "clinvar_records": [
+        "VUS"
+      ],
+      "phasing": "paternal",
+      "associated_hpo_terms": [
+        "HP:0000100"
+      ]
+    },
+    {
+      "gene_symbol": "SCN4A",
+      "gene_name": "Sodium Voltage-Gated Channel Alpha Subunit 4",
+      "ncbi_description": "Encodes the skeletal muscle voltage-gated sodium channel alpha subunit responsible for the generation and propagation of action potentials in skeletal muscle cells.",
+      "omim_source": "OMIM:603967",
+      "pathologies": [
+        {
+          "name": "Hyperkalemic periodic paralysis",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        },
+        {
+          "name": "Paramyotonia congenita",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        },
+        {
+          "name": "Myasthenic syndrome, congenital, 16",
+          "inheritance": [
+            "Autosomal Recessive"
+          ]
+        }
+      ],
+      "rsid": "rs121908865",
+      "chromosome": "chr17",
+      "position": 62049182,
+      "genotype": "G/A",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 1.8e-05,
+      "revel_score": 0.925,
+      "impact_consequence": "Missense T704M",
+      "clinvar_significance": "Pathogenic",
+      "clinvar_records": [
+        "Pathogenic"
+      ],
+      "phasing": "maternal",
+      "associated_hpo_terms": [
+        "HP:0003473",
+        "HP:0003470"
+      ]
+    },
+    {
+      "gene_symbol": "HEXA",
+      "gene_name": "Hexosaminidase Subunit Alpha",
+      "ncbi_description": "The HEXA gene encodes the alpha subunit of hexosaminidase A, a lysosomal enzyme involved in the breakdown of gangliosides.",
+      "omim_source": "OMIM:606869",
+      "pathologies": [
+        {
+          "name": "GM2-gangliosidosis, several forms / Tay-Sachs disease",
+          "inheritance": [
+            "Autosomal Recessive"
+          ]
+        }
+      ],
+      "rsid": "rs1801133",
+      "chromosome": "chr15",
+      "position": 72346510,
+      "genotype": "A/A",
+      "zygosity": "Homozygous",
+      "gnomad_af": 0.27517,
+      "revel_score": 0.842,
+      "impact_consequence": "3 Prime UTR",
+      "clinvar_significance": "Likely Benign",
+      "clinvar_records": [
+        "Likely Benign"
+      ],
+      "phasing": "undetermined",
+      "associated_hpo_terms": [
+        "HP:0001250",
+        "HP:0000707"
+      ]
+    },
+    {
+      "gene_symbol": "LMNA",
+      "gene_name": "Lamin A/C",
+      "ncbi_description": "The nuclear lamina consists of a two-dimensional matrix of proteins located next to the inner nuclear membrane. Lamin A/C mutations cause a spectrum of diseases including dilated cardiomyopathy, Emery-Dreifuss muscular dystrophy, and lipodystrophy.",
+      "omim_source": "OMIM:150330",
+      "pathologies": [
+        {
+          "name": "Cardiomyopathy, dilated, 1A",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        },
+        {
+          "name": "Emery-Dreifuss muscular dystrophy 2",
+          "inheritance": [
+            "Autosomal Dominant",
+            "Autosomal Recessive"
+          ]
+        },
+        {
+          "name": "Hutchinson-Gilford progeria syndrome",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        }
+      ],
+      "rsid": "rs58992763",
+      "chromosome": "chr1",
+      "position": 156134567,
+      "genotype": "C/T",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 4.1e-05,
+      "revel_score": 0.931,
+      "impact_consequence": "Missense R190W",
+      "clinvar_significance": "Pathogenic",
+      "clinvar_records": [
+        "Pathogenic"
+      ],
+      "phasing": "maternal",
+      "associated_hpo_terms": [
+        "HP:0001644",
+        "HP:0001635"
+      ]
+    },
+    {
+      "gene_symbol": "LMNA",
+      "gene_name": "Lamin A/C",
+      "ncbi_description": "The nuclear lamina consists of a two-dimensional matrix of proteins located next to the inner nuclear membrane.",
+      "omim_source": "OMIM:150330",
+      "pathologies": [
+        {
+          "name": "Cardiomyopathy, dilated, 1A",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        }
+      ],
+      "rsid": "rs11575937",
+      "chromosome": "chr1",
+      "position": 156145678,
+      "genotype": "G/A",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 0.00125,
+      "revel_score": 0.682,
+      "impact_consequence": "Missense S573L",
+      "clinvar_significance": "Likely Pathogenic",
+      "clinvar_records": [
+        "Likely Pathogenic"
+      ],
+      "phasing": "paternal",
+      "associated_hpo_terms": [
+        "HP:0001644"
+      ]
+    },
+    {
+      "gene_symbol": "TTN",
+      "gene_name": "Titin",
+      "ncbi_description": "This gene encodes a large abundant protein of striated muscle. It acts as a molecular spring and is responsible for the passive elasticity of heart and skeletal muscle. Truncating variants are the most common genetic cause of dilated cardiomyopathy.",
+      "omim_source": "OMIM:188840",
+      "pathologies": [
+        {
+          "name": "Cardiomyopathy, dilated, 1G",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        },
+        {
+          "name": "Myopathy, early-onset, with fatal cardiomyopathy",
+          "inheritance": [
+            "Autosomal Recessive"
+          ]
+        },
+        {
+          "name": "Tibial muscular dystrophy, tardive",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        }
+      ],
+      "rsid": "rs72648258",
+      "chromosome": "chr2",
+      "position": 179431234,
+      "genotype": "C/T",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 1.2e-05,
+      "revel_score": 0.912,
+      "impact_consequence": "Nonsense Q3195*",
+      "clinvar_significance": "Pathogenic",
+      "clinvar_records": [
+        "Pathogenic"
+      ],
+      "phasing": "maternal",
+      "associated_hpo_terms": [
+        "HP:0001644",
+        "HP:0001639"
+      ]
+    },
+    {
+      "gene_symbol": "TTN",
+      "gene_name": "Titin",
+      "ncbi_description": "This gene encodes a large abundant protein of striated muscle.",
+      "omim_source": "OMIM:188840",
+      "pathologies": [
+        {
+          "name": "Cardiomyopathy, dilated, 1G",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        }
+      ],
+      "rsid": "rs11209026",
+      "chromosome": "chr2",
+      "position": 179445678,
+      "genotype": "G/A",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 2.8e-05,
+      "revel_score": 0.874,
+      "impact_consequence": "Frameshift fs*12",
+      "clinvar_significance": "Pathogenic",
+      "clinvar_records": [
+        "Pathogenic"
+      ],
+      "phasing": "paternal",
+      "associated_hpo_terms": [
+        "HP:0001644"
+      ]
+    },
+    {
+      "gene_symbol": "SCN5A",
+      "gene_name": "Sodium Voltage-Gated Channel Alpha Subunit 5",
+      "ncbi_description": "Voltage-gated sodium channel alpha subunit 5 is responsible for the initial upstroke of the cardiac action potential. Pathogenic variants cause long QT syndrome type 3, Brugada syndrome 1, and progressive familial heart block.",
+      "omim_source": "OMIM:600163",
+      "pathologies": [
+        {
+          "name": "Long QT syndrome 3",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        },
+        {
+          "name": "Brugada syndrome 1",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        },
+        {
+          "name": "Cardiomyopathy, dilated, 1E",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        }
+      ],
+      "rsid": "rs137854600",
+      "chromosome": "chr3",
+      "position": 38604000,
+      "genotype": "G/A",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 1.9e-05,
+      "revel_score": 0.901,
+      "impact_consequence": "Missense R1623Q",
+      "clinvar_significance": "Pathogenic",
+      "clinvar_records": [
+        "Pathogenic"
+      ],
+      "phasing": "paternal",
+      "associated_hpo_terms": [
+        "HP:0004756",
+        "HP:0001662"
+      ]
+    },
+    {
+      "gene_symbol": "MYH7",
+      "gene_name": "Myosin Heavy Chain 7",
+      "ncbi_description": "Myosin heavy chain 7 is a major component of the thick filament in cardiac muscle and type I skeletal muscle. Pathogenic missense variants are the most frequent cause of hypertrophic cardiomyopathy and left ventricular noncompaction.",
+      "omim_source": "OMIM:160760",
+      "pathologies": [
+        {
+          "name": "Cardiomyopathy, hypertrophic, 1",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        },
+        {
+          "name": "Cardiomyopathy, dilated, 1S",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        },
+        {
+          "name": "Laing distal myopathy",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        }
+      ],
+      "rsid": "rs121913625",
+      "chromosome": "chr14",
+      "position": 23891234,
+      "genotype": "A/G",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 8e-06,
+      "revel_score": 0.889,
+      "impact_consequence": "Missense R403Q",
+      "clinvar_significance": "Pathogenic",
+      "clinvar_records": [
+        "Pathogenic"
+      ],
+      "phasing": "maternal",
+      "associated_hpo_terms": [
+        "HP:0001639"
+      ]
+    },
+    {
+      "gene_symbol": "BRCA1",
+      "gene_name": "BRCA1 DNA Repair Associated",
+      "ncbi_description": "This gene encodes a nuclear phosphoprotein that plays a central role in DNA double-strand break repair via homologous recombination and maintaining genomic stability. Heterozygous loss-of-function variants confer high lifetime risks for breast and ovarian cancers.",
+      "omim_source": "OMIM:113705",
+      "pathologies": [
+        {
+          "name": "Breast-ovarian cancer, familial, 1",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        },
+        {
+          "name": "Pancreatic cancer, susceptibility to, 4",
+          "inheritance": [
+            "Autosomal Dominant"
+          ]
+        }
+      ],
+      "rsid": "rs80357906",
+      "chromosome": "chr17",
+      "position": 43094000,
+      "genotype": "A/G",
+      "zygosity": "Heterozygous",
+      "gnomad_af": 1.5e-05,
+      "revel_score": 0.945,
+      "impact_consequence": "Frameshift 185delAG",
+      "clinvar_significance": "Pathogenic",
+      "clinvar_records": [
+        "Pathogenic"
+      ],
+      "phasing": "maternal",
+      "associated_hpo_terms": [
+        "HP:0002664",
+        "HP:0003002"
+      ]
+    }
+  ],
+  "polygenic_findings": [
+    {
+      "efo_trait_id": "EFO:0000378",
+      "trait_name": "Coronary artery disease",
+      "pgs_catalog_id": "PGS000013",
+      "computed_score": 1.82,
+      "percentile": 92.0,
+      "risk_category": "HIGH",
+      "hpo_level1_system": "HP:0001626",
+      "hpo_level2_subcategory": "Physiology"
+    }
+  ],
+  "pharma_findings": [
+    {
+      "gene": "CYP2C19",
+      "diplotype": "*2/*17",
+      "phenotype": "Intermediate Metabolizer",
+      "affected_drug": "Clopidogrel",
+      "clinical_recommendation": "Consider alternative antiplatelet therapy (e.g. prasugrel or ticagrelor) per CPIC guidelines.",
+      "action_tier": "CAUTION",
+      "guideline_source": "CPIC"
+    }
+  ]
+}
