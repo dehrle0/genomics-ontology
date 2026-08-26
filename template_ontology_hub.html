@@ -3,253 +3,434 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ontology Master Hub</title>
+    <title>Genomic Ontology Explorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #0f172a; --border-glow: #38bdf8; }
-        body { background-color: var(--bg-dark); color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
-        .tab-btn.active { border-bottom: 2px solid var(--border-glow); color: #38bdf8; }
-        .node-link { fill: none; stroke: #334155; stroke-opacity: 0.6; stroke-width: 1.5px; transition: stroke 0.3s; }
-        .node-circle { cursor: pointer; stroke: #1e293b; stroke-width: 1.5px; transition: fill 0.2s, stroke 0.2s, r 0.2s; }
-        .node-circle:hover { stroke: #38bdf8; stroke-width: 2.5px; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        .drawer-row { display: none; background: #0f172a; }
+        :root { --teal: #1c5b5e; --teal-dark: #123f41; --paper: #f6f7f9; }
+        body { background-color: var(--paper); color: #17222b; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .watermark { position: fixed; right: -5%; bottom: -10%; width: 60vh; opacity: 0.03; pointer-events: none; z-index: 0; }
+        
+        .topbar-tab { padding: 0.5rem 1rem; color: #a5b4fc; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .topbar-tab:hover { color: white; background: rgba(255,255,255,0.05); }
+        .topbar-tab.active { color: white; border-bottom-color: #38bdf8; background: rgba(255,255,255,0.1); }
+        
+        .view { display: none; height: 100%; flex-direction: column; position: relative; z-index: 10; }
+        .view.active { display: flex; }
+        
+        .node-link { fill: none; stroke: #cbd5e1; stroke-opacity: 0.8; stroke-width: 1.5px; transition: stroke 0.3s; }
+        .node-circle { cursor: pointer; stroke: #fff; stroke-width: 1.5px; transition: all 0.2s; }
+        .node-circle:hover { stroke: var(--teal); stroke-width: 2.5px; r: 7; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .drawer-row { display: none; background: #f8fafc; }
         .drawer-row.open { display: table-row; }
         .drawer-btn { cursor: pointer; transition: transform 0.2s; }
-        .drawer-btn.open { transform: rotate(90deg); color: #38bdf8; }
+        .drawer-btn.open { transform: rotate(90deg); color: var(--teal); }
+        
+        .toggle-btn { padding: 4px 12px; font-size: 11px; font-weight: bold; color: #64748b; background: white; border: 1px solid #cbd5e1; cursor: pointer; }
+        .toggle-btn.active { background: var(--teal); color: white; border-color: var(--teal); }
+        .toggle-btn:first-child { border-radius: 4px 0 0 4px; }
+        .toggle-btn:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+        .toggle-btn:not(:first-child):not(:last-child) { border-left: none; }
+        
+        .subtab { padding: 8px 16px; font-weight: 600; color: #64748b; border-bottom: 2px solid transparent; cursor: pointer; }
+        .subtab.active { color: var(--teal); border-color: var(--teal); }
+        
+        table { width: 100%; text-align: left; border-collapse: collapse; }
+        th { background: #f1f5f9; padding: 12px; font-size: 12px; text-transform: uppercase; color: #475569; border-bottom: 2px solid #e2e8f0; font-weight: 700; white-space: nowrap; }
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        tr:hover td { background: #f8fafc; }
     </style>
 </head>
-<body class="h-screen overflow-hidden flex flex-col">
+<body>
 
-    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-lg shrink-0">
-        <div class="flex items-center gap-3">
-            <div class="bg-sky-500/20 text-sky-400 p-2 rounded-lg border border-sky-500/30"><i class="fa-solid fa-dna text-xl"></i></div>
-            <div>
-                <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
-                    Genomic Ontology Hub
-                </h1>
-                <p class="text-xs text-slate-400 mt-0.5">Explore by System, Phenotype, or Gene</p>
+    <!-- DNA Watermark SVG -->
+    <svg class="watermark" viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg">
+      <path fill="currentColor" d="M30,10 C45,30 55,70 70,90 C85,110 85,130 70,150 C55,170 45,190 30,210" stroke="currentColor" stroke-width="2" fill-opacity="0"/>
+      <path fill="currentColor" d="M70,10 C55,30 45,70 30,90 C15,110 15,130 30,150 C45,170 55,190 70,210" stroke="currentColor" stroke-width="2" fill-opacity="0"/>
+      <line x1="38" y1="20" x2="62" y2="20" stroke="currentColor" stroke-width="2"/>
+      <line x1="45" y1="50" x2="55" y2="50" stroke="currentColor" stroke-width="2"/>
+      <line x1="22" y1="80" x2="78" y2="80" stroke="currentColor" stroke-width="2"/>
+      <line x1="18" y1="120" x2="82" y2="120" stroke="currentColor" stroke-width="2"/>
+      <line x1="45" y1="150" x2="55" y2="150" stroke="currentColor" stroke-width="2"/>
+      <line x1="38" y1="180" x2="62" y2="180" stroke="currentColor" stroke-width="2"/>
+    </svg>
+
+    <header class="bg-[#123f41] flex items-center justify-between px-6 shadow-md shrink-0 h-[60px]">
+        <div class="flex items-center h-full">
+            <div class="font-extrabold text-lg text-white mr-8 tracking-tight">
+                <span class="bg-teal-700 px-2 py-0.5 rounded mr-2 text-teal-100">GO</span>
+                Genomic Ontology Explorer
+            </div>
+            <div class="flex h-full" id="topTabs">
+                <div class="topbar-tab active flex items-center" data-view="ontology">Ontology</div>
+                <div class="topbar-tab flex items-center" data-view="genes">Genes</div>
+                <div class="topbar-tab flex items-center" data-view="variants">Variants</div>
+                <div class="topbar-tab flex items-center" data-view="analysis">Analysis</div>
+                <div class="topbar-tab flex items-center" data-view="reports">Reports</div>
             </div>
         </div>
-        
-        <div class="relative w-96 hidden md:block">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="text" id="globalSearch" class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500" placeholder="Search systems, phenotypes, genes..." oninput="onGlobalSearch(this.value)">
-        </div>
+        <div class="text-xs font-mono text-teal-300 bg-teal-800/50 px-3 py-1 rounded">HG003 · GRCh38</div>
     </header>
 
-    <main class="flex-1 flex overflow-hidden">
+    <main class="flex-1 overflow-hidden relative">
         
-        <section class="w-1/3 flex flex-col border-r border-slate-800 bg-slate-950/40 relative min-w-[350px]">
-            <div class="p-4 bg-slate-900/60 border-b border-slate-800 flex justify-between items-center z-10">
-                <div>
-                    <h2 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-diagram-project text-sky-400"></i> Domain Explorer
-                    </h2>
-                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mt-1">System → Subcategory → Gene</p>
+        <!-- ONTOLOGY VIEW -->
+        <div class="view active flex-row" id="view-ontology">
+            <!-- Left Tree Panel -->
+            <div class="w-1/3 flex flex-col bg-white border-r border-slate-200 min-w-[400px] z-10 shadow-[4px_0_15px_rgba(0,0,0,0.02)]">
+                <div class="p-4 border-b border-slate-200 bg-slate-50 shrink-0">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex" id="ontology-switch">
+                            <button class="toggle-btn active" data-tree="organ">Organ/System</button>
+                            <button class="toggle-btn" data-tree="hpo">HPO</button>
+                            <button class="toggle-btn" data-tree="go">GO</button>
+                        </div>
+                        <div class="flex" id="layout-switch">
+                            <button class="toggle-btn active" data-layout="tree">Tree</button>
+                            <button class="toggle-btn" data-layout="list">List</button>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                        <input type="text" id="treeSearch" class="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-300 rounded focus:outline-none focus:border-teal-500" placeholder="Search phenotype or gene..." oninput="onTreeSearch(this.value)">
+                    </div>
                 </div>
-                <button onclick="collapseAll()" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-compress"></i> Collapse All</button>
-            </div>
-            <div class="flex-1 relative overflow-auto" id="canvasContainer">
-                <svg id="hpoTreeSvg" class="w-full h-full absolute inset-0"></svg>
-            </div>
-        </section>
-
-        <section class="w-2/3 flex flex-col bg-slate-900/20 overflow-hidden relative">
-            <div class="p-6 bg-slate-900/40 border-b border-slate-800 shrink-0 flex items-center gap-4">
-                <div class="w-14 h-14 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20 text-3xl shadow-inner" id="headerIcon"><i class="fa-solid fa-sitemap"></i></div>
-                <div>
-                    <div class="text-[10px] uppercase font-bold tracking-widest text-sky-400 mb-1" id="headerType">ROOT ONTOLOGY</div>
-                    <h3 class="text-2xl font-extrabold text-white tracking-tight" id="headerTitle">Select a Domain</h3>
+                <div class="flex-1 relative overflow-auto" id="canvasContainer">
+                    <!-- Tree Canvas -->
+                    <svg id="hpoTreeSvg" class="w-full h-full absolute inset-0"></svg>
+                    <!-- List Canvas (hidden by default) -->
+                    <div id="listViewContainer" class="hidden w-full h-full absolute inset-0 overflow-y-auto p-4 bg-white"></div>
                 </div>
-            </div>
-
-            <div class="bg-slate-900/60 border-b border-slate-800 px-6 flex gap-6 shrink-0 z-10 overflow-x-auto" id="tabsNavBar">
-                <button onclick="switchTab('overview')" class="tab-btn py-3 text-sm font-bold text-slate-400 hover:text-white whitespace-nowrap active" id="tab-overview"><i class="fa-solid fa-chart-pie mr-1"></i> Overview & Analysis</button>
-                <button onclick="switchTab('variants')" class="tab-btn py-3 text-sm font-bold text-slate-400 hover:text-white whitespace-nowrap" id="tab-variants"><i class="fa-solid fa-list-ul mr-1"></i> Genes & Variants <span class="bg-slate-800 text-slate-400 text-[10px] px-1.5 py-0.5 rounded-full ml-1" id="variantCountTag">0</span></button>
-                <button onclick="switchTab('phenotypes')" class="tab-btn py-3 text-sm font-bold text-slate-400 hover:text-white whitespace-nowrap" id="tab-phenotypes"><i class="fa-solid fa-dna mr-1"></i> Phenotypes</button>
-                <button onclick="switchTab('publications')" class="tab-btn py-3 text-sm font-bold text-slate-400 hover:text-white whitespace-nowrap" id="tab-publications"><i class="fa-solid fa-book-medical mr-1"></i> Publications</button>
-                <button onclick="switchTab('polygenic')" class="tab-btn py-3 text-sm font-bold text-slate-400 hover:text-white whitespace-nowrap" id="tab-polygenic"><i class="fa-solid fa-chart-line mr-1"></i> Polygenic Risk</button>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-6" id="tabContent">
-                
-                <!-- Overview Content -->
-                <div id="overviewContent" class="space-y-6">
-                    <div class="grid grid-cols-3 gap-4 mb-6" id="statsGrid"></div>
-                    <div class="bg-slate-800/40 border border-slate-800/60 p-5 rounded-xl">
-                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-sky-400 mb-2"><i class="fa-solid fa-brain"></i> Domain Analysis</h4>
-                        <p class="text-sm leading-relaxed text-slate-300 font-medium" id="domainAnalysisText"></p>
-                    </div>
-                    <div id="geneDescContainer" class="bg-slate-800/40 border border-slate-800/60 p-5 rounded-xl hidden">
-                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-sky-400 mb-2">NCBI Gene Summary</h4>
-                        <p class="text-sm leading-relaxed text-slate-300 font-medium" id="ncbiSummary"></p>
-                        <div class="mt-3 text-xs text-slate-500">Source: <a href="https://mygene.info/" target="_blank" class="text-sky-500 hover:underline">MyGene.info API</a></div>
-                    </div>
+            <!-- Right Gene Detail Panel -->
+            <div class="flex-1 flex flex-col bg-white z-10 relative">
+                <div id="gene-empty" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+                    <i class="fa-solid fa-diagram-project text-6xl mb-4 text-slate-300"></i>
+                    <p class="text-lg"><strong>Select a node</strong> from the tree on the left.</p>
                 </div>
 
-                <!-- Variants Content -->
-                <div id="variantsContent" class="hidden">
-                    <div class="w-full overflow-hidden bg-slate-800/30 border border-slate-700/60 rounded-lg shadow-lg">
-                        <table class="w-full text-left text-sm text-slate-300 table-fixed">
-                            <thead class="text-[10px] text-slate-400 uppercase bg-slate-900/80 border-b border-slate-700/80">
-                                <tr>
-                                    <th class="w-10 px-2 py-3 text-center"></th>
-                                    <th class="px-4 py-3 w-1/4">Gene</th>
-                                    <th class="px-4 py-3 w-1/4">Variant</th>
-                                    <th class="px-4 py-3 w-1/4">Effect</th>
-                                    <th class="px-4 py-3">ClinVar / Tier</th>
-                                </tr>
-                            </thead>
-                            <tbody id="variantTableBody" class="divide-y divide-slate-700/50"></tbody>
-                        </table>
+                <div id="gene-content" class="hidden flex-1 flex flex-col">
+                    <div class="p-6 border-b border-slate-200 shrink-0 bg-white">
+                        <div class="text-[10px] uppercase font-bold tracking-widest text-teal-600 mb-1" id="headerType">GENE</div>
+                        <h3 class="text-3xl font-extrabold text-slate-900 tracking-tight" id="headerTitle">Gene Symbol</h3>
+                        <div class="mt-2 text-sm font-mono text-slate-500" id="headerSubtitle"></div>
                     </div>
-                </div>
-
-                <!-- Phenotypes Content -->
-                <div id="phenotypesContent" class="hidden">
-                    <div class="bg-slate-800/40 border border-slate-800/60 p-5 rounded-xl">
-                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-sky-400 mb-4"><i class="fa-solid fa-dna"></i> Associated HPO Phenotypes</h4>
-                        <div id="phenotypesList" class="flex flex-wrap gap-2"></div>
+                    
+                    <div class="flex border-b border-slate-200 px-6 shrink-0 bg-slate-50" id="subTabs">
+                        <div class="subtab active" data-sub="overview">Overview</div>
+                        <div class="subtab" data-sub="phenotypes">Phenotypes</div>
+                        <div class="subtab" data-sub="variants">Variants <span class="bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full text-[10px] ml-1" id="varCountTag">0</span></div>
+                        <div class="subtab" data-sub="publications">Publications</div>
                     </div>
-                </div>
 
-                <!-- Publications Content -->
-                <div id="publicationsContent" class="hidden">
-                    <div class="bg-slate-800/40 border border-slate-800/60 p-5 rounded-xl">
-                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-sky-400 mb-4"><i class="fa-solid fa-book-medical"></i> Recent Studies (PubMed API)</h4>
-                        <div id="publicationsList" class="space-y-4"></div>
-                    </div>
-                </div>
-
-                <!-- Polygenic Risk Content -->
-                <div id="polygenicContent" class="hidden">
-                    <div class="bg-slate-800/40 border border-slate-800/60 p-5 rounded-xl">
-                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-sky-400 mb-4"><i class="fa-solid fa-chart-line"></i> Polygenic Risk Profiles</h4>
-                        <p class="text-sm text-slate-400 mb-6">Aggregate risk scores derived from genome-wide association studies (GWAS) related to this domain.</p>
+                    <div class="flex-1 overflow-y-auto p-6 bg-white" id="subtabContent">
+                        <!-- Overview -->
+                        <div id="sub-overview" class="space-y-6">
+                            <div class="bg-white border border-slate-200 shadow-sm p-5 rounded-lg">
+                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-teal-700 mb-3">NCBI Gene Summary</h4>
+                                <p class="text-sm leading-relaxed text-slate-700" id="ncbiSummary"></p>
+                                <div class="mt-4 flex gap-4 text-xs font-bold" id="extLinks"></div>
+                            </div>
+                        </div>
                         
-                        <div class="grid grid-cols-2 gap-4" id="polygenicGrid">
-                            <!-- Mock Polygenic Risk Dials to fulfill the mockup request -->
-                            <div class="bg-slate-900 border border-slate-700/60 p-4 rounded-lg flex items-center justify-between">
-                                <div>
-                                    <div class="text-xs text-slate-500 uppercase font-bold">Coronary Artery Disease</div>
-                                    <div class="text-2xl font-black text-amber-500 mt-1">87th Percentile</div>
-                                </div>
-                                <div class="w-16 h-16 rounded-full border-4 border-amber-500 flex items-center justify-center text-amber-500 font-bold">87%</div>
+                        <!-- Phenotypes -->
+                        <div id="sub-phenotypes" class="hidden">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-teal-700 mb-3">Associated HPO Phenotypes</h4>
+                            <div id="phenotypesList" class="flex flex-wrap gap-2"></div>
+                            
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-teal-700 mt-8 mb-3">Gene Ontology (GO)</h4>
+                            <div id="goList" class="flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <!-- Variants -->
+                        <div id="sub-variants" class="hidden">
+                            <div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                                <table class="w-full text-sm">
+                                    <thead><tr><th class="w-10"></th><th>Variant / Effect</th><th>ClinVar / Tier</th><th>Scores</th></tr></thead>
+                                    <tbody id="ontVariantBody"></tbody>
+                                </table>
                             </div>
-                            <div class="bg-slate-900 border border-slate-700/60 p-4 rounded-lg flex items-center justify-between">
-                                <div>
-                                    <div class="text-xs text-slate-500 uppercase font-bold">Atrial Fibrillation</div>
-                                    <div class="text-2xl font-black text-green-500 mt-1">42nd Percentile</div>
-                                </div>
-                                <div class="w-16 h-16 rounded-full border-4 border-green-500 flex items-center justify-center text-green-500 font-bold">42%</div>
-                            </div>
-                            <div class="bg-slate-900 border border-slate-700/60 p-4 rounded-lg flex items-center justify-between">
-                                <div>
-                                    <div class="text-xs text-slate-500 uppercase font-bold">Type 2 Diabetes</div>
-                                    <div class="text-2xl font-black text-red-500 mt-1">94th Percentile</div>
-                                </div>
-                                <div class="w-16 h-16 rounded-full border-4 border-red-500 flex items-center justify-center text-red-500 font-bold">94%</div>
-                            </div>
+                        </div>
+
+                        <!-- Publications -->
+                        <div id="sub-publications" class="hidden">
+                            <div id="pubList" class="space-y-3"></div>
                         </div>
                     </div>
                 </div>
-
             </div>
-        </section>
+        </div>
+
+        <!-- GENES VIEW -->
+        <div class="view overflow-y-auto bg-white p-8 z-10" id="view-genes">
+            <h2 class="text-2xl font-extrabold text-slate-900 mb-6">Gene Summary</h2>
+            <div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm bg-white">
+                <table class="w-full text-sm" id="globalGenesTable">
+                    <thead>
+                        <tr>
+                            <th>Gene Symbol</th>
+                            <th>Organ System</th>
+                            <th>Variants Detected</th>
+                            <th>Pathogenic / LP</th>
+                            <th>HPO Terms</th>
+                            <th>External Links</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VARIANTS VIEW -->
+        <div class="view overflow-y-auto bg-white p-8 z-10" id="view-variants">
+            <h2 class="text-2xl font-extrabold text-slate-900 mb-6">All Variants</h2>
+            <div class="border border-slate-200 rounded-lg overflow-hidden shadow-sm bg-white">
+                <table class="w-full text-sm" id="globalVariantsTable">
+                    <thead>
+                        <tr>
+                            <th>Variant (dbSNP)</th>
+                            <th>Gene</th>
+                            <th>ClinVar</th>
+                            <th>CADD</th>
+                            <th>SpliceAI</th>
+                            <th>AlphaMissense</th>
+                            <th>Quality</th>
+                            <th>Reads (Alt/Total)</th>
+                            <th>Consequence</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ANALYSIS VIEW -->
+        <div class="view overflow-y-auto bg-white p-8 z-10" id="view-analysis">
+            <h2 class="text-2xl font-extrabold text-slate-900 mb-6">Polygenic & Global Analysis</h2>
+            <div class="grid grid-cols-3 gap-6">
+                <!-- Mock Polygenic Risk -->
+                <div class="bg-white border border-slate-200 shadow-sm p-6 rounded-lg flex items-center justify-between">
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase font-bold">Coronary Artery Disease</div>
+                        <div class="text-2xl font-black text-amber-600 mt-1">87th Percentile</div>
+                    </div>
+                    <div class="w-16 h-16 rounded-full border-4 border-amber-500 flex items-center justify-center text-amber-600 font-bold">87%</div>
+                </div>
+                <div class="bg-white border border-slate-200 shadow-sm p-6 rounded-lg flex items-center justify-between">
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase font-bold">Atrial Fibrillation</div>
+                        <div class="text-2xl font-black text-green-600 mt-1">42nd Percentile</div>
+                    </div>
+                    <div class="w-16 h-16 rounded-full border-4 border-green-500 flex items-center justify-center text-green-600 font-bold">42%</div>
+                </div>
+                <div class="bg-white border border-slate-200 shadow-sm p-6 rounded-lg flex items-center justify-between">
+                    <div>
+                        <div class="text-xs text-slate-500 uppercase font-bold">Type 2 Diabetes</div>
+                        <div class="text-2xl font-black text-red-600 mt-1">94th Percentile</div>
+                    </div>
+                    <div class="w-16 h-16 rounded-full border-4 border-red-500 flex items-center justify-center text-red-600 font-bold">94%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTS VIEW -->
+        <div class="view overflow-y-auto bg-white p-8 z-10" id="view-reports">
+            <div class="flex flex-col items-center justify-center h-full text-slate-400">
+                <i class="fa-solid fa-file-pdf text-6xl mb-4 text-slate-200"></i>
+                <p class="text-lg font-bold">PDF Reports generation ready.</p>
+            </div>
+        </div>
+
     </main>
 
     <script>
         const monogenicFindings = {{MONOGENIC_FINDINGS_JSON}};
+        let currentTreeMode = 'organ'; // organ | hpo | go
+        let currentLayoutMode = 'tree'; // tree | list
         
         let rootNode = null, svgGroup = null, treeLayout = null;
-        let activeNode = null;
-        const margin = {top: 20, right: 120, bottom: 20, left: 120};
+        let d3Zoom = null;
 
+        // View Navigation
+        document.querySelectorAll('.topbar-tab').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.topbar-tab').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.getElementById('view-' + btn.dataset.view).classList.add('active');
+            });
+        });
+
+        // Subtab Navigation
+        document.querySelectorAll('.subtab').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.subtab').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                ['overview','phenotypes','variants','publications'].forEach(v => {
+                    document.getElementById('sub-' + v).classList.add('hidden');
+                });
+                document.getElementById('sub-' + btn.dataset.sub).classList.remove('hidden');
+            });
+        });
+
+        // Tree Mode Toggles
+        document.querySelectorAll('#ontology-switch .toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('#ontology-switch .toggle-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTreeMode = btn.dataset.tree;
+                initializeTree();
+            });
+        });
+
+        document.querySelectorAll('#layout-switch .toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('#layout-switch .toggle-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayoutMode = btn.dataset.layout;
+                renderLeftPanel();
+            });
+        });
+
+        function renderLeftPanel() {
+            if(currentLayoutMode === 'tree') {
+                document.getElementById('hpoTreeSvg').classList.remove('hidden');
+                document.getElementById('listViewContainer').classList.add('hidden');
+                initializeTree();
+            } else {
+                document.getElementById('hpoTreeSvg').classList.add('hidden');
+                document.getElementById('listViewContainer').classList.remove('hidden');
+                renderListView();
+            }
+        }
+
+        // Data building based on toggle
         function buildHierarchy() {
-            const tree = { name: "All Patient Findings", type: "root", children: [], allGenes: monogenicFindings };
-            const l1Map = {};
+            const tree = { name: "All Findings", type: "root", children: [], allGenes: monogenicFindings };
+            const grpMap = {};
 
             monogenicFindings.forEach(gene => {
-                const l1 = gene.domain_l1;
-                const l2 = gene.domain_l2;
-                
-                if (!l1Map[l1.id]) {
-                    l1Map[l1.id] = { name: l1.label, type: "level1", color: l1.color, children: [], l2Map: {}, allGenes: [] };
-                    tree.children.push(l1Map[l1.id]);
+                let groups = [];
+                if(currentTreeMode === 'organ') {
+                    groups.push({ l1: gene.domain_l1.label, l2: gene.domain_l2.label, color: gene.domain_l1.color });
+                } else if(currentTreeMode === 'hpo') {
+                    let ctx = gene.hpo_context && gene.hpo_context.length ? gene.hpo_context : ['UNCLASSIFIED_PHENOTYPE'];
+                    ctx.forEach(c => groups.push({ l1: "Phenotype", l2: c, color: "#10b981" }));
+                } else if(currentTreeMode === 'go') {
+                    let ctx = gene.go_context && gene.go_context.length ? gene.go_context : ['UNCLASSIFIED_FUNCTION'];
+                    ctx.forEach(c => groups.push({ l1: "Molecular Function", l2: c, color: "#8b5cf6" }));
                 }
-                l1Map[l1.id].allGenes.push(gene);
-                
-                if (!l1Map[l1.id].l2Map[l2.id]) {
-                    l1Map[l1.id].l2Map[l2.id] = { name: l2.label, type: "level2", color: l2.color, children: [], allGenes: [] };
-                    l1Map[l1.id].children.push(l1Map[l1.id].l2Map[l2.id]);
-                }
-                l1Map[l1.id].l2Map[l2.id].allGenes.push(gene);
-                
-                let tier = "Tier 3";
-                if(gene.variants.length > 0) tier = gene.variants[0].tier;
-                const gColor = tier === "Tier 1" ? "#ef4444" : (tier === "Tier 2" ? "#f59e0b" : "#a855f7");
-                
-                l1Map[l1.id].l2Map[l2.id].children.push({ name: gene.gene_symbol, type: "gene", color: gColor, allGenes: [gene] });
+
+                groups.forEach(g => {
+                    if (!grpMap[g.l1]) grpMap[g.l1] = { name: g.l1, type: "level1", color: g.color, children: [], l2Map: {}, allGenes: [] };
+                    grpMap[g.l1].allGenes.push(gene);
+                    
+                    if (!grpMap[g.l1].l2Map[g.l2]) {
+                        grpMap[g.l1].l2Map[g.l2] = { name: g.l2, type: "level2", color: g.color, children: [], allGenes: [] };
+                        grpMap[g.l1].children.push(grpMap[g.l1].l2Map[g.l2]);
+                    }
+                    grpMap[g.l1].l2Map[g.l2].allGenes.push(gene);
+                    
+                    let tier = "Tier 3";
+                    if(gene.variants.length > 0) tier = gene.variants[0].tier;
+                    const gColor = tier === "Tier 1" ? "#ef4444" : (tier === "Tier 2" ? "#f59e0b" : "#94a3b8");
+                    
+                    grpMap[g.l1].l2Map[g.l2].children.push({ name: gene.gene_symbol, type: "gene", color: gColor, allGenes: [gene] });
+                });
             });
             return tree;
         }
 
-        function initializeD3Tree() {
+        // List View Render
+        function renderListView() {
+            const data = buildHierarchy();
+            let html = '<ul class="space-y-4">';
+            data.children.forEach(l1 => {
+                html += '<li class="font-bold text-slate-800">' + l1.name + '<ul class="pl-4 mt-2 space-y-2 border-l-2 border-slate-200">';
+                if(l1.children) l1.children.forEach(l2 => {
+                    html += '<li class="font-semibold text-slate-600 cursor-pointer hover:text-teal-600" onclick="clickListItem(\'' + l2.name + '\', 2)">' + l2.name + '<ul class="pl-4 mt-1 space-y-1 border-l-2 border-slate-200">';
+                    if(l2.children) l2.children.forEach(g => {
+                        html += '<li class="font-normal text-sm cursor-pointer hover:text-teal-600 flex items-center" onclick="inspectNodeByName(\'' + g.name + '\')"><span class="w-2 h-2 rounded-full mr-2" style="background:'+g.color+'"></span>' + g.name + '</li>';
+                    });
+                    html += '</ul></li>';
+                });
+                html += '</ul></li>';
+            });
+            html += '</ul>';
+            document.getElementById('listViewContainer').innerHTML = html;
+        }
+
+        function inspectNodeByName(name) {
+            const g = monogenicFindings.find(x => x.gene_symbol === name);
+            if(g) inspectNode({ type: 'gene', name: g.gene_symbol, allGenes: [g] });
+        }
+
+        // D3 Tree
+        function initializeTree() {
             const data = buildHierarchy();
             const container = document.getElementById('canvasContainer');
             const svg = d3.select("#hpoTreeSvg");
+            svg.selectAll("*").remove(); // clear existing
             
-            svgGroup = svg.append("g").attr("transform", "translate(120,20)");
-            const zoom = d3.zoom().scaleExtent([0.1, 4]).on("zoom", (e) => svgGroup.attr("transform", e.transform));
-            svg.call(zoom).on("dblclick.zoom", null);
+            svgGroup = svg.append("g").attr("transform", "translate(40,20)");
+            d3Zoom = d3.zoom().scaleExtent([0.1, 4]).on("zoom", (e) => svgGroup.attr("transform", e.transform));
+            svg.call(d3Zoom).on("dblclick.zoom", null);
 
             rootNode = d3.hierarchy(data);
             rootNode.x0 = container.clientHeight / 2;
             rootNode.y0 = 0;
 
-            treeLayout = d3.tree().nodeSize([30, 220]);
+            treeLayout = d3.tree().nodeSize([28, 160]);
             collapseAll();
             updateTree(rootNode);
-            inspectNode(rootNode.data);
         }
-        
+
         function collapseAll() {
             rootNode.descendants().forEach(d => {
-                if (d.depth > 0) { d._children = d.children || d._children; d.children = null; }
+                if (d.depth > 1) { d._children = d.children || d._children; d.children = null; }
             });
-            updateTree(rootNode);
         }
 
         function updateTree(source) {
             const treeData = treeLayout(rootNode);
             const nodes = treeData.descendants(), links = treeData.descendants().slice(1);
-            nodes.forEach(d => d.y = d.depth * 200);
+            nodes.forEach(d => d.y = d.depth * 180);
 
             const node = svgGroup.selectAll('g.node').data(nodes, d => d.id || (d.id = ++window.i));
             const nodeEnter = node.enter().append('g').attr('class', 'node')
                 .attr("transform", d => "translate(" + source.y0 + "," + source.x0 + ")")
                 .on('click', clickNode);
 
+            // Transparent rect for much larger click area (solves user issue)
+            nodeEnter.append('rect')
+                .attr('width', 160).attr('height', 24)
+                .attr('x', -10).attr('y', -12)
+                .attr('fill', 'transparent').style('cursor', 'pointer');
+
             nodeEnter.append('circle').attr('class', 'node-circle').attr('r', 1e-6)
-                .style("fill", d => d._children ? "#1e293b" : d.data.color)
+                .style("fill", d => d._children ? "#e2e8f0" : "#fff")
                 .style("stroke", d => d.data.color);
 
             nodeEnter.append('text').attr("dy", ".35em")
-                .attr("x", d => d.children || d._children ? -13 : 13)
+                .attr("x", d => d.children || d._children ? -10 : 10)
                 .attr("text-anchor", d => d.children || d._children ? "end" : "start")
                 .text(d => d.data.name.length > 25 ? d.data.name.substring(0,23)+'...' : d.data.name)
-                .attr("fill", "#e2e8f0").attr("font-size", "11px");
+                .attr("fill", "#334155").attr("font-size", "11px").attr("font-weight", "600");
 
             const nodeUpdate = nodeEnter.merge(node);
             nodeUpdate.transition().duration(400).attr("transform", d => "translate(" + d.y + "," + d.x + ")");
-            nodeUpdate.select('circle.node-circle').attr('r', 7)
-                .style("fill", d => d._children ? "#1e293b" : d.data.color);
+            nodeUpdate.select('circle.node-circle').attr('r', 5.5)
+                .style("fill", d => d._children ? "#e2e8f0" : "#fff")
+                .style("stroke", d => d.data.color);
 
             const nodeExit = node.exit().transition().duration(400)
                 .attr("transform", d => "translate(" + source.y + "," + source.x + ")").remove();
@@ -264,7 +445,7 @@
                 .attr('d', d => "M " + d.parent.y + " " + d.parent.x + " C " + (d.parent.y + d.y) / 2 + " " + d.parent.x + ", " + (d.parent.y + d.y) / 2 + " " + d.x + ", " + d.y + " " + d.x);
 
             link.exit().transition().duration(400)
-                .attr('d', d => "M " + source.y + " " + source.x + " C " + source.y + " " + source.x + ", " + source.y + " " + source.x + ", " + source.y + " " + source.x).remove();
+                .attr('d', d => "M " + source.y + " " + source.x + ", " + source.y + " " + source.x).remove();
             nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
         }
 
@@ -274,206 +455,148 @@
             updateTree(d);
             inspectNode(d.data);
         }
-        
+
         function toggleDrawer(id) {
             const btn = document.getElementById("btn-" + id);
             const drawer = document.getElementById("drawer-" + id);
-            if (drawer.classList.contains("open")) {
-                drawer.classList.remove("open");
-                btn.classList.remove("open");
-            } else {
-                drawer.classList.add("open");
-                btn.classList.add("open");
-            }
+            drawer.classList.toggle("open");
+            btn.classList.toggle("open");
         }
-        
+
+        // Panel Population
         function inspectNode(nodeData) {
-            const genes = nodeData.allGenes || [];
-            let allVariants = [];
-            let tier1 = 0, tier2 = 0;
-            let hpoMap = {};
-            let pubMap = {};
+            if(!nodeData || nodeData.type !== 'gene') return;
+            const g = nodeData.allGenes[0];
+            
+            document.getElementById('gene-empty').classList.add('hidden');
+            document.getElementById('gene-content').classList.remove('hidden');
+            
+            document.getElementById('headerTitle').innerText = g.gene_symbol;
+            document.getElementById('headerSubtitle').innerText = g.domain_l1.label + ' / ' + g.domain_l2.label;
+            
+            document.getElementById('ncbiSummary').innerText = g.ncbi_description || "No description provided.";
+            
+            let linksHtml = '';
+            if(g.omim) linksHtml += '<a href="https://omim.org/entry/' + g.omim + '" target="_blank" class="text-teal-600 hover:underline"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>OMIM</a>';
+            linksHtml += '<a href="https://www.ncbi.nlm.nih.gov/gene/?term=' + g.gene_symbol + '" target="_blank" class="text-teal-600 hover:underline"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>NCBI Gene</a>';
+            document.getElementById('extLinks').innerHTML = linksHtml;
 
-            genes.forEach(g => {
-                if(g.associated_hpos) {
-                    g.associated_hpos.forEach(h => {
-                        hpoMap[h.id] = h.label;
-                    });
-                }
-                if(g.publications) {
-                    g.publications.forEach(p => pubMap[p.id] = p);
-                }
-                g.variants.forEach(v => {
-                    allVariants.push({gene: g, variant: v});
-                    if(v.tier === 'Tier 1') tier1++;
-                    if(v.tier === 'Tier 2') tier2++;
-                });
+            // Phenotypes & GO
+            const pList = document.getElementById("phenotypesList");
+            pList.innerHTML = "";
+            (g.associated_hpos || []).forEach(h => {
+                pList.innerHTML += '<span class="bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-1 rounded text-xs font-bold">' + h.label + ' (' + h.id + ')</span>';
             });
+            if(!g.associated_hpos || g.associated_hpos.length === 0) pList.innerHTML = '<span class="text-xs text-slate-500">None</span>';
+            
+            const gList = document.getElementById("goList");
+            gList.innerHTML = "";
+            (g.go_context || []).forEach(go => {
+                gList.innerHTML += '<span class="bg-fuchsia-50 border border-fuchsia-200 text-fuchsia-700 px-2 py-1 rounded text-xs font-bold">' + go + '</span>';
+            });
+            if(!g.go_context || g.go_context.length === 0) gList.innerHTML = '<span class="text-xs text-slate-500">None</span>';
 
-            document.getElementById("headerTitle").innerText = nodeData.name;
-            document.getElementById("headerType").innerText = nodeData.type === 'root' ? "ALL FINDINGS" : (nodeData.type === 'gene' ? "GENE" : "ONTOLOGY DOMAIN");
-            
-            let tier1Cls = tier1 > 0 ? 'text-red-400' : 'text-white';
-            let tier1Bg = tier1 > 0 ? 'border-red-500/50 bg-red-500/10' : 'border-slate-800';
-            
-            document.getElementById("statsGrid").innerHTML = 
-                '<div class="bg-slate-900 border border-slate-800 p-4 rounded-lg text-center">' +
-                    '<div class="text-3xl font-black text-white">' + genes.length + '</div>' +
-                    '<div class="text-[10px] uppercase font-bold text-slate-400 mt-1">Total Genes</div>' +
-                '</div>' +
-                '<div class="bg-slate-900 border border-slate-800 p-4 rounded-lg text-center">' +
-                    '<div class="text-3xl font-black text-white">' + allVariants.length + '</div>' +
-                    '<div class="text-[10px] uppercase font-bold text-slate-400 mt-1">Total Variants</div>' +
-                '</div>' +
-                '<div class="bg-slate-900 border ' + tier1Bg + ' p-4 rounded-lg text-center">' +
-                    '<div class="text-3xl font-black ' + tier1Cls + '">' + tier1 + '</div>' +
-                    '<div class="text-[10px] uppercase font-bold text-slate-400 mt-1">Tier 1 Findings</div>' +
+            // Publications
+            const pubList = document.getElementById("pubList");
+            pubList.innerHTML = "";
+            (g.publications || []).forEach(p => {
+                pubList.innerHTML += '<div class="bg-white border border-slate-200 p-4 rounded shadow-sm">' +
+                    '<a href="' + p.link + '" target="_blank" class="text-sm font-bold text-teal-700 hover:underline">' + p.title + '</a>' +
+                    '<div class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-calendar mr-1"></i>' + p.date + ' | PMID: ' + p.id + '</div>' +
                 '</div>';
-            
-            let analysis = "No variants found in this domain.";
-            if (allVariants.length > 0) {
-                if (tier1 > 0) analysis = "<strong>High Risk Indicated:</strong> This domain contains " + tier1 + " pathogenic (Tier 1) finding(s). Immediate clinical correlation is recommended for the associated genes.";
-                else if (tier2 > 0) analysis = "<strong>Monitoring Recommended:</strong> This domain contains " + tier2 + " Variant(s) of Uncertain Significance (Tier 2). Review clinical phenotypes to determine if these variants explain the patient's presentation.";
-                else analysis = "<strong>Standard Risk:</strong> Found " + allVariants.length + " variants, mostly benign or Tier 3 regulatory variants. No major pathogenic drivers detected in this domain.";
-            }
-            document.getElementById("domainAnalysisText").innerHTML = analysis;
+            });
+            if(!g.publications || g.publications.length === 0) pubList.innerHTML = '<span class="text-xs text-slate-500">No PubMed publications found.</span>';
 
-            if (nodeData.type === 'gene') {
-                document.getElementById("geneDescContainer").classList.remove("hidden");
-                document.getElementById("ncbiSummary").innerText = genes[0].ncbi_description || "No description fetched from NCBI.";
-            } else {
-                document.getElementById("geneDescContainer").classList.add("hidden");
-            }
+            // Variants in Ontology tab
+            document.getElementById('varCountTag').innerText = g.variants.length;
+            const vBody = document.getElementById("ontVariantBody");
+            let vHtml = '';
+            g.variants.forEach((v, idx) => {
+                const rowId = 'ont-var-' + idx;
+                const sigCls = v.clinvar_significance.toLowerCase().includes("pathogenic") ? "text-red-600 bg-red-50 border-red-200" : "text-amber-700 bg-amber-50 border-amber-200";
+                const dbSnpLink = v.rsid.startsWith('rs') ? '<a href="https://www.ncbi.nlm.nih.gov/snp/' + v.rsid + '" target="_blank" class="text-teal-600 hover:underline">' + v.rsid + '</a>' : v.rsid;
 
-            document.getElementById("variantCountTag").innerText = allVariants.length;
-            
-            // Render Variants Table with + Expanders
-            const vBody = document.getElementById("variantTableBody");
-            let htmlBuf = "";
-            let v_idx = 0;
-
-            allVariants.forEach((item) => {
-                const g = item.gene;
-                const v = item.variant;
-                const sigCls = v.clinvar_significance.toLowerCase().includes("pathogenic") ? "text-red-400 border-red-500/30 bg-red-500/10" : "text-yellow-400 border-yellow-500/30 bg-yellow-500/10";
-                const tierCls = v.tier === 'Tier 1' ? 'text-red-400' : 'text-slate-300';
-                
-                v_idx++;
-                const rowId = "vrow-" + v_idx;
-
-                htmlBuf += '<tr class="hover:bg-slate-800/40 transition-colors border-b border-slate-700/50">' +
-                    '<td class="px-2 py-4 text-center">' +
-                        '<i class="fa-solid fa-chevron-right text-slate-500 drawer-btn text-lg" id="btn-' + rowId + '" onclick="toggleDrawer(\'' + rowId + '\')"></i>' +
-                    '</td>' +
-                    '<td class="px-4 py-4">' +
-                        '<div class="font-bold text-white text-base">' + g.gene_symbol + '</div>' +
-                        '<div class="text-[10px] text-slate-400 mt-1 line-clamp-1">' + (g.ncbi_description ? g.ncbi_description.substring(0,60) + '...' : 'No description') + '</div>' +
-                    '</td>' +
-                    '<td class="px-4 py-4">' +
-                        '<div class="font-mono font-bold text-sky-400">' + v.rsid + '</div>' +
-                        '<div class="text-[10px] text-slate-500 mt-0.5">' + v.genotype + '</div>' +
-                    '</td>' +
-                    '<td class="px-4 py-4">' +
-                        '<div class="text-xs text-slate-300">' + v.impact_consequence + '</div>' +
-                    '</td>' +
-                    '<td class="px-4 py-4">' +
-                        '<div class="text-[10px] font-bold px-2 py-0.5 rounded uppercase border inline-block ' + sigCls + '">' + v.clinvar_significance + '</div>' +
-                        '<div class="text-xs font-bold mt-1 ' + tierCls + '">' + v.tier + '</div>' +
-                    '</td>' +
+                vHtml += '<tr class="border-b border-slate-200 hover:bg-slate-50">' +
+                    '<td class="text-center"><i class="fa-solid fa-chevron-right text-slate-400 drawer-btn text-lg" id="btn-' + rowId + '" onclick="toggleDrawer(\'' + rowId + '\')"></i></td>' +
+                    '<td><div class="font-mono font-bold text-slate-800">' + dbSnpLink + '</div><div class="text-[10px] text-slate-500 mt-0.5">' + v.impact_consequence + '</div></td>' +
+                    '<td><span class="text-[10px] font-bold px-2 py-0.5 rounded border inline-block ' + sigCls + '">' + v.clinvar_significance + '</span></td>' +
+                    '<td class="text-xs font-mono text-slate-500">CADD: ' + v.cadd_phred + '</td>' +
                 '</tr>' + 
                 '<tr class="drawer-row" id="drawer-' + rowId + '">' +
-                    '<td colspan="5" class="p-0">' +
-                        '<div class="bg-slate-900 border-l-2 border-sky-500 p-6 m-2 ml-10 rounded shadow-inner grid grid-cols-4 gap-6">' +
-                            '<div>' +
-                                '<div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">CADD Phred</div>' +
-                                '<div class="text-xl font-mono text-slate-200">' + v.cadd_phred + '</div>' +
-                            '</div>' +
-                            '<div>' +
-                                '<div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">REVEL Score</div>' +
-                                '<div class="text-xl font-mono text-slate-200">' + v.revel_score + '</div>' +
-                            '</div>' +
-                            '<div>' +
-                                '<div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Read Depth</div>' +
-                                '<div class="text-xl font-mono text-slate-200">' + v.read_depth + '</div>' +
-                            '</div>' +
-                            '<div>' +
-                                '<div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Quality (Phred)</div>' +
-                                '<div class="text-xl font-mono text-slate-200">' + v.read_quality + '</div>' +
-                            '</div>' +
-                            '<div>' +
-                                '<div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">SpliceAI Max</div>' +
-                                '<div class="text-sm font-mono text-slate-300">' + v.spliceai_max + '</div>' +
-                            '</div>' +
-                            '<div>' +
-                                '<div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">gnomAD4 AF</div>' +
-                                '<div class="text-sm font-mono text-slate-300">' + v.gnomad_af + '</div>' +
-                            '</div>' +
-                            '<div class="col-span-2">' +
-                                '<div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">OMIM Ref</div>' +
-                                '<div class="text-sm font-mono text-sky-400 underline cursor-pointer">' + (g.omim ? "OMIM:" + g.omim : "N/A") + '</div>' +
-                            '</div>' +
+                    '<td colspan="4" class="p-0">' +
+                        '<div class="bg-slate-100 border-l-4 border-teal-500 p-4 m-2 ml-10 rounded shadow-inner grid grid-cols-3 gap-4">' +
+                            '<div><div class="text-[10px] text-slate-500 uppercase font-bold">CADD Phred</div><div class="text-sm font-mono text-slate-800">' + v.cadd_phred + '</div></div>' +
+                            '<div><div class="text-[10px] text-slate-500 uppercase font-bold">SpliceAI Max</div><div class="text-sm font-mono text-slate-800">' + v.spliceai_max + '</div></div>' +
+                            '<div><div class="text-[10px] text-slate-500 uppercase font-bold">AlphaMissense</div><div class="text-sm font-mono text-slate-800">' + v.am_path + ' (' + v.am_class + ')</div></div>' +
+                            '<div><div class="text-[10px] text-slate-500 uppercase font-bold">Quality (Phred)</div><div class="text-sm font-mono text-slate-800">' + v.read_quality + '</div></div>' +
+                            '<div><div class="text-[10px] text-slate-500 uppercase font-bold">Reads (Alt/Total)</div><div class="text-sm font-mono text-slate-800">' + v.read_depth_alt + ' / ' + v.read_depth_total + '</div></div>' +
+                            '<div><div class="text-[10px] text-slate-500 uppercase font-bold">gnomAD AF</div><div class="text-sm font-mono text-slate-800">' + v.gnomad_af + '</div></div>' +
                         '</div>' +
                     '</td>' +
                 '</tr>';
             });
-            vBody.innerHTML = htmlBuf;
-
-            // Render Phenotypes
-            const pList = document.getElementById("phenotypesList");
-            pList.innerHTML = "";
-            Object.keys(hpoMap).forEach(k => {
-                pList.innerHTML += '<span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-full text-xs font-bold">' + k + ' : ' + hpoMap[k] + '</span>';
-            });
-            if(Object.keys(hpoMap).length === 0) pList.innerHTML = "<div class='text-sm text-slate-500'>No HPO phenotypes mapped.</div>";
-
-            // Render Publications
-            const pubList = document.getElementById("publicationsList");
-            pubList.innerHTML = "";
-            let pubCount = 0;
-            Object.values(pubMap).forEach(p => {
-                pubCount++;
-                pubList.innerHTML += '<div class="bg-slate-900 border border-slate-700 p-4 rounded-lg">' +
-                    '<a href="' + p.link + '" target="_blank" class="text-sm font-bold text-sky-400 hover:underline">' + p.title + '</a>' +
-                    '<div class="text-xs text-slate-500 mt-2">PMID: ' + p.id + ' | Date: ' + p.date + '</div>' +
-                '</div>';
-            });
-            if(pubCount === 0) pubList.innerHTML = "<div class='text-sm text-slate-500'>No publications fetched from PubMed for these genes.</div>";
-
+            vBody.innerHTML = vHtml;
         }
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById("tab-" + tabId).classList.add('active');
-            ['overview', 'variants', 'phenotypes', 'publications', 'polygenic'].forEach(t => document.getElementById(t + "Content").classList.add("hidden"));
-            document.getElementById(tabId + "Content").classList.remove("hidden");
-        }
-
-        function onGlobalSearch(term) {
-            term = term.toLowerCase().trim();
-            if (!term) return;
-            
-            let foundNode = null;
-            rootNode.descendants().forEach(d => {
-                if (d.data.name.toLowerCase().includes(term)) {
-                    if(!foundNode) foundNode = d; 
-                }
+        function renderGlobalTables() {
+            // Genes Table
+            const gTbody = document.querySelector("#globalGenesTable tbody");
+            let gHtml = '';
+            monogenicFindings.forEach(g => {
+                let pathCount = g.variants.filter(v => v.clinvar_significance.toLowerCase().includes('pathogenic')).length;
+                let links = '';
+                if(g.omim) links += '<a href="https://omim.org/entry/' + g.omim + '" target="_blank" class="text-teal-600 hover:underline mr-2">OMIM</a>';
+                links += '<a href="https://www.ncbi.nlm.nih.gov/gene/?term=' + g.gene_symbol + '" target="_blank" class="text-teal-600 hover:underline">NCBI</a>';
+                
+                gHtml += '<tr>' +
+                    '<td class="font-bold text-slate-800">' + g.gene_symbol + '</td>' +
+                    '<td class="text-slate-600">' + g.domain_l1.label + '</td>' +
+                    '<td class="font-mono text-slate-500">' + g.variants.length + '</td>' +
+                    '<td class="font-mono font-bold ' + (pathCount>0?'text-red-600':'text-slate-400') + '">' + pathCount + '</td>'
+                    '<td class="font-mono text-slate-500">' + (g.associated_hpos ? g.associated_hpos.length : 0) + '</td>' +
+                    '<td>' + links + '</td>' +
+                '</tr>';
             });
-            
-            if (foundNode) {
-                let curr = foundNode;
-                while (curr.parent) {
-                    curr.parent.children = curr.parent.children || curr.parent._children;
-                    curr.parent._children = null;
-                    curr = curr.parent;
-                }
-                updateTree(rootNode);
-                inspectNode(foundNode.data);
-            }
+            gTbody.innerHTML = gHtml;
+
+            // Variants Table
+            const vTbody = document.querySelector("#globalVariantsTable tbody");
+            let vHtml = '';
+            monogenicFindings.forEach(g => {
+                g.variants.forEach(v => {
+                    const sigCls = v.clinvar_significance.toLowerCase().includes("pathogenic") ? "text-red-600 font-bold" : "text-amber-700";
+                    const dbSnpLink = v.rsid.startsWith('rs') ? '<a href="https://www.ncbi.nlm.nih.gov/snp/' + v.rsid + '" target="_blank" class="text-teal-600 font-mono hover:underline">' + v.rsid + '</a>' : '<span class="font-mono text-slate-500">'+v.rsid+'</span>';
+                    
+                    // calculate approximate VAF if reads exist and are numbers
+                    let vaf = "N/A";
+                    if(v.read_depth_alt !== 'N/A' && v.read_depth_total !== 'N/A') {
+                        try {
+                            const alt = parseFloat(v.read_depth_alt);
+                            const tot = parseFloat(v.read_depth_total);
+                            if(tot > 0) vaf = ((alt/tot)*100).toFixed(1) + "%";
+                        } catch(e) {}
+                    }
+
+                    vHtml += '<tr>' +
+                        '<td>' + dbSnpLink + '</td>' +
+                        '<td class="font-bold text-slate-800">' + g.gene_symbol + '</td>' +
+                        '<td class="' + sigCls + ' text-xs">' + v.clinvar_significance + '</td>' +
+                        '<td class="font-mono text-xs text-slate-600">' + v.cadd_phred + '</td>' +
+                        '<td class="font-mono text-xs text-slate-600">' + v.spliceai_max + '</td>' +
+                        '<td class="font-mono text-xs text-slate-600">' + v.am_path + '</td>' +
+                        '<td class="font-mono text-xs text-slate-600">' + v.read_quality + '</td>' +
+                        '<td class="font-mono text-xs text-slate-600">' + v.read_depth_alt + '/' + v.read_depth_total + ' (' + vaf + ')</td>' +
+                        '<td class="text-xs text-slate-500">' + v.impact_consequence + '</td>' +
+                    '</tr>';
+                });
+            });
+            vTbody.innerHTML = vHtml;
         }
 
         window.addEventListener('load', () => {
             window.i = 0;
-            initializeD3Tree();
+            renderLeftPanel();
+            renderGlobalTables();
         });
     </script>
 </body>

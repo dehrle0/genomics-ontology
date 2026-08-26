@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Visual Ontology Explorer - Iteration 4: Full Feature Mockup Parity
+Visual Ontology Explorer - Iteration 5: Claude-style Light UI & Deep Enrichment
 Enriches missing data via MyGene.info and PubMed E-Utilities.
 """
 import argparse, json, os, re, sys, yaml
@@ -92,6 +92,10 @@ def build_data_model(raw_records, domain_reg):
         hpo_terms = [h.strip() for h in hpo_terms_raw.split(";") if h.strip()]
         hpo_pairs = [{"id": hid, "label": hpo_terms[i] if i < len(hpo_terms) else hid} for i, hid in enumerate(hpo_ids)]
 
+        ev = r.get("evidence") or {}
+        hpo_ctx = ev.get("hpo_context") or []
+        go_ctx = ev.get("go_context") or []
+
         if hugo not in genes_map:
             omim = extract_omim_digits(r.get("omim_id") or r.get("omim_source"))
             ncbi_desc = (r.get("gene_info") or {}).get("description") or r.get("ncbi_description") or r.get("gene_desc") or ""
@@ -116,17 +120,25 @@ def build_data_model(raw_records, domain_reg):
                 "domain_l1": mapped_l1,
                 "domain_l2": mapped_l2,
                 "associated_hpos": hpo_pairs,
+                "hpo_context": list(set(hpo_ctx)),
+                "go_context": list(set(go_ctx)),
                 "variants": [],
                 "publications": []
             }
+        else:
+            genes_map[hugo]["hpo_context"] = list(set(genes_map[hugo]["hpo_context"] + hpo_ctx))
+            genes_map[hugo]["go_context"] = list(set(genes_map[hugo]["go_context"] + go_ctx))
             
-        ev = r.get("evidence") or {}
         zyg = r.get("zygosity") or ev.get("zygosity") or "Heterozygous"
         depth = ev.get("tot_reads") or r.get("tot_reads") or r.get("vcfinfo__tot_reads") or "N/A"
+        alt_depth = ev.get("alt_reads") or r.get("alt_reads") or "N/A"
         quality = ev.get("qual") or r.get("phred") or r.get("qual") or "N/A"
         cadd = r.get("cadd_phred") or r.get("cadd") or "N/A"
         spliceai = get_max_spliceai(r)
         revel = r.get("revel") or r.get("revel_score") or "N/A"
+        
+        am_path = r.get("am_path") or "N/A"
+        am_class = r.get("am_class") or "N/A"
         
         tier = r.get("cardio_tier") or r.get("tier") or "Tier 3"
         sig = str(r.get("clinvar_sig", "")).lower()
@@ -139,17 +151,19 @@ def build_data_model(raw_records, domain_reg):
             "zygosity": zyg,
             "impact_consequence": r.get("achange") or r.get("impact_consequence") or r.get("cchange") or "Unknown",
             "clinvar_significance": r.get("clinvar_sig") or "VUS",
-            "read_depth": depth,
+            "read_depth_alt": alt_depth,
+            "read_depth_total": depth,
             "read_quality": quality,
             "cadd_phred": cadd,
             "spliceai_max": spliceai,
+            "am_path": am_path,
+            "am_class": am_class,
             "revel_score": revel,
             "tier": tier,
             "gnomad_af": r.get("gnomad4_af") or r.get("gnomad_af") or "0.0",
             "allofus_af": r.get("allofus_af") or "0.0"
         })
 
-    # Enrich concurrently
     gene_list = list(genes_map.values())
     with ThreadPoolExecutor(max_workers=10) as executor:
         enriched_genes = list(executor.map(enrich_gene, gene_list))
