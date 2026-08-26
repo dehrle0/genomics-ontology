@@ -8,3 +8,10 @@
 *.crai
 .nextflow/
 work/
+.cache/
+node_modules/
+package.json
+package-lock.json
+*.pyc
+__pycache__/
+.venv/

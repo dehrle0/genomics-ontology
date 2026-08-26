@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Genomic Ontology Explorer</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- Faint decorative watermark — colorful double helix, low opacity, non-interactive -->
+<svg class="dna-watermark" viewBox="0 0 400 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+  <defs>
+    <style>
+      .dna-watermark .strand { fill: none; stroke-width: 3; }
+      .dna-watermark .rung { stroke-width: 3; }
+      .dna-watermark text { font-family: var(--font-mono, monospace); font-size: 11px; font-weight: 700; }
+    </style>
+  </defs>
+  <g id="dna-rungs"></g>
+</svg>
+
+<div class="app">
+
+  <!-- ============================== TOP BAR ============================== -->
+  <div class="topbar">
+    <div class="topbar__brand">
+      <span class="glyph">GO</span>
+      Genomic Ontology Explorer
+    </div>
+    <div class="tabs" role="tablist" aria-label="Primary views">
+      <button data-view="ontology" class="active">Ontology</button>
+      <button data-view="genes">Genes</button>
+      <button data-view="variants">Variants</button>
+      <button data-view="analysis">Analysis</button>
+      <button data-view="reports">Reports</button>
+    </div>
+    <div class="topbar__meta mono" id="job-meta">HG003 · GRCh38 · loading…</div>
+  </div>
+
+  <!-- ============================== ONTOLOGY VIEW ============================== -->
+  <div class="view active" id="view-ontology">
+    <div class="ontology">
+
+      <!-- LEFT: ontology tree -->
+      <div class="tree-panel">
+        <div class="tree-panel__head">
+          <div class="ontology-switch" id="ontology-switch">
+            <button data-tree="hpo" class="active">HPO</button>
+            <button data-tree="go">GO</button>
+            <button data-tree="organ">Organ/System</button>
+          </div>
+          <input type="text" class="tree-search" id="tree-search" placeholder="Search phenotype, CURIE, or gene…" />
+          <div class="layout-toggle">
+            <label><input type="radio" name="layout" value="tree" /> Tree</label>
+            <label><input type="radio" name="layout" value="list" checked /> List</label>
+            <label><input type="radio" name="layout" value="graph" /> Graph</label>
+          </div>
+          <div class="scope-toggle">
+            <label><input type="checkbox" id="scope-findings-only" /> Only systems with findings</label>
+          </div>
+        </div>
+        <div class="tree-legend">
+          <span><span class="dot dot--organ"></span>Organ system</span>
+          <span><span class="dot dot--term"></span>Phenotype term</span>
+          <span><span class="dot dot--gene"></span>Gene</span>
+        </div>
+        <div class="tree-scroll" id="tree-scroll"></div>
+      </div>
+
+      <!-- RIGHT: gene detail -->
+      <div class="gene-detail" id="gene-detail">
+        <div class="gene-empty">
+          <div class="glyph-lg">◈</div>
+          <div><strong>Select a gene</strong> from the tree on the left to see its overview, phenotypes, variants, and supporting literature.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== GENES VIEW ============================== -->
+  <div class="view" id="view-genes">
+    <div class="list-view">
+      <div class="list-view__head">
+        <h1>Genes</h1>
+        <div class="filters">
+          <input type="text" id="genes-search" placeholder="Filter by gene symbol…" />
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <table class="data-table" id="genes-table">
+          <thead>
+            <tr>
+              <th data-sort="symbol">Gene</th>
+              <th data-sort="organSystem">Organ system</th>
+              <th data-sort="variantsDetected">Variants</th>
+              <th data-sort="pathogenic">Pathogenic / LP</th>
+              <th data-sort="phasedPct">Phased het. %</th>
+              <th data-sort="hpoTermCount">HPO terms</th>
+              <th data-sort="goTermCount">GO terms</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== VARIANTS VIEW ============================== -->
+  <div class="view" id="view-variants">
+    <div class="list-view">
+      <div class="list-view__head">
+        <h1>Variants</h1>
+        <div class="filters">
+          <select id="filter-gene"><option value="">All genes</option></select>
+          <select id="filter-clinvar">
+            <option value="">All ClinVar</option>
+            <option>Pathogenic</option>
+            <option>Likely pathogenic</option>
+            <option>Uncertain significance</option>
+            <option>Benign</option>
+            <option>Benign/Likely benign</option>
+            <option>Conflicting</option>
+            <option>Risk factor</option>
+            <option>Not reviewed</option>
+          </select>
+          <select id="filter-phase">
+            <option value="">All phase</option>
+            <option>Maternal</option>
+            <option>Paternal</option>
+            <option>Unknown</option>
+            <option>N/A</option>
+          </select>
+          <select id="filter-zygosity">
+            <option value="">All zygosity</option>
+            <option>Heterozygous</option>
+            <option>Homozygous</option>
+            <option>Hemizygous</option>
+            <option>Homozygous (ref)</option>
+          </select>
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <table class="data-table" id="variants-table">
+          <thead>
+            <tr>
+              <th>Variant</th>
+              <th>Gene</th>
+              <th>ClinVar</th>
+              <th>REVEL</th>
+              <th>CADD</th>
+              <th>SpliceAI</th>
+              <th>AlphaMissense</th>
+              <th>QUAL</th>
+              <th>Reads (alt/total)</th>
+              <th>Coordinate</th>
+              <th>Zygosity</th>
+              <th>Phase</th>
+              <th>MAF</th>
+              <th>Consequence</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== ANALYSIS VIEW ============================== -->
+  <div class="view" id="view-analysis">
+    <div class="analysis-view">
+      <h1>Analysis</h1>
+      <div class="analysis-sub">Interpretation layer — risk aggregation across genes, rolled up by organ system.</div>
+
+      <div class="kpi-strip" id="analysis-kpis"></div>
+
+      <div class="section-title"><span class="eyebrow">Polygenic risk scores</span></div>
+      <div class="prs-grid" id="prs-grid"></div>
+
+      <div class="section-title"><span class="eyebrow">Pharmacogenomics</span></div>
+      <div class="data-table-wrap">
+        <table class="data-table pgx-table">
+          <thead>
+            <tr><th>Gene</th><th>Diplotype</th><th>Predicted phenotype</th><th>Drug</th><th>Action tier</th><th>CPIC / DPWG guidance</th></tr>
+          </thead>
+          <tbody id="pgx-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== REPORTS VIEW ============================== -->
+  <div class="view" id="view-reports">
+    <div class="reports-view">
+      <div class="report-sheet">
+        <div class="report-sheet__masthead">
+          <div>
+            <h1>Clinical Genomics Summary</h1>
+            <div class="meta" id="report-meta"></div>
+          </div>
+          <div class="report-actions">
+            <button class="btn" onclick="window.print()">Print / Save PDF</button>
+            <button class="btn btn--primary" id="download-json-btn">Download JSON</button>
+          </div>
+        </div>
+        <div class="report-narrative" id="report-narrative"></div>
+        <div class="section-title"><span class="eyebrow">Gene breakdown</span></div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Gene</th><th>Variants detected</th><th>Pathogenic / LP</th><th>Protective</th><th>Uncertain</th></tr></thead>
+            <tbody id="report-gene-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Genome browser stub — future IGV.js / locus-view hook -->
+<div class="modal-backdrop" id="genome-modal">
+  <div class="modal">
+    <h3 id="genome-modal-title">View in Genome Browser</h3>
+    <p>This is a placeholder for an embedded locus view (IGV.js track or exon/domain diagram). Wiring it up just means mounting a browser component here and pointing it at the coordinate below.</p>
+    <div class="modal__locus" id="genome-modal-locus"></div>
+    <div class="modal__foot">
+      <button class="btn" id="genome-modal-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="data/mock-data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
