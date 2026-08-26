@@ -188,13 +188,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output", default="reports/visual_ontology_explorer.html")
     parser.add_argument("-d", "--demo", action="store_true")
+    parser.add_argument("-i", "--input", help="Path to actionable JSON file")
     args = parser.parse_args()
 
     out_dir = os.path.dirname(args.output)
     if out_dir: os.makedirs(out_dir, exist_ok=True)
 
-    if args.demo:
-        mel_path = Path(__file__).parent / "logs" / "mel_actionable.json"
-        with open(mel_path, "r", encoding="utf-8") as f:
+    input_path = args.input or (Path(__file__).parent / "logs" / "mel_actionable.json" if args.demo else None)
+    if input_path and os.path.exists(input_path):
+        with open(input_path, "r", encoding="utf-8") as f:
             data = json.load(f)
         generate_upgraded_visual_report(data, args.output)
+    else:
+        print("Please provide --input <file.json> or --demo")
