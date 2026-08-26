@@ -315,7 +315,7 @@
 
         // Data building based on toggle
         function buildHierarchy() {
-            const tree = { name: "All Findings", type: "root", children: [], allGenes: monogenicFindings };
+            const tree = { name: "All Findings", type: "root", color: "#0ea5e9", children: [], allGenes: monogenicFindings };
             const grpMap = {};
 
             monogenicFindings.forEach(gene => {
@@ -331,7 +331,7 @@
                 }
 
                 groups.forEach(g => {
-                    if (!grpMap[g.l1]) grpMap[g.l1] = { name: g.l1, type: "level1", color: g.color, children: [], l2Map: {}, allGenes: [] };
+                    if (!grpMap[g.l1]) { grpMap[g.l1] = { name: g.l1, type: "level1", color: g.color, children: [], l2Map: {}, allGenes: [] }; tree.children.push(grpMap[g.l1]); }
                     grpMap[g.l1].allGenes.push(gene);
                     
                     if (!grpMap[g.l1].l2Map[g.l2]) {
@@ -381,7 +381,8 @@
             const svg = d3.select("#hpoTreeSvg");
             svg.selectAll("*").remove(); // clear existing
             
-            svgGroup = svg.append("g").attr("transform", "translate(40,20)");
+            const h = container.clientHeight || 800;
+            svgGroup = svg.append("g").attr("transform", "translate(80," + (h/2) + ")");
             d3Zoom = d3.zoom().scaleExtent([0.1, 4]).on("zoom", (e) => svgGroup.attr("transform", e.transform));
             svg.call(d3Zoom).on("dblclick.zoom", null);
 
@@ -396,13 +397,13 @@
 
         function collapseAll() {
             rootNode.descendants().forEach(d => {
-                if (d.depth > 1) { d._children = d.children || d._children; d.children = null; }
+                if (d.depth > 2) { d._children = d.children || d._children; d.children = null; }
             });
         }
 
         function updateTree(source) {
             const treeData = treeLayout(rootNode);
-            const nodes = treeData.descendants(), links = treeData.descendants().slice(1);
+            const nodes = treeData.descendants(); const links = treeData.links();
             nodes.forEach(d => d.y = d.depth * 180);
 
             const node = svgGroup.selectAll('g.node').data(nodes, d => d.id || (d.id = ++window.i));
