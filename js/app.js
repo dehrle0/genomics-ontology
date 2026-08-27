@@ -1,8 +1,8 @@
 /**
- * Genomic Ontology Explorer — app logic (v4.5)
- * Gene-grouped Tiered Variants with NCBI descriptions,
- * Non-redundant Comprehensive Variant Details (SpliceAI AG/AL/DG/DL, AlphaMissense, ACMG, cDNA/Protein),
- * Interactive Scalable Graph with Zoom Controls, and Persistent Subtab Navigation.
+ * Genomic Ontology Explorer — app logic (v5.0)
+ * Non-redundant Variant Drawers with Autosomal Dominant / Recessive Trait Badges,
+ * Direct UCSC Genome Browser (GRCh38) Linking, Full ClinVar Protective Variants Support,
+ * Phased Haplotypes (Maternal/Paternal), and Smooth Scrolling Across All Views.
  */
 
 (function () {
@@ -253,9 +253,11 @@
     const isSelected = state.selectedTarget && state.selectedTarget.type === "gene" && state.selectedTarget.symbol === symbol;
     row.className = "tree-row tree-row--gene" + (isSelected ? " selected" : "");
     const flagged = g && g.variants.some((v) => v.category === "concern");
+    const isProt = g && g.variants.some((v) => v.category === "protective");
     row.innerHTML =
       '<span class="node-dot"></span><span style="font-weight:600;">' + symbol + "</span>" +
-      (flagged ? '<span class="count-chip" style="color:var(--concern);border-color:var(--concern-bg);font-weight:700;">flag</span>' : "");
+      (flagged ? '<span class="count-chip" style="color:var(--concern);border-color:var(--concern-bg);font-weight:700;">concern</span>' : "") +
+      (isProt ? '<span class="count-chip" style="color:var(--protect);border-color:var(--protect-bg);font-weight:700;">protective</span>' : "");
     row.addEventListener("click", (e) => {
       e.stopPropagation();
       selectGene(symbol);
@@ -289,7 +291,6 @@
     }
     host.innerHTML = "";
 
-    // Toolbar for Zoom In / Zoom Out / Reset
     const toolbar = document.createElement("div");
     toolbar.className = "graph-toolbar";
     toolbar.innerHTML =
@@ -358,20 +359,18 @@
     svg.setAttribute("height", totalHeight);
     svg.setAttribute("viewBox", "0 0 " + BASE_WIDTH + " " + totalHeight);
 
-    // Balanced Contrast Lines (#64748b with subtle curvature)
     edges.forEach((e) => {
       const path = document.createElementNS(svgns, "path");
       const midX = (e.x1 + e.x2) / 2;
       const d = `M ${e.x1} ${e.y1} C ${midX} ${e.y1}, ${midX} ${e.y2}, ${e.x2} ${e.y2}`;
       path.setAttribute("d", d);
       path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "#64748b"); // balanced slate-500 line
+      path.setAttribute("stroke", "#64748b");
       path.setAttribute("stroke-width", e.strokeWidth || "1.75");
       path.setAttribute("stroke-opacity", "0.75");
       svg.appendChild(path);
     });
 
-    // Draw Nodes
     nodes.forEach((n) => {
       const isSel = state.selectedTarget && state.selectedTarget.id === n.id;
       const gNode = document.createElementNS(svgns, "g");
@@ -400,7 +399,6 @@
 
     canvasWrap.appendChild(svg);
 
-    // Gene chips layer
     const geneLayer = document.createElement("div");
     geneLayer.className = "graph-genes-layer";
     geneLayer.style.width = BASE_WIDTH + "px";
@@ -457,7 +455,7 @@
     if (!g) return;
 
     const heteroCount = g.variants.filter((v) => v.zygosity === "Heterozygous").length;
-    const phasedHetCount = g.variants.filter((v) => v.zygosity === "Heterozygous" && v.phase && v.phase !== "Unknown").length;
+    const phasedHetCount = g.variants.filter((v) => v.zygosity === "Heterozygous" && (v.phase === "Maternal" || v.phase === "Paternal")).length;
     const phasedPct = heteroCount ? Math.round((phasedHetCount / heteroCount) * 100) : 0;
     const pathCount = g.variants.filter((v) => v.category === "concern").length;
     const protectCount = g.variants.filter((v) => v.category === "protective").length;
@@ -471,7 +469,10 @@
           '<h1><span class="sym">' + g.symbol + '</span> <span class="full">' + g.name + '</span></h1>' +
           '<div class="gene-coord mono" style="font-size:11.5px;color:var(--slate);margin-top:2px;">' + g.chromosome + " · pLI " + g.pli + " · LOEUF " + g.loeuf + " · " + g.organSystem + '</div>' +
         '</div>' +
-        '<button class="btn btn--primary" id="genome-browser-btn">View in Genome Browser</button>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<a class="btn" href="' + (g.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="background:#fff;border:1px solid var(--line);font-size:11.5px;">UCSC Browser ↗</a>' +
+          '<button class="btn btn--primary" id="genome-browser-btn">Interactive Exons</button>' +
+        '</div>' +
       '</div>' +
       '<div class="gene-tabs" id="gene-tabs">' +
         '<button data-tab="overview" class="' + (activeTab === "overview" ? "active" : "") + '">Overview</button>' +
@@ -494,16 +495,23 @@
         '</div>' +
         '<div class="panel-box"><h3>Gene summary</h3><p>' + g.summary + '</p></div>' +
         (g.associatedPathology && g.associatedPathology.length
-          ? '<div class="panel-box"><h3>Associated pathology</h3>' +
-            g.associatedPathology.map((p) =>
-              '<div class="pathology-chip">' + p.name + '<span class="tag">' + p.inheritance + '</span>' +
-              (p.omim ? '<span class="tag">OMIM #' + p.omim + '</span>' : "") + '</div>'
-            ).join("") + '</div>'
+          ? '<div class="panel-box"><h3>Associated pathology & Inheritance</h3>' +
+            g.associatedPathology.map((p) => {
+              const badges = (p.inheritance || []).map((inh) => {
+                const cls = inh.includes("Dominant") ? "badge--ad" : (inh.includes("Recessive") ? "badge--ar" : "badge--complex");
+                return '<span class="' + cls + '" style="margin-left:6px;">' + inh + '</span>';
+              }).join("");
+              return '<div class="pathology-chip" style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">' +
+                '<span>' + p.name + '</span>' +
+                '<div>' + badges + (p.omim ? '<span class="tag" style="margin-left:6px;">OMIM #' + p.omim + '</span>' : "") + '</div>' +
+                '</div>';
+            }).join("") + '</div>'
           : '<div class="panel-box"><h3>Associated pathology</h3><p style="color:var(--slate);">No single-gene OMIM phenotype established; evaluated in quantitative/complex trait networks.</p></div>') +
         '<div class="panel-box"><h3>Reference links</h3><div class="ref-links">' +
           '<a class="ref-link" href="' + g.links.ncbiGene + '" target="_blank" rel="noopener">NCBI Gene (' + g.ncbiGeneId + ') ↗</a>' +
           '<a class="ref-link" href="' + g.links.omim + '" target="_blank" rel="noopener">OMIM *' + g.omimGene + ' ↗</a>' +
           (g.omimPhenotype ? '<a class="ref-link" href="https://omim.org/entry/' + g.omimPhenotype + '" target="_blank" rel="noopener">OMIM Phenotype #' + g.omimPhenotype + ' ↗</a>' : "") +
+          '<a class="ref-link" href="' + (g.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener">UCSC Genome Browser (hg38) ↗</a>' +
           '<a class="ref-link" href="' + g.links.genecards + '" target="_blank" rel="noopener">GeneCards ↗</a>' +
           '<a class="ref-link" href="' + g.links.clinvarGene + '" target="_blank" rel="noopener">ClinVar (gene) ↗</a>' +
         '</div></div>' +
@@ -558,7 +566,7 @@
     const protectCount = allVariants.filter((v) => v.category === "protective").length;
     const uncertainCount = allVariants.filter((v) => v.category === "uncertain").length;
     const heteroCount = allVariants.filter((v) => v.zygosity === "Heterozygous").length;
-    const phasedHetCount = allVariants.filter((v) => v.zygosity === "Heterozygous" && v.phase && v.phase !== "Unknown").length;
+    const phasedHetCount = allVariants.filter((v) => v.zygosity === "Heterozygous" && (v.phase === "Maternal" || v.phase === "Paternal")).length;
     const phasedPct = heteroCount ? Math.round((phasedHetCount / heteroCount) * 100) : 0;
 
     const subOntologies = collectDescendantSubOntologies(cat);
@@ -606,10 +614,12 @@
           '<div class="gene-chip-roster">' +
             geneObjects.map((g) => {
               const hasConcern = g.variants.some((v) => v.category === "concern");
-              return '<div class="gene-chip-item' + (hasConcern ? " has-concern" : "") + '" data-gene="' + g.symbol + '">' +
+              const hasProtect = g.variants.some((v) => v.category === "protective");
+              return '<div class="gene-chip-item' + (hasConcern ? " has-concern" : (hasProtect ? " has-protect" : "")) + '" data-gene="' + g.symbol + '">' +
                 '<span>' + g.symbol + '</span>' +
                 '<span class="mono" style="font-size:10px;opacity:0.8;">(' + g.variants.length + 'v)</span>' +
-                (hasConcern ? '<span style="font-size:9px;font-weight:700;">●</span>' : '') +
+                (hasConcern ? '<span style="font-size:9px;font-weight:700;color:var(--concern);">●</span>' : '') +
+                (hasProtect ? '<span style="font-size:9px;font-weight:700;color:var(--protect);">●</span>' : '') +
               '</div>';
             }).join("") +
           '</div>' +
@@ -732,7 +742,8 @@
                   '</div>' +
                   '<div class="variant-gene-desc">' + (g.summary || 'Essential clinical genomic locus.') + '</div>' +
                 '</div>' +
-                '<div style="flex-shrink:0;">' +
+                '<div style="flex-shrink:0;display:flex;gap:6px;">' +
+                  '<a class="ref-link" href="' + (g.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;">UCSC ↗</a>' +
                   '<a class="ref-link" href="' + (g.links ? g.links.ncbiGene : 'https://www.ncbi.nlm.nih.gov/gene/?term=' + sym) + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;">NCBI ↗</a>' +
                 '</div>' +
               '</div>' +
@@ -816,6 +827,9 @@
 
     if (!isExpanded) return mainRow;
 
+    const g = geneBySymbol(geneSymbol || v.gene) || {};
+    const pathologies = g.associatedPathology || [];
+
     // SpliceAI Delta Breakdown
     const sDetails = v.spliceaiDetails || {};
     const agStr = sDetails.ag !== undefined && sDetails.ag !== null ? Number(sDetails.ag).toFixed(2) : "0.00";
@@ -826,47 +840,57 @@
     const detailRow =
       '<tr class="variant-detail-row"><td colspan="13">' +
       '<div class="variant-drawer-grid">' +
-        // Box 1: Genomic & Transcript Context
+        // Box 1: Inheritance & Pathology Traits (Dominant / Recessive)
         '<div class="variant-drawer-box">' +
-          '<h4>Genomic & Transcript</h4>' +
-          '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Coordinates:</span><span class="drawer-metric-val">' + v.coordinate + '</span></div>' +
-          '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Transcript:</span><span class="drawer-metric-val">' + (v.transcript || 'Canonical') + '</span></div>' +
-          (v.cchange ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">cDNA Change:</span><span class="drawer-metric-val">' + v.cchange + '</span></div>' : '') +
-          (v.achange ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Protein Change:</span><span class="drawer-metric-val">' + v.achange + '</span></div>' : '') +
+          '<h4>Inheritance & Pathology</h4>' +
+          (pathologies.length
+            ? pathologies.map((p) => {
+                const badges = (p.inheritance || []).map((inh) => {
+                  const cls = inh.includes("Dominant") ? "badge--ad" : (inh.includes("Recessive") ? "badge--ar" : "badge--complex");
+                  return '<span class="' + cls + '">' + inh + '</span>';
+                }).join(" ");
+                return '<div style="margin-bottom:6px;">' +
+                  '<div style="font-weight:600;font-size:11.5px;">' + p.name + '</div>' +
+                  '<div style="margin-top:2px;display:flex;gap:4px;align-items:center;">' + badges + (p.omim ? '<span class="mono" style="font-size:10.5px;color:var(--slate);">OMIM #' + p.omim + '</span>' : '') + '</div>' +
+                '</div>';
+              }).join("")
+            : '<div style="font-size:11.5px;color:var(--slate);">Complex / multifactorial quantitative trait modifier.</div>') +
+        '</div>' +
+
+        // Box 2: Transcript & Molecular HGVS
+        '<div class="variant-drawer-box">' +
+          '<h4>Transcript & Nomenclature</h4>' +
+          '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Transcript ID:</span><span class="drawer-metric-val">' + (v.transcript || 'Canonical') + '</span></div>' +
+          (v.cchange ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">cDNA (HGVS):</span><span class="drawer-metric-val">' + v.cchange + '</span></div>' : '') +
+          (v.achange ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Protein (HGVS):</span><span class="drawer-metric-val">' + v.achange + '</span></div>' : '') +
           (v.vaf !== undefined && v.vaf !== null ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Allele Fraction (VAF):</span><span class="drawer-metric-val">' + Number(v.vaf).toFixed(2) + '</span></div>' : '') +
+          (v.vcfGt ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">VCF Phased GT:</span><span class="drawer-metric-val mono">' + v.vcfGt + ' (' + v.phase + ')</span></div>' : '') +
         '</div>' +
 
-        // Box 2: Functional In-Silico Scores
+        // Box 3: SpliceAI 4-Way Delta & ACMG Evidence
         '<div class="variant-drawer-box">' +
-          '<h4>In-Silico Predictions</h4>' +
-          '<div class="drawer-metric-row"><span class="drawer-metric-lbl">AlphaMissense:</span><span class="drawer-metric-val">' + (v.alphamissense !== null && v.alphamissense !== undefined ? Number(v.alphamissense).toFixed(3) + ' (' + (v.amClass || 'evaluated') + ')' : '—') + '</span></div>' +
-          '<div class="drawer-metric-row"><span class="drawer-metric-lbl">CADD Phred:</span><span class="drawer-metric-val">' + (v.cadd ? Number(v.cadd).toFixed(1) : '—') + '</span></div>' +
-          '<div class="drawer-metric-row"><span class="drawer-metric-lbl">REVEL Score:</span><span class="drawer-metric-val">' + (v.revel !== null && v.revel !== undefined ? v.revel : '—') + '</span></div>' +
+          '<h4>SpliceAI & ACMG Evidence</h4>' +
           '<div class="drawer-metric-row"><span class="drawer-metric-lbl">SpliceAI Delta:</span><span class="drawer-metric-val">AG:' + agStr + ' AL:' + alStr + ' DG:' + dgStr + ' DL:' + dlStr + '</span></div>' +
-        '</div>' +
-
-        // Box 3: ACMG & ClinVar Evidence
-        '<div class="variant-drawer-box">' +
-          '<h4>ClinVar & ACMG Criteria</h4>' +
-          '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Classification:</span><span class="drawer-metric-val">' + v.clinvar + '</span></div>' +
           '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Review Status:</span><span class="drawer-metric-val">' + (v.clinvarRev || 'criteria provided') + '</span></div>' +
           (v.acmgPm5 ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">ACMG PM5:</span><span class="drawer-metric-val">Known pathogenic missense at codon</span></div>' : '') +
           (v.acmgPs1 ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">ACMG PS1:</span><span class="drawer-metric-val">Identical amino acid change known</span></div>' : '') +
-          (v.clinvarId ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">ClinVar Variation:</span><span class="drawer-metric-val"><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/' + v.clinvarId + '/" target="_blank" rel="noopener">VCV#' + v.clinvarId + ' ↗</a></span></div>' : '') +
+          (v.clinvarId ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">ClinVar ID:</span><span class="drawer-metric-val"><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/' + v.clinvarId + '/" target="_blank" rel="noopener">VCV#' + v.clinvarId + ' ↗</a></span></div>' : '') +
         '</div>' +
 
-        // Box 4: Research & GWAS Links
+        // Box 4: UCSC Genome Browser & Research
         '<div class="variant-drawer-box">' +
-          '<h4>Research Studies</h4>' +
+          '<h4>Genome Browser & Research</h4>' +
+          '<div style="margin-bottom:6px;">' +
+            '<a class="ref-link" href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;display:inline-block;padding:3px 8px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal-dark);border-radius:3px;">View in UCSC Genome Browser (hg38) ↗</a>' +
+          '</div>' +
           (v.studies && v.studies.length
             ? v.studies.map((s) =>
-                '<div style="margin-bottom:4px;">' +
-                  '<div style="font-weight:700;font-size:11.5px;color:var(--teal-dark);">' + s.title + '</div>' +
-                  '<div style="font-size:11px;color:var(--slate);">' + s.description + '</div>' +
-                  '<div style="font-size:10.5px;color:var(--slate);margin-top:2px;">' + s.source + ' · ' + s.genotypeRelevance + '</div>' +
+                '<div style="margin-top:4px;border-top:1px dashed var(--line);padding-top:4px;">' +
+                  '<div style="font-weight:700;font-size:11px;color:var(--teal-dark);">' + s.title + '</div>' +
+                  '<div style="font-size:10.5px;color:var(--slate);">' + s.finding + '</div>' +
                 '</div>'
               ).join("")
-            : '<div style="font-size:11.5px;color:var(--slate);">No individual GWAS study correlations published for this exact SNP locus.</div>') +
+            : '<div style="font-size:11px;color:var(--slate);">No specific GWAS study associations flagged.</div>') +
         '</div>' +
       '</div>' +
       '</td></tr>';
@@ -925,8 +949,8 @@
     const detailEl = byId("genome-browser-variant-detail");
 
     const gene = geneBySymbol(symbol) || {};
-    byId("genome-modal-title").textContent = "Genome Locus Track — " + symbol;
-    locusEl.textContent = gene.chromosome || (variants[0] ? variants[0].coordinate : "chrX");
+    byId("genome-modal-title").textContent = "Genome Locus & Exon Track — " + symbol;
+    locusEl.innerHTML = '<span>' + (gene.chromosome || (variants[0] ? variants[0].coordinate : "chrX")) + '</span> · <a href="' + (gene.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="color:var(--teal);font-weight:700;margin-left:8px;">Open in UCSC Genome Browser ↗</a>';
     detailEl.innerHTML = '<div class="variant-info-box">Click on any lollipop marker below to inspect variant amino acid consequence and call quality.</div>';
 
     const width = 720, height = 180, padX = 40;
@@ -1001,6 +1025,7 @@
             '<div style="font-weight:700;color:var(--teal-dark);font-size:13px;">' + v.id + ' (' + v.genotype + ') · ' + v.coordinate + '</div>' +
             '<div style="font-size:12px;margin-top:3px;"><strong>ClinVar:</strong> ' + v.clinvar + ' | <strong>CADD:</strong> ' + (v.cadd || "N/A") + ' | <strong>Zygosity:</strong> ' + v.zygosity + ' (' + v.phase + ')</div>' +
             '<div style="font-size:11.5px;color:var(--slate);margin-top:2px;">Consequences: ' + v.consequence.join(", ") + '</div>' +
+            '<div style="margin-top:6px;"><a href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;color:var(--teal);">View variant in UCSC Genome Browser ↗</a></div>' +
           '</div>';
       });
 
@@ -1025,13 +1050,14 @@
     const q = searchEl ? searchEl.value.trim().toLowerCase() : "";
     let rows = GENES.map((g) => {
       const heteroCount = g.variants.filter((v) => v.zygosity === "Heterozygous").length;
-      const phasedHetCount = g.variants.filter((v) => v.zygosity === "Heterozygous" && v.phase && v.phase !== "Unknown").length;
+      const phasedHetCount = g.variants.filter((v) => v.zygosity === "Heterozygous" && (v.phase === "Maternal" || v.phase === "Paternal")).length;
       const phasedPct = heteroCount ? Math.round((phasedHetCount / heteroCount) * 100) : 0;
       return {
         symbol: g.symbol,
         organSystem: g.organSystem,
         variantsDetected: g.variantsDetected,
         pathogenic: g.variants.filter((v) => v.category === "concern").length,
+        protective: g.variants.filter((v) => v.category === "protective").length,
         phasedPct: phasedPct,
         hpoTermCount: g.hpoTermCount,
         goTermCount: g.goTermCount
@@ -1050,7 +1076,7 @@
       '<td class="mono" style="font-weight:700;color:var(--teal-dark);">' + r.symbol + "</td>" +
       "<td>" + r.organSystem + "</td>" +
       "<td>" + r.variantsDetected + "</td>" +
-      "<td>" + (r.pathogenic ? '<span class="badge badge--concern">' + r.pathogenic + "</span>" : "0") + "</td>" +
+      "<td>" + (r.pathogenic ? '<span class="badge badge--concern">' + r.pathogenic + "</span>" : (r.protective ? '<span class="badge badge--protect">' + r.protective + ' prot.</span>' : "0")) + "</td>" +
       '<td><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:' + r.phasedPct + '%"></div></div>' + r.phasedPct + "%</div></td>" +
       "<td>" + r.hpoTermCount + "</td>" +
       "<td>" + r.goTermCount + "</td>" +
@@ -1091,7 +1117,7 @@
 
     const rows = allVariantsFlat().filter((v) =>
       (!geneF || v.gene === geneF) &&
-      (!clinvarF || v.clinvar === clinvarF) &&
+      (!clinvarF || v.clinvar.toLowerCase().includes(clinvarF.toLowerCase())) &&
       (!phaseF || v.phase === phaseF) &&
       (!zygF || v.zygosity === zygF)
     );
@@ -1129,15 +1155,17 @@
   function renderAnalysisView() {
     const allVars = allVariantsFlat();
     const totalPath = allVars.filter((v) => v.category === "concern").length;
+    const totalProt = allVars.filter((v) => v.category === "protective").length;
     const totalHetero = allVars.filter((v) => v.zygosity === "Heterozygous").length;
-    const totalPhased = allVars.filter((v) => v.zygosity === "Heterozygous" && v.phase && v.phase !== "Unknown").length;
+    const totalPhased = allVars.filter((v) => v.zygosity === "Heterozygous" && (v.phase === "Maternal" || v.phase === "Paternal")).length;
     const phasedPct = totalHetero ? Math.round((totalPhased / totalHetero) * 100) : 0;
 
     byId("analysis-kpis").innerHTML =
-      kpi(allVars.length.toLocaleString(), "Total Actionable Variants") +
-      kpi(totalPath, "Pathogenic / LP calls") +
-      kpi(phasedPct + "%", "Heterozygous calls phased") +
-      kpi(GENES.length, "Genes in panel");
+      kpi(allVars.length.toLocaleString(), "Actionable Variants") +
+      kpi(totalPath, "Concerns / Pathogenic") +
+      kpi(totalProt, "Protective Variants") +
+      kpi(phasedPct + "%", "Heterozygous phased") +
+      kpi(GENES.length, "Clinical Genes");
 
     const riskGrid = byId("organ-risk-grid");
     if (riskGrid && typeof ORGAN_RISK_MATRIX !== "undefined") {
@@ -1207,6 +1235,7 @@
     if (!phase || phase === "Unknown") return '<span class="badge badge--phase-unknown">Unknown</span>';
     if (phase === "Maternal") return '<span class="badge badge--phase-mat">Maternal</span>';
     if (phase === "Paternal") return '<span class="badge badge--phase-pat">Paternal</span>';
+    if (phase === "Unphased") return '<span class="badge badge--neutral">Unphased</span>';
     return '<span class="badge badge--neutral">' + phase + '</span>';
   }
 

@@ -41,13 +41,11 @@
     <!-- Epigenetic Nucleosome / Histone Octamer Discs & Chromatin Beads -->
     <circle cx="200" cy="180" r="28" fill="#8b5cf6" opacity="0.35" />
     <circle cx="200" cy="180" r="14" fill="#6366f1" opacity="0.5" />
-    <!-- Methylation tag (Me3) -->
     <line x1="200" y1="152" x2="200" y2="135" stroke="#f43f5e" stroke-width="2.5" />
     <circle cx="200" cy="132" r="5" fill="#f43f5e" />
 
     <circle cx="200" cy="680" r="32" fill="#06b6d4" opacity="0.35" />
     <circle cx="200" cy="680" r="16" fill="#0284c7" opacity="0.5" />
-    <!-- Acetylation tag (Ac) -->
     <line x1="200" y1="648" x2="200" y2="630" stroke="#10b981" stroke-width="2.5" />
     <polygon points="196,630 204,630 200,622" fill="#10b981" />
 
@@ -83,7 +81,7 @@
       <button data-view="analysis">Analysis</button>
       <button data-view="reports">Reports</button>
     </div>
-    <div class="topbar__meta mono" id="job-meta">DE_master (Phased WGS) · OpenCRAVAT 3.1.1 · 702 variants</div>
+    <div class="topbar__meta mono" id="job-meta">DE_master (Phased WGS) · OpenCRAVAT 3.1.1 · 712 variants</div>
   </div>
 
   <!-- ============================== ONTOLOGY VIEW ============================== -->
@@ -142,7 +140,7 @@
               <th data-sort="symbol">Gene</th>
               <th data-sort="organSystem">Organ system</th>
               <th data-sort="variantsDetected">Variants</th>
-              <th data-sort="pathogenic">Pathogenic / LP</th>
+              <th data-sort="pathogenic">Pathogenic / Protective</th>
               <th data-sort="phasedPct">Phased het. %</th>
               <th data-sort="hpoTermCount">HPO terms</th>
               <th data-sort="goTermCount">GO terms</th>
@@ -165,6 +163,7 @@
             <option value="">All ClinVar</option>
             <option>Pathogenic</option>
             <option>Likely pathogenic</option>
+            <option>Protective</option>
             <option>Uncertain significance</option>
             <option>Benign</option>
             <option>Benign/Likely benign</option>
@@ -176,6 +175,7 @@
             <option value="">All phase</option>
             <option>Maternal</option>
             <option>Paternal</option>
+            <option>Unphased</option>
             <option>Unknown</option>
             <option>N/A</option>
           </select>
@@ -242,24 +242,26 @@
 
   <!-- ============================== REPORTS VIEW ============================== -->
   <div class="view" id="view-reports">
-    <div class="report-sheet">
-      <div class="report-sheet__masthead">
-        <div>
-          <h1>Clinical Genomics Summary</h1>
-          <div class="meta" id="report-meta"></div>
+    <div class="reports-view">
+      <div class="report-sheet">
+        <div class="report-sheet__masthead">
+          <div>
+            <h1>Clinical Genomics Summary</h1>
+            <div class="meta" id="report-meta"></div>
+          </div>
+          <div class="report-actions">
+            <button class="btn" onclick="window.print()">Print / Save PDF</button>
+            <button class="btn btn--primary" id="download-json-btn">Download JSON</button>
+          </div>
         </div>
-        <div class="report-actions">
-          <button class="btn" onclick="window.print()">Print / Save PDF</button>
-          <button class="btn btn--primary" id="download-json-btn">Download JSON</button>
+        <div class="report-narrative" id="report-narrative"></div>
+        <div class="section-title"><span class="eyebrow">Gene breakdown</span></div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Gene</th><th>Variants detected</th><th>Pathogenic / LP</th><th>Protective</th><th>Uncertain</th></tr></thead>
+            <tbody id="report-gene-body"></tbody>
+          </table>
         </div>
-      </div>
-      <div class="report-narrative" id="report-narrative"></div>
-      <div class="section-title"><span class="eyebrow">Gene breakdown</span></div>
-      <div class="data-table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Gene</th><th>Variants detected</th><th>Pathogenic / LP</th><th>Protective</th><th>Uncertain</th></tr></thead>
-          <tbody id="report-gene-body"></tbody>
-        </table>
       </div>
     </div>
   </div>
@@ -274,7 +276,7 @@
     <div class="modal__locus" id="genome-modal-locus"></div>
     <div class="genome-browser-container" id="genome-browser-mount"></div>
     <div id="genome-browser-variant-detail"></div>
-    <div class="modal__foot" style="margin-top:15px; display:flex; justify-content:flex-end;">
+    <div class="modal__foot" style="margin-top:15px; display:flex; justify-content:flex-end; gap:8px;">
       <button class="btn btn--primary" id="genome-modal-close">Close</button>
     </div>
   </div>
