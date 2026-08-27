@@ -1,7 +1,8 @@
 /**
- * Genomic Ontology Explorer — app logic (v3.5)
- * Full Recursive Multi-Level DAG Hierarchy (Level 1 -> 2 -> 3 -> 4 -> Gene)
- * Unified Node Selection, Rich Phenotypes Tab Rollup, and Interactive Genome Browser.
+ * Genomic Ontology Explorer — app logic (v4.0)
+ * Persistent Subtab Routing (no tab jumping on variant expansion),
+ * Darker Contrast Graph Lines, Real Publications Integration,
+ * and Multi-System Genomic Risk Interpretation Matrix.
  */
 
 (function () {
@@ -16,6 +17,7 @@
     scopeFindingsOnly: false,
     treeSearch: "",
     selectedTarget: null,         // node or gene object
+    activeSubTab: "overview",     // maintains active subtab (overview, phenotypes, variants, studies, publications)
     expandedNodes: new Set(),      // ontology node ids currently expanded
     expandedVariantRows: new Set() // "gene:variantId" currently expanded (study detail)
   };
@@ -214,7 +216,7 @@
       (hasChildren ? '<span class="caret">' + (isOpen ? "\u25BE" : "\u25B8") + '</span>' : '<span class="caret" style="opacity:0;">•</span>') +
       '<span class="node-dot" style="' + dotStyle + '"></span>' +
       '<span class="tree-node-title">' + node.label + '</span>' +
-      (node.id && node.id.startsWith("HP:") || node.id.startsWith("GO:") ? '<span class="count-chip mono">' + node.id + '</span>' : '') +
+      (node.id && (node.id.startsWith("HP:") || node.id.startsWith("GO:") || node.id.startsWith("ORGAN:")) ? '<span class="count-chip mono">' + node.id + '</span>' : '') +
       '<span class="count-chip">' + countLabel + '</span>';
 
     row.addEventListener("click", (e) => {
@@ -277,7 +279,7 @@
   }
 
   // -----------------------------------------------------------------
-  // Graph layout mode — Interactive Multi-Level Visualizer
+  // Graph layout mode — Darker High-Contrast SVG Links & Labels
   // -----------------------------------------------------------------
   function renderGraph() {
     const panel = document.querySelector(".tree-panel");
@@ -291,7 +293,7 @@
     host.innerHTML = "";
 
     const data = filteredOntology();
-    const ROW_H = 34, L1_X = 26, L2_X = 175, L3_X = 330, GENE_X = 490, PAD_TOP = 20, WIDTH = 760;
+    const ROW_H = 34, L1_X = 26, L2_X = 180, L3_X = 340, GENE_X = 500, PAD_TOP = 20, WIDTH = 780;
 
     const svgns = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgns, "svg");
@@ -311,31 +313,32 @@
       (root.children || []).forEach((sub) => {
         const subY = y;
         nodes.push({ id: sub.id, x: L2_X, y: subY, label: sub.label, node: sub, level: 2 });
-        edges.push({ x1: L1_X + 6, y1: rootY, x2: L2_X - 6, y2: subY });
+        edges.push({ x1: L1_X + 8, y1: rootY, x2: L2_X - 8, y2: subY, strokeWidth: "2.5" });
         y += ROW_H;
 
         (sub.children || []).slice(0, 3).forEach((term) => {
           const termY = y;
           nodes.push({ id: term.id, x: L3_X, y: termY, label: term.label, node: term, level: 3 });
-          edges.push({ x1: L2_X + 6, y1: subY, x2: L3_X - 6, y2: termY });
+          edges.push({ x1: L2_X + 8, y1: subY, x2: L3_X - 8, y2: termY, strokeWidth: "2.0" });
           geneChips.push({ y: termY, genes: term.genes || [] });
           y += ROW_H;
         });
       });
-      y += 10;
+      y += 12;
     });
 
     const totalHeight = Math.max(500, y + 30);
     svg.setAttribute("height", totalHeight);
     svg.setAttribute("viewBox", "0 0 " + WIDTH + " " + totalHeight);
 
-    // Draw Edges
+    // Draw Darker High-Contrast Connecting Edges
     edges.forEach((e) => {
       const line = document.createElementNS(svgns, "line");
       line.setAttribute("x1", e.x1); line.setAttribute("y1", e.y1);
       line.setAttribute("x2", e.x2); line.setAttribute("y2", e.y2);
-      line.setAttribute("stroke", "var(--line)");
-      line.setAttribute("stroke-width", "1.5");
+      line.setAttribute("stroke", "#475569"); // slate-600 dark line
+      line.setAttribute("stroke-width", e.strokeWidth || "2");
+      line.setAttribute("stroke-opacity", "0.85");
       svg.appendChild(line);
     });
 
@@ -347,12 +350,14 @@
 
       const circle = document.createElementNS(svgns, "circle");
       circle.setAttribute("cx", n.x); circle.setAttribute("cy", n.y);
-      circle.setAttribute("r", n.level === 1 ? 6.5 : (n.level === 2 ? 5 : 4));
-      circle.setAttribute("fill", isSel ? "var(--concern)" : (n.level === 1 ? "var(--teal-dark)" : "var(--teal)"));
+      circle.setAttribute("r", n.level === 1 ? 7.0 : (n.level === 2 ? 5.5 : 4.5));
+      circle.setAttribute("fill", isSel ? "var(--concern)" : (n.level === 1 ? "var(--teal-dark)" : (n.level === 2 ? "var(--teal)" : "#64748b")));
+      circle.setAttribute("stroke", "#ffffff");
+      circle.setAttribute("stroke-width", "1.5");
       gNode.appendChild(circle);
 
       const text = document.createElementNS(svgns, "text");
-      text.setAttribute("x", n.x + 10);
+      text.setAttribute("x", n.x + 12);
       text.setAttribute("y", n.y + 4);
       text.setAttribute("font-size", n.level === 1 ? "12px" : (n.level === 2 ? "11px" : "10.5px"));
       text.setAttribute("font-weight", n.level === 1 ? "700" : "600");
@@ -419,6 +424,8 @@
     const protectCount = g.variants.filter((v) => v.category === "protective").length;
     const uncertainCount = g.variants.filter((v) => v.category === "uncertain").length;
 
+    const activeTab = state.activeSubTab || "overview";
+
     wrap.innerHTML =
       '<div class="gene-head">' +
         '<div>' +
@@ -428,23 +435,23 @@
         '<button class="btn btn--primary" id="genome-browser-btn">View in Genome Browser</button>' +
       '</div>' +
       '<div class="gene-tabs" id="gene-tabs">' +
-        '<button data-tab="overview" class="active">Overview</button>' +
-        '<button data-tab="phenotypes">Phenotypes (' + g.hpoTermCount + ')</button>' +
-        '<button data-tab="variants">Variants (' + g.variants.length + ')</button>' +
-        '<button data-tab="studies">Studies</button>' +
-        '<button data-tab="publications">Publications (' + g.publications.length + ')</button>' +
+        '<button data-tab="overview" class="' + (activeTab === "overview" ? "active" : "") + '">Overview</button>' +
+        '<button data-tab="phenotypes" class="' + (activeTab === "phenotypes" ? "active" : "") + '">Phenotypes (' + g.hpoTermCount + ')</button>' +
+        '<button data-tab="variants" class="' + (activeTab === "variants" ? "active" : "") + '">Variants (' + g.variants.length + ')</button>' +
+        '<button data-tab="studies" class="' + (activeTab === "studies" ? "active" : "") + '">Studies</button>' +
+        '<button data-tab="publications" class="' + (activeTab === "publications" ? "active" : "") + '">Publications (' + (g.publications ? g.publications.length : 0) + ')</button>' +
       '</div>' +
 
-      '<div class="gene-pane active" data-pane="overview">' +
+      '<div class="gene-pane ' + (activeTab === "overview" ? "active" : "") + '" data-pane="overview">' +
         '<div class="kpi-row">' +
           kpi(g.variantsDetected, "Variants detected") +
           kpi(pathCount, "Potential concerns") +
-          kpi(protectCount, "Protective") +
+          kpi(protectCount, "Protective factors") +
           kpi(uncertainCount, "Uncertain") +
           kpi(phasedPct + "%", "Het. variants phased") +
           kpi(g.hpoTermCount, "HPO terms") +
           kpi(g.goTermCount, "GO terms") +
-          kpi(g.publications.length, "Publications") +
+          kpi(g.publications ? g.publications.length : 0, "Publications") +
         '</div>' +
         '<div class="panel-box"><h3>Gene summary</h3><p>' + g.summary + '</p></div>' +
         (g.associatedPathology && g.associatedPathology.length
@@ -463,7 +470,7 @@
         '</div></div>' +
       '</div>' +
 
-      '<div class="gene-pane" data-pane="phenotypes">' +
+      '<div class="gene-pane ' + (activeTab === "phenotypes" ? "active" : "") + '" data-pane="phenotypes">' +
         (g.hpoTerms && g.hpoTerms.length
           ? '<div class="hpo-card-grid">' + g.hpoTerms.map((t) =>
               '<div class="hpo-card"><div class="id">' + t.id + '</div><div class="label">' + t.label + '</div><div class="evidence">' + t.evidence + '</div></div>'
@@ -471,11 +478,11 @@
           : '<div class="pub-empty">No curated HPO associations recorded for this gene.</div>') +
       '</div>' +
 
-      '<div class="gene-pane" data-pane="variants">' + renderVariantSectionList(g.variants, g.symbol) + '</div>' +
+      '<div class="gene-pane ' + (activeTab === "variants" ? "active" : "") + '" data-pane="variants">' + renderVariantSectionList(g.variants, g.symbol) + '</div>' +
 
-      '<div class="gene-pane" data-pane="studies">' + renderStudiesTabForVariants(g.variants) + '</div>' +
+      '<div class="gene-pane ' + (activeTab === "studies" ? "active" : "") + '" data-pane="studies">' + renderStudiesTabForVariants(g.variants) + '</div>' +
 
-      '<div class="gene-pane" data-pane="publications">' +
+      '<div class="gene-pane ' + (activeTab === "publications" ? "active" : "") + '" data-pane="publications">' +
         (g.publications && g.publications.length
           ? '<div class="pub-grid">' + g.publications.map(pubCard).join("") + '</div>'
           : '<div class="pub-empty">No curated publications directly linked to this gene’s variants yet.</div>') +
@@ -515,10 +522,12 @@
     const phasedHetCount = allVariants.filter((v) => v.zygosity === "Heterozygous" && v.phase && v.phase !== "Unknown").length;
     const phasedPct = heteroCount ? Math.round((phasedHetCount / heteroCount) * 100) : 0;
 
-    // Direct and descendant sub-ontologies under this selected category
     const subOntologies = collectDescendantSubOntologies(cat);
+    const allPubs = geneObjects.flatMap((g) => g.publications || []);
 
-    const levelBadge = cat.level ? "Level " + cat.level : (cat.id && (cat.id.startsWith("HP:") || cat.id.startsWith("GO:")) ? cat.id : "Category");
+    const levelBadge = cat.level ? "Level " + cat.level : (cat.id && (cat.id.startsWith("HP:") || cat.id.startsWith("GO:") || cat.id.startsWith("ORGAN:")) ? cat.id : "Category");
+
+    const activeTab = state.activeSubTab || "overview";
 
     wrap.innerHTML =
       '<div class="category-head">' +
@@ -529,22 +538,23 @@
       '</div>' +
 
       '<div class="gene-tabs" id="gene-tabs">' +
-        '<button data-tab="overview" class="active">Overview</button>' +
-        '<button data-tab="phenotypes">Phenotypes / Sub-Ontologies (' + subOntologies.length + ')</button>' +
-        '<button data-tab="variants">Variants (' + totalVariants + ')</button>' +
-        '<button data-tab="studies">Studies</button>' +
-        '<button data-tab="publications">Publications</button>' +
+        '<button data-tab="overview" class="' + (activeTab === "overview" ? "active" : "") + '">Overview</button>' +
+        '<button data-tab="phenotypes" class="' + (activeTab === "phenotypes" ? "active" : "") + '">Phenotypes / Sub-Ontologies (' + subOntologies.length + ')</button>' +
+        '<button data-tab="variants" class="' + (activeTab === "variants" ? "active" : "") + '">Variants (' + totalVariants + ')</button>' +
+        '<button data-tab="studies" class="' + (activeTab === "studies" ? "active" : "") + '">Studies</button>' +
+        '<button data-tab="publications" class="' + (activeTab === "publications" ? "active" : "") + '">Publications (' + allPubs.length + ')</button>' +
       '</div>' +
 
-      '<div class="gene-pane active" data-pane="overview">' +
+      '<div class="gene-pane ' + (activeTab === "overview" ? "active" : "") + '" data-pane="overview">' +
         '<div class="kpi-row">' +
           kpi(geneObjects.length, "Genes in domain") +
           kpi(pathCount, "Potential concerns") +
-          kpi(protectCount, "Protective") +
+          kpi(protectCount, "Protective factors") +
           kpi(uncertainCount, "Uncertain") +
           kpi(phasedPct + "%", "Het. variants phased") +
           kpi(subOntologies.length, "Sub-ontologies") +
           kpi(totalVariants, "Total variants") +
+          kpi(allPubs.length, "Publications") +
         '</div>' +
 
         '<div class="panel-box">' +
@@ -567,7 +577,7 @@
         '</div>' +
       '</div>' +
 
-      '<div class="gene-pane" data-pane="phenotypes">' +
+      '<div class="gene-pane ' + (activeTab === "phenotypes" ? "active" : "") + '" data-pane="phenotypes">' +
         '<div class="section-title"><span class="eyebrow">Sub-Level Ontologies & Phenotypic Branches (' + subOntologies.length + ')</span></div>' +
         (subOntologies.length
           ? '<div class="hpo-card-grid">' + subOntologies.map((s) =>
@@ -580,19 +590,19 @@
           : '<div class="pub-empty">This is a terminal leaf phenotype term. View associated genes above or in the Variants tab.</div>') +
       '</div>' +
 
-      '<div class="gene-pane" data-pane="variants">' +
+      '<div class="gene-pane ' + (activeTab === "variants" ? "active" : "") + '" data-pane="variants">' +
         renderVariantSectionList(allVariants, cat.label) +
       '</div>' +
 
-      '<div class="gene-pane" data-pane="studies">' +
+      '<div class="gene-pane ' + (activeTab === "studies" ? "active" : "") + '" data-pane="studies">' +
         renderStudiesTabForVariants(allVariants) +
       '</div>' +
 
-      '<div class="gene-pane" data-pane="publications">' +
+      '<div class="gene-pane ' + (activeTab === "publications" ? "active" : "") + '" data-pane="publications">' +
         '<div class="pub-grid">' +
-          geneObjects.flatMap((g) => g.publications || []).map(pubCard).join("") +
+          allPubs.map(pubCard).join("") +
         '</div>' +
-        (geneObjects.every((g) => !g.publications || !g.publications.length) ? '<div class="pub-empty">No curated publications directly indexed for this category.</div>' : "") +
+        (!allPubs.length ? '<div class="pub-empty">No curated publications directly indexed for this category.</div>' : "") +
       '</div>';
 
     wireTabSwitching(wrap);
@@ -620,6 +630,7 @@
   function wireTabSwitching(wrap) {
     wrap.querySelectorAll("#gene-tabs button").forEach((btn) => {
       btn.addEventListener("click", () => {
+        state.activeSubTab = btn.dataset.tab; // Store active subtab to prevent jump
         wrap.querySelectorAll("#gene-tabs button").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
         wrap.querySelectorAll(".gene-pane").forEach((p) => p.classList.remove("active"));
@@ -636,7 +647,7 @@
     concern: { label: "Potential concerns", cls: "concern" },
     protective: { label: "Protective associations", cls: "protect" },
     uncertain: { label: "Uncertain significance", cls: "uncertain" },
-    uncategorized: { label: "Not categorized / Research", cls: "neutral" }
+    uncategorized: { label: "Not categorized / Baseline", cls: "neutral" }
   };
 
   function renderVariantSectionList(variants, contextSymbol) {
@@ -812,7 +823,6 @@
     svg.setAttribute("height", height);
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
 
-    // Coordinate axis
     const axisY = 120;
     const axisLine = document.createElementNS(svgns, "line");
     axisLine.setAttribute("x1", padX); axisLine.setAttribute("y1", axisY);
@@ -1015,6 +1025,28 @@
       kpi(phasedPct + "%", "Heterozygous calls phased") +
       kpi(GENES.length, "Genes in panel");
 
+    // Render Multi-System Risk Matrix
+    const riskGrid = byId("organ-risk-grid");
+    if (riskGrid && typeof ORGAN_RISK_MATRIX !== "undefined") {
+      riskGrid.innerHTML = ORGAN_RISK_MATRIX.map((m) =>
+        '<div class="risk-matrix-card">' +
+          '<div class="risk-matrix-card__head">' +
+            '<div class="risk-matrix-card__title"><span>' + m.icon + '</span><span>' + m.system + '</span></div>' +
+            '<span class="risk-matrix-card__tier ' + m.riskTier + '">' + m.riskTier + ' RISK</span>' +
+          '</div>' +
+          '<div class="risk-matrix-card__body">' +
+            '<div><strong>Primary Pathway:</strong> ' + m.pathway + '</div>' +
+            '<div style="margin-top:3px;"><strong>Polygenic Percentile:</strong> ' + m.prsPercentile + 'th percentile</div>' +
+            (m.concernGenes && m.concernGenes.length
+              ? '<div class="risk-matrix-card__genes">' +
+                m.concernGenes.map((g) => '<span class="risk-matrix-card__gene">' + g + '</span>').join("") +
+                '</div>'
+              : '') +
+          '</div>' +
+        '</div>'
+      ).join("");
+    }
+
     byId("prs-grid").innerHTML = PRS.map((p) =>
       '<div class="prs-card"><div class="prs-card__head"><span class="trait">' + p.trait + '</span><span class="badge badge--' +
       (p.category === "HIGH" ? "concern" : p.category === "PROTECTIVE" ? "protect" : "uncertain") + '">' + p.category + '</span></div>' +
@@ -1069,9 +1101,9 @@
     return (
       '<div class="pub-card">' +
       '<div class="pub-card__title">' + p.title + '</div>' +
-      '<div class="pub-card__authors">' + p.authors + ' · <span class="mono">' + p.journal + ' (' + p.year + ')</span></div>' +
-      '<div class="pub-card__relevance">' + p.relevance + '</div>' +
-      '<a class="pub-card__link" href="https://pubmed.ncbi.nlm.nih.gov/' + p.pmid + '/" target="_blank" rel="noopener">PMID ' + p.pmid + ' ↗</a>' +
+      '<div class="pub-card__authors">' + (p.authors || "Consortium") + ' · <span class="mono">' + (p.journal || "PubMed") + ' (' + (p.year || "2023") + ')</span></div>' +
+      (p.relevance ? '<div class="pub-card__relevance" style="font-size:12px;color:var(--ink);margin:4px 0;">' + p.relevance + '</div>' : '') +
+      '<a class="pub-card__link" href="' + (p.url || 'https://pubmed.ncbi.nlm.nih.gov/' + p.pmid + '/') + '" target="_blank" rel="noopener">PMID ' + p.pmid + ' ↗</a>' +
       '</div>'
     );
   }

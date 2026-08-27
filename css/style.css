@@ -837,3 +837,81 @@ table.data-table tbody tr:last-child td { border-bottom: none; }
   border-radius: var(--radius-sm);
   font-size: 12.5px;
 }
+
+/* ---------------------------------------------------------------------
+   Analysis View: Multi-System Genomic Risk Matrix
+   --------------------------------------------------------------------- */
+.risk-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.risk-matrix-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  transition: all 0.15s ease;
+}
+.risk-matrix-card:hover {
+  border-color: var(--teal);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.risk-matrix-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.risk-matrix-card__title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.risk-matrix-card__tier {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.risk-matrix-card__tier.HIGH {
+  background: var(--concern-bg);
+  color: var(--concern);
+  border: 1px solid var(--concern);
+}
+.risk-matrix-card__tier.MODERATE {
+  background: var(--uncertain-bg);
+  color: var(--uncertain);
+  border: 1px solid var(--uncertain);
+}
+.risk-matrix-card__tier.TYPICAL {
+  background: var(--protect-bg);
+  color: var(--protect);
+  border: 1px solid var(--protect);
+}
+.risk-matrix-card__body {
+  font-size: 12px;
+  color: var(--slate);
+  line-height: 1.4;
+}
+.risk-matrix-card__genes {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.risk-matrix-card__gene {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--teal-dark);
+}

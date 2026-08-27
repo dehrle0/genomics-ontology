@@ -172,15 +172,18 @@
   <!-- ============================== ANALYSIS VIEW ============================== -->
   <div class="view" id="view-analysis">
     <div class="analysis-view">
-      <h1>Analysis</h1>
-      <div class="analysis-sub">Interpretation layer — risk aggregation across genes, rolled up by organ system.</div>
+      <h1>Analysis & Clinical Interpretation</h1>
+      <div class="analysis-sub">Interpretation layer — multi-system risk aggregation across genes, polygenic risk, and pharmacogenomics.</div>
 
       <div class="kpi-strip" id="analysis-kpis"></div>
 
-      <div class="section-title"><span class="eyebrow">Polygenic risk scores</span></div>
+      <div class="section-title"><span class="eyebrow">Multi-system genomic risk profile</span></div>
+      <div class="risk-matrix-grid" id="organ-risk-grid"></div>
+
+      <div class="section-title"><span class="eyebrow">Polygenic risk scores (PRS)</span></div>
       <div class="prs-grid" id="prs-grid"></div>
 
-      <div class="section-title"><span class="eyebrow">Pharmacogenomics</span></div>
+      <div class="section-title"><span class="eyebrow">Pharmacogenomics (CPIC / DPWG)</span></div>
       <div class="data-table-wrap">
         <table class="data-table pgx-table">
           <thead>
@@ -194,26 +197,24 @@
 
   <!-- ============================== REPORTS VIEW ============================== -->
   <div class="view" id="view-reports">
-    <div class="reports-view">
-      <div class="report-sheet">
-        <div class="report-sheet__masthead">
-          <div>
-            <h1>Clinical Genomics Summary</h1>
-            <div class="meta" id="report-meta"></div>
-          </div>
-          <div class="report-actions">
-            <button class="btn" onclick="window.print()">Print / Save PDF</button>
-            <button class="btn btn--primary" id="download-json-btn">Download JSON</button>
-          </div>
+    <div class="report-sheet">
+      <div class="report-sheet__masthead">
+        <div>
+          <h1>Clinical Genomics Summary</h1>
+          <div class="meta" id="report-meta"></div>
         </div>
-        <div class="report-narrative" id="report-narrative"></div>
-        <div class="section-title"><span class="eyebrow">Gene breakdown</span></div>
-        <div class="data-table-wrap">
-          <table class="data-table">
-            <thead><tr><th>Gene</th><th>Variants detected</th><th>Pathogenic / LP</th><th>Protective</th><th>Uncertain</th></tr></thead>
-            <tbody id="report-gene-body"></tbody>
-          </table>
+        <div class="report-actions">
+          <button class="btn" onclick="window.print()">Print / Save PDF</button>
+          <button class="btn btn--primary" id="download-json-btn">Download JSON</button>
         </div>
+      </div>
+      <div class="report-narrative" id="report-narrative"></div>
+      <div class="section-title"><span class="eyebrow">Gene breakdown</span></div>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Gene</th><th>Variants detected</th><th>Pathogenic / LP</th><th>Protective</th><th>Uncertain</th></tr></thead>
+          <tbody id="report-gene-body"></tbody>
+        </table>
       </div>
     </div>
   </div>
