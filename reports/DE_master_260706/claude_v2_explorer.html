@@ -1,32 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Genomic Ontology Explorer</title>
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-<!-- Faint decorative watermark — colorful double helix, low opacity, non-interactive -->
-<svg class="dna-watermark" viewBox="0 0 400 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
-  <defs>
-    <style>
-      .dna-watermark .strand { fill: none; stroke-width: 3; }
-      .dna-watermark .rung { stroke-width: 3; }
-      .dna-watermark text { font-family: var(--font-mono, monospace); font-size: 11px; font-weight: 700; }
-    </style>
-  </defs>
-  <g id="dna-rungs"></g>
-</svg>
+<!-- DNA watermark background -->
+<div class="dna-watermark" aria-hidden="true">
+  <svg viewBox="0 0 400 900" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="dna-strand" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#1c5b5e" />
+        <stop offset="100%" stop-color="#2a5c99" />
+      </linearGradient>
+    </defs>
+    <path class="dna-backbone" d="M 120 0 Q 280 150 120 300 T 120 600 T 120 900" />
+    <path class="dna-backbone" d="M 280 0 Q 120 150 280 300 T 280 600 T 280 900" />
+    <g id="dna-rungs"></g>
+  </svg>
+</div>
 
 <div class="app">
 
-  <!-- ============================== TOP BAR ============================== -->
+  <!-- ============================== TOPBAR ============================== -->
   <div class="topbar">
     <div class="topbar__brand">
-      <span class="glyph">GO</span>
-      Genomic Ontology Explorer
+      <div class="topbar__logo">GO</div>
+      <div class="topbar__title">Genomic Ontology Explorer</div>
     </div>
     <div class="tabs" role="tablist" aria-label="Primary views">
       <button data-view="ontology" class="active">Ontology</button>
@@ -35,7 +38,7 @@
       <button data-view="analysis">Analysis</button>
       <button data-view="reports">Reports</button>
     </div>
-    <div class="topbar__meta mono" id="job-meta">HG003 · GRCh38 · loading…</div>
+    <div class="topbar__meta mono" id="job-meta">DE_master (Phased WGS) · OpenCRAVAT 3.1.1 · 702 variants</div>
   </div>
 
   <!-- ============================== ONTOLOGY VIEW ============================== -->
@@ -50,29 +53,29 @@
             <button data-tree="go">GO</button>
             <button data-tree="organ">Organ/System</button>
           </div>
-          <input type="text" class="tree-search" id="tree-search" placeholder="Search phenotype, CURIE, or gene…" />
+          <input type="text" class="tree-search" id="tree-search" placeholder="Search category, phenotype, CURIE, or gene…" />
           <div class="layout-toggle">
-            <label><input type="radio" name="layout" value="tree" /> Tree</label>
-            <label><input type="radio" name="layout" value="list" checked /> List</label>
+            <label><input type="radio" name="layout" value="tree" checked /> Tree</label>
             <label><input type="radio" name="layout" value="graph" /> Graph</label>
+            <label><input type="radio" name="layout" value="list" /> List</label>
           </div>
           <div class="scope-toggle">
             <label><input type="checkbox" id="scope-findings-only" /> Only systems with findings</label>
           </div>
         </div>
         <div class="tree-legend">
-          <span><span class="dot dot--organ"></span>Organ system</span>
-          <span><span class="dot dot--term"></span>Phenotype term</span>
+          <span><span class="dot dot--organ"></span>System / Category</span>
+          <span><span class="dot dot--term"></span>Phenotype / Term</span>
           <span><span class="dot dot--gene"></span>Gene</span>
         </div>
         <div class="tree-scroll" id="tree-scroll"></div>
       </div>
 
-      <!-- RIGHT: gene detail -->
+      <!-- RIGHT: detail panel (gene OR ontology category rollup) -->
       <div class="gene-detail" id="gene-detail">
         <div class="gene-empty">
           <div class="glyph-lg">◈</div>
-          <div><strong>Select a gene</strong> from the tree on the left to see its overview, phenotypes, variants, and supporting literature.</div>
+          <div><strong>Select any category or gene</strong> from the tree on the left to see its rolled-up overview, phenotypes, variants, studies, and publications.</div>
         </div>
       </div>
     </div>
@@ -217,14 +220,16 @@
 
 </div>
 
-<!-- Genome browser stub — future IGV.js / locus-view hook -->
+<!-- Interactive Genome browser modal -->
 <div class="modal-backdrop" id="genome-modal">
-  <div class="modal">
-    <h3 id="genome-modal-title">View in Genome Browser</h3>
-    <p>This is a placeholder for an embedded locus view (IGV.js track or exon/domain diagram). Wiring it up just means mounting a browser component here and pointing it at the coordinate below.</p>
+  <div class="modal" style="max-width: 800px; width: 95%;">
+    <h3 id="genome-modal-title">Interactive Locus & Exon Track</h3>
+    <p id="genome-modal-sub" style="color:var(--slate); font-size:12.5px; margin-bottom:10px;">Visualizing patient variant lollipop positions along the gene coordinates.</p>
     <div class="modal__locus" id="genome-modal-locus"></div>
-    <div class="modal__foot">
-      <button class="btn" id="genome-modal-close">Close</button>
+    <div class="genome-browser-container" id="genome-browser-mount"></div>
+    <div id="genome-browser-variant-detail"></div>
+    <div class="modal__foot" style="margin-top:15px; display:flex; justify-content:flex-end;">
+      <button class="btn btn--primary" id="genome-modal-close">Close</button>
     </div>
   </div>
 </div>

@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 """
-Convert OpenCRAVAT actionable JSON into Claude v2 Genomic Ontology Explorer data.
+generate_claude_v2_report.py
+Convert OpenCRAVAT actionable JSON and ontology domain rules into rich 4-level
+hierarchical data (HPO, GO, Organ/System) for the Claude v2 Explorer.
 """
-import json, sys, os
+import json, sys, os, yaml
 from pathlib import Path
+
+DOMAINS_YAML = "/home/daniel-ehrle/My-Projects/genomics-ontology/genomics-ontology/config/ontology_domains.yaml"
+
+def load_domains_config():
+    if os.path.exists(DOMAINS_YAML):
+        with open(DOMAINS_YAML, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f).get('level1_systems', {})
+    return {}
 
 def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
     with open(actionable_json_path, 'r', encoding='utf-8') as f:
@@ -11,6 +21,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
 
     records = data.get('records', [])
     patient_id = data.get('patient', 'DE_master')
+    domains_cfg = load_domains_config()
 
     job_meta = {
         "sample": patient_id + " (Phased WGS)",
@@ -25,10 +36,10 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
     }
 
     genes_dict = {}
-    organ_groups = {}
     pgx_list = []
     prs_map = {}
 
+    # 1. Parse each variant record
     for r in records:
         hugo = r.get('hugo') or 'Unknown'
         gene_info = r.get('gene_info') or {}
@@ -57,7 +68,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         so = r.get('so') or 'VAR'
         achange = r.get('achange') or ''
         consequences = [so]
-        if achange:
+        if achange and achange not in consequences:
             consequences.append(achange)
 
         # Studies / GWAS
@@ -97,11 +108,16 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
 
         var_obj = {
             "id": r.get('rsid') or f"{r.get('chrom')}:{r.get('pos')}",
+            "gene": hugo,
             "genotype": f"{r.get('ref')}/{r.get('alt')}",
             "zygosity": zyg,
             "phase": phase,
             "maf": r.get('gnomad4_af') or r.get('allofus_af') or 0.0,
             "coordinate": f"{r.get('chrom')}:{r.get('pos')}",
+            "chrom": r.get('chrom'),
+            "pos": r.get('pos'),
+            "ref": r.get('ref'),
+            "alt": r.get('alt'),
             "consequence": consequences,
             "category": category,
             "clinvar": r.get('clinvar_sig') or "Not reviewed",
@@ -130,12 +146,17 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
                         "recommendation": f"Consult CPIC / PharmGKB guidance for {chem.strip()} dosing in {hugo} variant carriers."
                     })
 
-        # HPO terms for gene
+        # HPO terms
         hpo_ids_raw = r.get("gene_hpo_id") or ""
         hpo_terms_raw = r.get("gene_hpo_term") or ""
         hpo_ids = [h.strip() for h in hpo_ids_raw.split(";") if h.strip()]
         hpo_terms = [h.strip() for h in hpo_terms_raw.split(";") if h.strip()]
         hpo_pairs = [{"id": hid, "label": hpo_terms[i] if i < len(hpo_terms) else hid, "evidence": "Curated HPO"} for i, hid in enumerate(hpo_ids)]
+
+        # GO terms
+        go_bpo = [g.strip() for g in (r.get("gene_go_bpo") or "").split(";") if g.strip()]
+        go_mfo = [g.strip() for g in (r.get("gene_go_mfo") or "").split(";") if g.strip()]
+        go_cco = [g.strip() for g in (r.get("gene_go_cco") or "").split(";") if g.strip()]
 
         # Associated Pathology
         pathologies = []
@@ -152,28 +173,49 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         if hugo not in genes_dict:
             ncbi_id = gene_info.get('ncbi_gene_id') or "0"
             omim_id = gene_info.get('omim_id') or r.get('omim_id') or ""
-            
-            summary = gene_info.get('summary') or gene_info.get('description') or f"The {hugo} gene encodes an essential clinical protein."
-            
-            organ = "Multisystem / Other"
-            for h in hpo_terms:
-                hl = h.lower()
-                if any(k in hl for k in ['cardio', 'heart', 'arrhythm', 'ventric', 'aort', 'artery']):
-                    organ = "Cardiovascular"; break
-                elif any(k in hl for k in ['kidney', 'renal', 'nephr']):
-                    organ = "Renal / Metabolic"; break
-                elif any(k in hl for k in ['immun', 'autoimmun', 'arthrit', 'lupus']):
-                    organ = "Immune / Autoimmune"; break
-                elif any(k in hl for k in ['neuro', 'brain', 'seizure', 'epilep', 'muscle']):
-                    organ = "Neurological / Muscle"; break
-                elif any(k in hl for k in ['cancer', 'neoplasm', 'tumor', 'carcinoma']):
-                    organ = "Oncology"; break
+            summary = gene_info.get('summary') or gene_info.get('description') or f"The {hugo} gene encodes a protein critical for human physiological function."
+
+            # Determine primary organ system mapping from config
+            primary_system_key = "other"
+            primary_system_title = "Unclassified / Other Systems"
+            primary_subcat_title = "General Cellular Function"
+
+            for sys_key, sys_val in domains_cfg.items():
+                found_match = False
+                for sub_key, sub_val in sys_val.get('level2_subcategories', {}).items():
+                    domain_hpos = set(sub_val.get('hpo_terms', []))
+                    if any(hid in domain_hpos for hid in hpo_ids):
+                        primary_system_key = sys_key
+                        primary_system_title = sys_val.get('title', sys_key)
+                        primary_subcat_title = sub_val.get('title', sub_key)
+                        found_match = True
+                        break
+                if found_match:
+                    break
+
+            if primary_system_key == "other" and hpo_terms:
+                # heuristic fallback
+                for h in hpo_terms:
+                    hl = h.lower()
+                    if any(k in hl for k in ['cardio', 'heart', 'arrhythm', 'ventric', 'aort', 'artery']):
+                        primary_system_title = "Cardiovascular System"; primary_subcat_title = "Cardiovascular Phenotype"; break
+                    elif any(k in hl for k in ['kidney', 'renal', 'nephr']):
+                        primary_system_title = "Renal & Genitourinary System"; primary_subcat_title = "Renal Phenotype"; break
+                    elif any(k in hl for k in ['immun', 'autoimmun', 'arthrit', 'lupus', 'inflam']):
+                        primary_system_title = "Immune System & Autoimmunity"; primary_subcat_title = "Immunological Phenotype"; break
+                    elif any(k in hl for k in ['neuro', 'brain', 'seizure', 'epilep', 'muscle', 'ataxia']):
+                        primary_system_title = "Nervous System & Neurological"; primary_subcat_title = "Neurological Phenotype"; break
+                    elif any(k in hl for k in ['cancer', 'neoplasm', 'tumor', 'carcinoma']):
+                        primary_system_title = "Neoplasms & Cancer Predisposition"; primary_subcat_title = "Oncology Phenotype"; break
 
             genes_dict[hugo] = {
                 "symbol": hugo,
                 "name": gene_info.get('description') or hugo,
                 "chromosome": f"{r.get('chrom')}:{r.get('pos')}",
-                "organSystem": organ,
+                "chrom": r.get('chrom'),
+                "pos": r.get('pos'),
+                "organSystem": primary_system_title,
+                "organSubcategory": primary_subcat_title,
                 "ncbiGeneId": str(ncbi_id),
                 "omimGene": str(omim_id) if omim_id else "100000",
                 "omimPhenotype": str(omim_id) if omim_id else None,
@@ -190,9 +232,12 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
                 "variantsDetected": 0,
                 "researchedVariants": 0,
                 "hpoTermCount": len(hpo_pairs),
-                "goTermCount": 1 if r.get('gene_go_bpo') else 0,
+                "goTermCount": len(go_bpo) + len(go_mfo),
                 "variants": [],
                 "hpoTerms": hpo_pairs,
+                "goBpo": go_bpo,
+                "goMfo": go_mfo,
+                "goCco": go_cco,
                 "publications": []
             }
 
@@ -203,41 +248,168 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
     genes_list = list(genes_dict.values())
     genes_list.sort(key=lambda g: sum(1 for v in g["variants"] if v["category"] == "concern"), reverse=True)
 
-    # Build HPO / Organ Ontology groups
+    # -------------------------------------------------------------------------
+    # 2. Build Rich 4-Level Ontologies
+    # -------------------------------------------------------------------------
+
+    # 2A. ORGAN / SYSTEM HIERARCHY
+    # Level 1 System -> Level 2 Subcategory -> Level 3 Phenotype/Syndrome -> Level 4 Gene
+    organ_groups_map = {}
     for g in genes_list:
-        org = g["organSystem"]
-        if org not in organ_groups:
-            organ_groups[org] = {"id": f"ORGAN:{org[:4].upper()}", "label": org, "genes": [], "terms": []}
-        organ_groups[org]["genes"].append(g["symbol"])
-        
-        for h in g["hpoTerms"][:2]:
-            organ_groups[org]["terms"].append({"id": h["id"], "label": h["label"], "genes": [g["symbol"]]})
-
-    hpo_tree = {
-        "label": "HPO — Human Phenotype Ontology",
-        "description": "Organ system → Phenotype terms → Genes",
-        "groups": list(organ_groups.values())
-    }
-
-    go_tree = {
-        "label": "GO — Gene Ontology",
-        "description": "GO category → Biological processes → Genes",
-        "groups": [
-            {
-                "id": "GO:0008150", "label": "Biological Process",
-                "genes": [g["symbol"] for g in genes_list[:30]],
-                "terms": [{"id": "GO:0006950", "label": "Cellular physiological response", "genes": [g["symbol"] for g in genes_list[:15]]}]
+        sys_name = g["organSystem"]
+        sub_name = g["organSubcategory"]
+        if sys_name not in organ_groups_map:
+            organ_groups_map[sys_name] = {
+                "id": f"ORGAN:{sys_name[:6].upper()}",
+                "label": sys_name,
+                "genes": [],
+                "terms": {} # subcategories
             }
-        ]
+        organ_groups_map[sys_name]["genes"].append(g["symbol"])
+        
+        if sub_name not in organ_groups_map[sys_name]["terms"]:
+            organ_groups_map[sys_name]["terms"][sub_name] = {
+                "id": f"SUB:{sub_name[:6].upper()}",
+                "label": sub_name,
+                "genes": [],
+                "terms": [] # child phenotype terms
+            }
+        organ_groups_map[sys_name]["terms"][sub_name]["genes"].append(g["symbol"])
+        
+        # Add HPO terms under subcategory
+        for h in g["hpoTerms"][:3]:
+            organ_groups_map[sys_name]["terms"][sub_name]["terms"].append({
+                "id": h["id"],
+                "label": h["label"],
+                "genes": [g["symbol"]]
+            })
+
+    organ_groups_list = []
+    for sys_name, sys_val in organ_groups_map.items():
+        sub_list = []
+        for sub_name, sub_val in sys_val["terms"].items():
+            sub_list.append({
+                "id": sub_val["id"],
+                "label": sub_val["label"],
+                "genes": list(set(sub_val["genes"])),
+                "terms": sub_val["terms"]
+            })
+        organ_groups_list.append({
+            "id": sys_val["id"],
+            "label": sys_val["label"],
+            "genes": list(set(sys_val["genes"])),
+            "terms": sub_list
+        })
+
+    # 2B. HPO HIERARCHY
+    # Level 1 Organ System -> Level 2 Subcategories -> Level 3 HPO Terms -> Level 4 Genes
+    hpo_groups_list = organ_groups_list
+
+    # 2C. GO HIERARCHY
+    # Level 1 (Biological Process, Molecular Function, Cellular Component)
+    # Level 2 Functional Categories -> Level 3 GO Terms -> Level 4 Genes
+    go_roots = {
+        "Biological Process (GO:0008150)": {},
+        "Molecular Function (GO:0003674)": {},
+        "Cellular Component (GO:0005575)": {}
     }
+
+    for g in genes_list:
+        # Categorize BPO
+        for bpo in g["goBpo"][:4]:
+            cat = "General Biological Process"
+            bl = bpo.lower()
+            if any(k in bl for k in ['transport', 'ion', 'channel', 'symport', 'efflux']): cat = "Transport & Membrane Trafficking"
+            elif any(k in bl for k in ['signaling', 'signal', 'receptor', 'kinase', 'cascade']): cat = "Signal Transduction & Regulation"
+            elif any(k in bl for k in ['dna', 'rna', 'transcription', 'repair', 'replication', 'chromosome']): cat = "DNA Repair, Replication & Transcription"
+            elif any(k in bl for k in ['metabol', 'biosynth', 'catabol', 'acid', 'glycol', 'lipid']): cat = "Metabolism & Enzymatic Pathways"
+            elif any(k in bl for k in ['immune', 'inflam', 'cytokine', 'defense', 'leukocyte']): cat = "Immune & Defense Response"
+            elif any(k in bl for k in ['muscle', 'cardiac', 'contraction', 'heart', 'ventricle']): cat = "Muscle Contraction & Cardiac Physiology"
+            elif any(k in bl for k in ['cell cycle', 'apoptos', 'autophag', 'death', 'survival']): cat = "Cell Cycle, Autophagy & Apoptosis"
+            elif any(k in bl for k in ['neuro', 'synap', 'axon', 'brain', 'transmission']): cat = "Neurological & Synaptic Transmission"
+
+            if cat not in go_roots["Biological Process (GO:0008150)"]:
+                go_roots["Biological Process (GO:0008150)"][cat] = {"genes": set(), "terms": {}}
+            go_roots["Biological Process (GO:0008150)"][cat]["genes"].add(g["symbol"])
+            if bpo not in go_roots["Biological Process (GO:0008150)"][cat]["terms"]:
+                go_roots["Biological Process (GO:0008150)"][cat]["terms"][bpo] = set()
+            go_roots["Biological Process (GO:0008150)"][cat]["terms"][bpo].add(g["symbol"])
+
+        # Categorize MFO
+        for mfo in g["goMfo"][:3]:
+            cat = "Molecular Activity"
+            ml = mfo.lower()
+            if any(k in ml for k in ['binding', 'bind']): cat = "Binding & Molecular Interaction"
+            elif any(k in ml for k in ['activity', 'catalyt', 'enzyme', 'hydrolase', 'transferase']): cat = "Catalytic & Enzymatic Activity"
+            elif any(k in ml for k in ['transporter', 'channel', 'pore', 'carrier']): cat = "Transporter & Channel Activity"
+            elif any(k in ml for k in ['receptor', 'sensor', 'signal']): cat = "Receptor & Sensor Activity"
+
+            if cat not in go_roots["Molecular Function (GO:0003674)"]:
+                go_roots["Molecular Function (GO:0003674)"][cat] = {"genes": set(), "terms": {}}
+            go_roots["Molecular Function (GO:0003674)"][cat]["genes"].add(g["symbol"])
+            if mfo not in go_roots["Molecular Function (GO:0003674)"][cat]["terms"]:
+                go_roots["Molecular Function (GO:0003674)"][cat]["terms"][mfo] = set()
+            go_roots["Molecular Function (GO:0003674)"][cat]["terms"][mfo].add(g["symbol"])
+
+        # Categorize CCO
+        for cco in g["goCco"][:3]:
+            cat = "Cellular Location"
+            cl = cco.lower()
+            if any(k in cl for k in ['membrane', 'plasma', 'junction', 'cortex']): cat = "Plasma Membrane & Junctions"
+            elif any(k in cl for k in ['nucleus', 'chromatin', 'nucleolus', 'nuclear']): cat = "Nucleus & Chromatin"
+            elif any(k in cl for k in ['mitochondri', 'respiratory', 'cristae']): cat = "Mitochondria & Bioenergetics"
+            elif any(k in cl for k in ['endoplasmic', 'golgi', 'vesicle', 'lysosome', 'endosome']): cat = "Endomembrane & Secretory System"
+            elif any(k in cl for k in ['cytosol', 'cytoplasm', 'cytoskelet', 'microtubule', 'cilium']): cat = "Cytoskeleton & Cytosol"
+
+            if cat not in go_roots["Cellular Component (GO:0005575)"]:
+                go_roots["Cellular Component (GO:0005575)"][cat] = {"genes": set(), "terms": {}}
+            go_roots["Cellular Component (GO:0005575)"][cat]["genes"].add(g["symbol"])
+            if cco not in go_roots["Cellular Component (GO:0005575)"][cat]["terms"]:
+                go_roots["Cellular Component (GO:0005575)"][cat]["terms"][cco] = set()
+            go_roots["Cellular Component (GO:0005575)"][cat]["terms"][cco].add(g["symbol"])
+
+    go_groups_list = []
+    for root_name, root_cats in go_roots.items():
+        sub_list = []
+        all_root_genes = set()
+        for cat_name, cat_val in root_cats.items():
+            term_list = []
+            for t_name, t_genes in cat_val["terms"].items():
+                term_list.append({
+                    "id": f"GO:{t_name[:10].upper().replace(' ', '_')}",
+                    "label": t_name,
+                    "genes": list(t_genes)
+                })
+            sub_list.append({
+                "id": f"GOCAT:{cat_name[:8].upper().replace(' ', '_')}",
+                "label": cat_name,
+                "genes": list(cat_val["genes"]),
+                "terms": term_list
+            })
+            all_root_genes.update(cat_val["genes"])
+
+        go_groups_list.append({
+            "id": f"GOROOT:{root_name[:8].upper().replace(' ', '_')}",
+            "label": root_name,
+            "genes": list(all_root_genes),
+            "terms": sub_list
+        })
 
     ontologies = {
-        "hpo": hpo_tree,
-        "go": go_tree,
+        "hpo": {
+            "label": "HPO — Human Phenotype Ontology",
+            "description": "Level 1 System → Level 2 Subcategory → Level 3 Phenotype → Level 4 Genes",
+            "groups": hpo_groups_list
+        },
+        "go": {
+            "label": "GO — Gene Ontology",
+            "description": "Root Category → Functional Domain → Specific Process/Function → Genes",
+            "groups": go_groups_list
+        },
         "organ": {
-            "label": "Organ / System View",
-            "description": "Organ system → Sub-system / Disease → Genes",
-            "groups": list(organ_groups.values())
+            "label": "Organ / System Clinical Classification",
+            "description": "Organ System → Anatomical / Pathological Branch → Syndrome → Genes",
+            "groups": organ_groups_list
         }
     }
 
@@ -261,7 +433,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
     report_obj = {
         "sampleLabel": f"Patient {patient_id} — Comprehensive Clinical Panel",
         "generated": "2026-08-26",
-        "narrative": f"Analysis of WGS data for {patient_id} identified {total_vars} actionable variant calls across {len(genes_list)} clinical genes. {total_path} findings were classified as Potential Concerns / Pathogenic. Polygenic and pharmacogenomic evaluations have been integrated across organ systems.",
+        "narrative": f"Comprehensive analysis of phased WGS data for {patient_id} identified {total_vars} actionable variant calls across {len(genes_list)} clinical genes. {total_path} findings were classified as Potential Concerns / Pathogenic. Polygenic risk, pharmacogenomic interactions, and functional ontology mappings have been evaluated across all major biological organ systems.",
         "geneBreakdown": [
             {
                 "symbol": g["symbol"],
@@ -270,7 +442,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
                 "protective": sum(1 for v in g["variants"] if v["category"] == "protective"),
                 "uncertain": sum(1 for v in g["variants"] if v["category"] == "uncertain")
             }
-            for g in genes_list[:50]
+            for g in genes_list[:60]
         ]
     }
 
@@ -288,7 +460,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
     js_content += "const GENES = " + json.dumps(genes_list, indent=2) + ";\n\n"
     js_content += "const ONTOLOGIES = " + json.dumps(ontologies, indent=2) + ";\n\n"
     js_content += "const PRS = " + json.dumps(prs_list, indent=2) + ";\n\n"
-    js_content += "const PGX = " + json.dumps(pgx_list[:20] if pgx_list else fallback_pgx, indent=2) + ";\n\n"
+    js_content += "const PGX = " + json.dumps(pgx_list[:25] if pgx_list else fallback_pgx, indent=2) + ";\n\n"
     js_content += "const REPORT = " + json.dumps(report_obj, indent=2) + ";\n"
 
     with open(output_js_path, 'w', encoding='utf-8') as f:
