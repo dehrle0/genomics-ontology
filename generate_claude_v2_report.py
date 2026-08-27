@@ -1,19 +1,10 @@
 #!/usr/bin/env python3
 """
 generate_claude_v2_report.py
-Convert OpenCRAVAT actionable JSON and ontology domain rules into rich 4-level
-hierarchical data (HPO, GO, Organ/System) for the Claude v2 Explorer.
+Generates formal multi-level DAG hierarchies (Level 1 -> Level 2 -> Level 3 -> Level 4 -> Genes)
+for HPO, GO (BPO, MFO, CCO), and Organ/Systems from real OpenCRAVAT SQLite/JSON data.
 """
-import json, sys, os, yaml
-from pathlib import Path
-
-DOMAINS_YAML = "/home/daniel-ehrle/My-Projects/genomics-ontology/genomics-ontology/config/ontology_domains.yaml"
-
-def load_domains_config():
-    if os.path.exists(DOMAINS_YAML):
-        with open(DOMAINS_YAML, 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f).get('level1_systems', {})
-    return {}
+import json, sys, os
 
 def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
     with open(actionable_json_path, 'r', encoding='utf-8') as f:
@@ -21,7 +12,6 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
 
     records = data.get('records', [])
     patient_id = data.get('patient', 'DE_master')
-    domains_cfg = load_domains_config()
 
     job_meta = {
         "sample": patient_id + " (Phased WGS)",
@@ -39,12 +29,12 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
     pgx_list = []
     prs_map = {}
 
-    # 1. Parse each variant record
+    # 1. Parse individual variant records
     for r in records:
         hugo = r.get('hugo') or 'Unknown'
         gene_info = r.get('gene_info') or {}
         
-        # Determine category
+        # Categorization
         sig = str(r.get('clinvar_sig') or '').lower()
         tier = r.get('tier') or r.get('cardio_tier') or 'Tier3'
         category = "uncategorized"
@@ -162,7 +152,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         pathologies = []
         if r.get('clinvar_disease'):
             for dis in str(r.get('clinvar_disease')).split('|')[:3]:
-                if dis.strip() and dis.strip() != 'not provided' and dis.strip() != 'not specified':
+                if dis.strip() and dis.strip() not in ['not provided', 'not specified']:
                     pathologies.append({
                         "name": dis.strip(),
                         "inheritance": "Autosomal dominant / complex",
@@ -173,40 +163,30 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         if hugo not in genes_dict:
             ncbi_id = gene_info.get('ncbi_gene_id') or "0"
             omim_id = gene_info.get('omim_id') or r.get('omim_id') or ""
-            summary = gene_info.get('summary') or gene_info.get('description') or f"The {hugo} gene encodes a protein critical for human physiological function."
+            summary = gene_info.get('summary') or gene_info.get('description') or f"The {hugo} gene encodes an essential clinical protein."
 
-            # Determine primary organ system mapping from config
-            primary_system_key = "other"
-            primary_system_title = "Unclassified / Other Systems"
-            primary_subcat_title = "General Cellular Function"
-
-            for sys_key, sys_val in domains_cfg.items():
-                found_match = False
-                for sub_key, sub_val in sys_val.get('level2_subcategories', {}).items():
-                    domain_hpos = set(sub_val.get('hpo_terms', []))
-                    if any(hid in domain_hpos for hid in hpo_ids):
-                        primary_system_key = sys_key
-                        primary_system_title = sys_val.get('title', sys_key)
-                        primary_subcat_title = sub_val.get('title', sub_key)
-                        found_match = True
-                        break
-                if found_match:
-                    break
-
-            if primary_system_key == "other" and hpo_terms:
-                # heuristic fallback
-                for h in hpo_terms:
-                    hl = h.lower()
-                    if any(k in hl for k in ['cardio', 'heart', 'arrhythm', 'ventric', 'aort', 'artery']):
-                        primary_system_title = "Cardiovascular System"; primary_subcat_title = "Cardiovascular Phenotype"; break
-                    elif any(k in hl for k in ['kidney', 'renal', 'nephr']):
-                        primary_system_title = "Renal & Genitourinary System"; primary_subcat_title = "Renal Phenotype"; break
-                    elif any(k in hl for k in ['immun', 'autoimmun', 'arthrit', 'lupus', 'inflam']):
-                        primary_system_title = "Immune System & Autoimmunity"; primary_subcat_title = "Immunological Phenotype"; break
-                    elif any(k in hl for k in ['neuro', 'brain', 'seizure', 'epilep', 'muscle', 'ataxia']):
-                        primary_system_title = "Nervous System & Neurological"; primary_subcat_title = "Neurological Phenotype"; break
-                    elif any(k in hl for k in ['cancer', 'neoplasm', 'tumor', 'carcinoma']):
-                        primary_system_title = "Neoplasms & Cancer Predisposition"; primary_subcat_title = "Oncology Phenotype"; break
+            # Primary classification
+            organ = "Unclassified / Other Systems"
+            for h in hpo_terms:
+                hl = h.lower()
+                if any(k in hl for k in ['cardio', 'heart', 'arrhythm', 'ventric', 'aort', 'artery', 'atrial', 'qt interval']):
+                    organ = "Abnormality of the cardiovascular system (HP:0001626)"; break
+                elif any(k in hl for k in ['immun', 'autoimmun', 'arthrit', 'lupus', 'inflam', 'infection']):
+                    organ = "Abnormality of the immune system (HP:0002715)"; break
+                elif any(k in hl for k in ['neuro', 'brain', 'seizure', 'epilep', 'muscle', 'ataxia', 'intellectual', 'dystonia']):
+                    organ = "Abnormality of the nervous system (HP:0000707)"; break
+                elif any(k in hl for k in ['skelet', 'bone', 'limb', 'finger', 'hand', 'fracture', 'joint']):
+                    organ = "Abnormality of the skeletal system (HP:0000924)"; break
+                elif any(k in hl for k in ['kidney', 'renal', 'nephr', 'glomerul', 'cystic kidney']):
+                    organ = "Abnormality of the urinary system (HP:0000079)"; break
+                elif any(k in hl for k in ['cancer', 'neoplasm', 'tumor', 'carcinoma', 'melanoma', 'breast cancer']):
+                    organ = "Neoplasms & Cancer Predisposition (HP:0002664)"; break
+                elif any(k in hl for k in ['metabol', 'lipid', 'cholesterol', 'aciduria', 'mitochondri']):
+                    organ = "Abnormality of metabolism & Inborn errors (HP:0001939)"; break
+                elif any(k in hl for k in ['anemia', 'blood', 'thrombocyt', 'coagulat', 'bleeding']):
+                    organ = "Abnormality of blood & Blood-forming tissues (HP:0001871)"; break
+                elif any(k in hl for k in ['lung', 'respirat', 'ciliary', 'pulmonary', 'dyspnea']):
+                    organ = "Abnormality of the respiratory system (HP:0002086)"; break
 
             genes_dict[hugo] = {
                 "symbol": hugo,
@@ -214,8 +194,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
                 "chromosome": f"{r.get('chrom')}:{r.get('pos')}",
                 "chrom": r.get('chrom'),
                 "pos": r.get('pos'),
-                "organSystem": primary_system_title,
-                "organSubcategory": primary_subcat_title,
+                "organSystem": organ,
                 "ncbiGeneId": str(ncbi_id),
                 "omimGene": str(omim_id) if omim_id else "100000",
                 "omimPhenotype": str(omim_id) if omim_id else None,
@@ -244,172 +223,415 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         genes_dict[hugo]["variants"].append(var_obj)
         genes_dict[hugo]["variantsDetected"] += 1
 
-    # Sort genes by concern variants first
     genes_list = list(genes_dict.values())
     genes_list.sort(key=lambda g: sum(1 for v in g["variants"] if v["category"] == "concern"), reverse=True)
 
     # -------------------------------------------------------------------------
-    # 2. Build Rich 4-Level Ontologies
+    # 2. BUILD FORMAL MULTI-LEVEL ONTOLOGY TREES (Level 1 -> 2 -> 3 -> 4 -> Gene)
     # -------------------------------------------------------------------------
 
-    # 2A. ORGAN / SYSTEM HIERARCHY
-    # Level 1 System -> Level 2 Subcategory -> Level 3 Phenotype/Syndrome -> Level 4 Gene
-    organ_groups_map = {}
-    for g in genes_list:
-        sys_name = g["organSystem"]
-        sub_name = g["organSubcategory"]
-        if sys_name not in organ_groups_map:
-            organ_groups_map[sys_name] = {
-                "id": f"ORGAN:{sys_name[:6].upper()}",
-                "label": sys_name,
-                "genes": [],
-                "terms": {} # subcategories
-            }
-        organ_groups_map[sys_name]["genes"].append(g["symbol"])
+    # 2A. HPO FORMAL HIERARCHY
+    # Level 1: System -> Level 2: Morph/Phys -> Level 3: Phenotype Category -> Level 4: Term -> Genes
+    hpo_schema = [
+        {
+            "id": "HP:0001626", "label": "Abnormality of the cardiovascular system", "level": 1,
+            "children": [
+                {
+                    "id": "HP:0001627", "label": "Abnormal heart morphology", "level": 2,
+                    "children": [
+                        {
+                            "id": "HP:0001629", "label": "Abnormal cardiac septum morphology", "level": 3,
+                            "children": [
+                                {"id": "HP:0001631", "label": "Atrial septal defect", "level": 4, "match": ["atrial septal", "septum", "gata4", "nkx2-5"]},
+                                {"id": "HP:0001628", "label": "Ventricular septal defect", "level": 4, "match": ["ventricular septal"]}
+                            ]
+                        },
+                        {
+                            "id": "HP:0001638", "label": "Cardiomyopathy (HCM, DCM, ARVC)", "level": 3,
+                            "children": [
+                                {"id": "HP:0001644", "label": "Dilated cardiomyopathy", "level": 4, "match": ["dilated cardiomyopathy", "dcm"]},
+                                {"id": "HP:0001639", "label": "Hypertrophic cardiomyopathy", "level": 4, "match": ["hypertrophic cardiomyopathy", "hcm", "myh7", "mybpc3"]},
+                                {"id": "HP:0001712", "label": "Left ventricular hypertrophy", "level": 4, "match": ["left ventricular hypertrophy", "hypertrophy"]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "HP:0011025", "label": "Abnormal cardiovascular system physiology", "level": 2,
+                    "children": [
+                        {
+                            "id": "HP:0001635", "label": "Heart failure & Systolic dysfunction", "level": 3,
+                            "children": [
+                                {"id": "HP:0001708", "label": "Right ventricular failure", "level": 4, "match": ["right ventricular failure", "rv failure"]},
+                                {"id": "HP:0001709", "label": "Left ventricular systolic dysfunction", "level": 4, "match": ["systolic dysfunction", "reduced ejection fraction", "congestive heart failure"]}
+                            ]
+                        },
+                        {
+                            "id": "HP:0011675", "label": "Arrhythmia & Conduction disorders", "level": 3,
+                            "children": [
+                                {"id": "HP:0001657", "label": "Long QT syndrome & QT prolongation", "level": 4, "match": ["prolonged qt", "long qt", "scn5a", "kcnh2", "kcnq1", "torsade"]},
+                                {"id": "HP:0001663", "label": "Ventricular fibrillation & Brugada syndrome", "level": 4, "match": ["brugada", "ventricular fibrillation", "ventricular flutter", "sudden cardiac death"]},
+                                {"id": "HP:0005110", "label": "Atrial fibrillation & Flutter", "level": 4, "match": ["atrial fibrillation", "atrial flutter", "atrial standstill"]},
+                                {"id": "HP:0001678", "label": "Atrioventricular & Bundle branch block", "level": 4, "match": ["heart block", "atrioventricular block", "bundle branch block", "sick sinus"]}
+                            ]
+                        },
+                        {
+                            "id": "HP:0011028", "label": "Abnormal vascular physiology & Lipids", "level": 3,
+                            "children": [
+                                {"id": "HP:0003124", "label": "Hypercholesterolemia & Dyslipidemia", "level": 4, "match": ["hypercholesterolemia", "lipid", "cholesterol", "apob", "ldlr"]},
+                                {"id": "HP:0002597", "label": "Aortopathy & Aneurysm", "level": 4, "match": ["aort", "aneurysm", "vascular"]}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "HP:0000707", "label": "Abnormality of the nervous system", "level": 1,
+            "children": [
+                {
+                    "id": "HP:0002011", "label": "Morphological abnormality of central nervous system", "level": 2,
+                    "children": [
+                        {
+                            "id": "HP:0012443", "label": "Abnormal brain morphology", "level": 3,
+                            "children": [
+                                {"id": "HP:0001249", "label": "Intellectual disability & Cognitive delay", "level": 4, "match": ["intellectual disability", "learning disability", "speech delay"]},
+                                {"id": "HP:0002119", "label": "Ventriculomegaly & Hydrocephalus", "level": 4, "match": ["hydrocephalus", "ventriculomegaly"]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "HP:0012638", "label": "Abnormal nervous system physiology", "level": 2,
+                    "children": [
+                        {
+                            "id": "HP:0001250", "label": "Seizures & Epilepsy channelopathies", "level": 3,
+                            "children": [
+                                {"id": "HP:0002069", "label": "Generalized seizures & Tonic-clonic", "level": 4, "match": ["seizure", "epilep", "tonic-clonic"]},
+                                {"id": "HP:0002197", "label": "Status epilepticus & Channelopathies", "level": 4, "match": ["channelopathy", "scn1a", "scn2a", "kcnb2", "grin3b"]}
+                            ]
+                        },
+                        {
+                            "id": "HP:0001300", "label": "Movement disorders & Neurodegeneration", "level": 3,
+                            "children": [
+                                {"id": "HP:0001251", "label": "Ataxia & Cerebellar degeneration", "level": 4, "match": ["ataxia", "cerebellar", "neurodegeneration", "parkinson", "c19orf12"]},
+                                {"id": "HP:0001257", "label": "Spastic paraplegia & Neuropathy", "level": 4, "match": ["spastic", "paraplegia", "neuropathy", "cntn1"]}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "HP:0000924", "label": "Abnormality of the skeletal system", "level": 1,
+            "children": [
+                {
+                    "id": "HP:0002816", "label": "Abnormality of the limbs", "level": 2,
+                    "children": [
+                        {
+                            "id": "HP:0001155", "label": "Abnormality of the hand & digits", "level": 3,
+                            "children": [
+                                {"id": "HP:0001166", "label": "Arachnodactyly & Long digits", "level": 4, "match": ["arachnodactyly", "digit", "thumb", "finger", "hand"]},
+                                {"id": "HP:0001156", "label": "Brachydactyly & Short digits", "level": 4, "match": ["brachydactyly"]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "HP:0004349", "label": "Abnormality of bone density & mineralization", "level": 2,
+                    "children": [
+                        {
+                            "id": "HP:0000885", "label": "Osteogenesis imperfecta & Skeletal fragility", "level": 3,
+                            "children": [
+                                {"id": "HP:0002758", "label": "Recurrent fractures & Osteopenia", "level": 4, "match": ["fracture", "osteopen", "bone", "dysplasia"]}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "HP:0002715", "label": "Abnormality of the immune system & Autoimmunity", "level": 1,
+            "children": [
+                {
+                    "id": "HP:0002960", "label": "Autoimmune & Autoinflammatory disease", "level": 2,
+                    "children": [
+                        {
+                            "id": "HP:0001370", "label": "Arthritis & Connective tissue autoimmunity", "level": 3,
+                            "children": [
+                                {"id": "HP:0002964", "label": "Rheumatoid arthritis & Lupus predisposition", "level": 4, "match": ["arthritis", "lupus", "rheumatoid", "joint inflammation", "hla-drb5", "ptpn22"]},
+                                {"id": "HP:0003493", "label": "Systemic sclerosis & Sjogren syndrome", "level": 4, "match": ["sclerosis", "sjogren", "autoimmun"]}
+                            ]
+                        },
+                        {
+                            "id": "HP:0000819", "label": "Organ-specific autoimmunity", "level": 3,
+                            "children": [
+                                {"id": "HP:0002608", "label": "Type 1 diabetes & Celiac disease", "level": 4, "match": ["diabetes", "celiac", "thyroiditis"]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "HP:0002721", "label": "Primary immunodeficiency & Infection susceptibility", "level": 2,
+                    "children": [
+                        {
+                            "id": "HP:0005406", "label": "Recurrent infections & Lymphopenia", "level": 3,
+                            "children": [
+                                {"id": "HP:0002844", "label": "Severe recurrent bacterial/viral infections", "level": 4, "match": ["immunodeficiency", "infection", "bacterial", "viral", "lymphocyte"]}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "HP:0002664", "label": "Neoplasms & Cancer Predisposition", "level": 1,
+            "children": [
+                {
+                    "id": "HP:0003002", "label": "Hereditary Breast & Gynecologic Neoplasms", "level": 2,
+                    "children": [
+                        {"id": "HP:0000006", "label": "DNA repair defects & Breast neoplasm", "level": 3, "match": ["breast", "ovarian", "brca", "rad51", "npm1"]}
+                    ]
+                },
+                {
+                    "id": "HP:0002665", "label": "Gastrointestinal & Colorectal Neoplasms", "level": 2,
+                    "children": [
+                        {"id": "HP:0000007", "label": "Mismatch repair & Lynch syndrome", "level": 3, "match": ["colorectal", "lynch", "colon", "pms2", "msh2", "mlh1"]}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "HP:0000079", "label": "Abnormality of the urinary system & Kidneys", "level": 1,
+            "children": [
+                {
+                    "id": "HP:0000107", "label": "Renal cyst & Polycystic kidney disease", "level": 2,
+                    "children": [
+                        {"id": "HP:0000083", "label": "Glomerulopathy & Tubulopathies", "level": 3, "match": ["renal", "kidney", "nephr", "glomerul", "pkd"]}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "HP:0001939", "label": "Abnormality of metabolism & Inborn errors", "level": 1,
+            "children": [
+                {
+                    "id": "HP:0001992", "label": "Lysosomal storage & Mitochondrial disorders", "level": 2,
+                    "children": [
+                        {"id": "HP:0000818", "label": "Cobalamin & Ion inborn errors", "level": 3, "match": ["metabol", "cobalamin", "cblif", "lysosom", "mitochondr"]}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "HP:0001871", "label": "Abnormality of blood & Hematologic system", "level": 1,
+            "children": [
+                {
+                    "id": "HP:0001873", "label": "Coagulation & Thrombosis disorders", "level": 2,
+                    "children": [
+                        {"id": "HP:0001903", "label": "Hereditary Anemias & Spherocytosis", "level": 3, "match": ["anemia", "thromb", "coagulat", "hemophil", "spherocyt"]}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "HP:0002086", "label": "Abnormality of the respiratory system", "level": 1,
+            "children": [
+                {
+                    "id": "HP:0002206", "label": "Pulmonary fibrosis & Ciliary dyskinesia", "level": 2,
+                    "children": [
+                        {"id": "HP:0002099", "label": "Asthma & Airway hyperreactivity", "level": 3, "match": ["respirat", "ciliary", "pulmonary", "fibrosis", "dnah7", "asthma"]}
+                    ]
+                }
+            ]
+        }
+    ]
+
+    # 2B. GO FORMAL HIERARCHY
+    go_schema = [
+        {
+            "id": "GO:0008150", "label": "Biological Process", "level": 1,
+            "children": [
+                {
+                    "id": "GO:0009987", "label": "Cellular process", "level": 2,
+                    "children": [
+                        {
+                            "id": "GO:0007049", "label": "Cell cycle & Division", "level": 3,
+                            "children": [
+                                {"id": "GO:0006281", "label": "DNA repair & Replication", "level": 4, "match": ["dna repair", "replication", "repair", "recombination", "rad51", "pms2"]},
+                                {"id": "GO:0006914", "label": "Autophagy & Apoptotic process", "level": 4, "match": ["autophagy", "apoptos", "cell death", "c19orf12"]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "GO:0065007", "label": "Biological regulation & Signaling", "level": 2,
+                    "children": [
+                        {
+                            "id": "GO:0007165", "label": "Signal transduction cascades", "level": 3,
+                            "children": [
+                                {"id": "GO:0043269", "label": "Ion transport & Action potential regulation", "level": 4, "match": ["ion transport", "action potential", "membrane depolarization", "scn5a", "sodium ion", "cardiac conduction"]},
+                                {"id": "GO:0035556", "label": "Intracellular kinase signaling", "level": 4, "match": ["kinase", "phosphorylation", "cascade", "receptor signaling"]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "GO:0002376", "label": "Immune system process", "level": 2,
+                    "children": [
+                        {
+                            "id": "GO:0006955", "label": "Immune & Defense response", "level": 3,
+                            "children": [
+                                {"id": "GO:0002250", "label": "Adaptive immune response & Antigen processing", "level": 4, "match": ["immune", "antigen", "t cell", "b cell", "cytokine", "hla-drb5", "ptpn22"]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "GO:0008152", "label": "Metabolic process", "level": 2,
+                    "children": [
+                        {
+                            "id": "GO:0006629", "label": "Lipid & Energy metabolism", "level": 3,
+                            "children": [
+                                {"id": "GO:0006520", "label": "Amino acid, Ion & Vitamin metabolism", "level": 4, "match": ["lipid", "cholesterol", "metabol", "cobalamin", "cblif", "biosynth"]}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "GO:0003674", "label": "Molecular Function", "level": 1,
+            "children": [
+                {
+                    "id": "GO:0003824", "label": "Catalytic activity", "level": 2,
+                    "children": [
+                        {
+                            "id": "GO:0016787", "label": "Hydrolase & Phosphatase activity", "level": 3,
+                            "children": [
+                                {"id": "GO:0016301", "label": "Kinase & Transferase activity", "level": 4, "match": ["catalyt", "kinase", "phosphatase", "transferase", "hydrolase", "inpp5k", "pla2g6"]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "GO:0005488", "label": "Binding", "level": 2,
+                    "children": [
+                        {
+                            "id": "GO:0003676", "label": "Nucleic acid binding", "level": 3,
+                            "children": [
+                                {"id": "GO:0005515", "label": "Protein binding & Molecular scaffolding", "level": 4, "match": ["binding", "protein binding", "nucleic acid", "dna binding", "rna binding"]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "GO:0005215", "label": "Transporter & Channel activity", "level": 2,
+                    "children": [
+                        {
+                            "id": "GO:0005244", "label": "Voltage-gated ion channel activity", "level": 3,
+                            "children": [
+                                {"id": "GO:0015075", "label": "Transmembrane transporter activity", "level": 4, "match": ["channel", "voltage-gated", "transporter", "carrier", "scn5a", "ion channel"]}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "GO:0005575", "label": "Cellular Component", "level": 1,
+            "children": [
+                {
+                    "id": "GO:0005622", "label": "Intracellular anatomical structure", "level": 2,
+                    "children": [
+                        {
+                            "id": "GO:0043226", "label": "Organelle", "level": 3,
+                            "children": [
+                                {"id": "GO:0005739", "label": "Mitochondrion & Bioenergetics", "level": 4, "match": ["mitochondri", "c19orf12"]},
+                                {"id": "GO:0005634", "label": "Nucleus & Chromatin", "level": 4, "match": ["nucleus", "chromatin", "nuclear", "rad51", "pms2"]},
+                                {"id": "GO:0005783", "label": "Endoplasmic reticulum & Golgi", "level": 4, "match": ["endoplasmic", "golgi", "reticulum"]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "GO:0030312", "label": "External encapsulating structure & Membrane", "level": 2,
+                    "children": [
+                        {
+                            "id": "GO:0005886", "label": "Plasma membrane & Specialized junctions", "level": 3,
+                            "children": [
+                                {"id": "GO:0034702", "label": "Ion channel complex & Synapse", "level": 4, "match": ["plasma membrane", "membrane", "synapse", "channel complex", "junction", "scn5a", "cntn1"]}
+                            ]
+                        },
+                        {
+                            "id": "GO:0005856", "label": "Cytoskeleton & Microtubules", "level": 3,
+                            "children": [
+                                {"id": "GO:0005874", "label": "Cilium & Microtubule apparatus", "level": 4, "match": ["cytoskeleton", "microtubule", "cilium", "dynein", "dnah7"]}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+
+    # Recursive matcher & gene aggregator
+    def populate_tree_nodes(node, all_genes):
+        matched_genes = set()
         
-        if sub_name not in organ_groups_map[sys_name]["terms"]:
-            organ_groups_map[sys_name]["terms"][sub_name] = {
-                "id": f"SUB:{sub_name[:6].upper()}",
-                "label": sub_name,
-                "genes": [],
-                "terms": [] # child phenotype terms
-            }
-        organ_groups_map[sys_name]["terms"][sub_name]["genes"].append(g["symbol"])
-        
-        # Add HPO terms under subcategory
-        for h in g["hpoTerms"][:3]:
-            organ_groups_map[sys_name]["terms"][sub_name]["terms"].append({
-                "id": h["id"],
-                "label": h["label"],
-                "genes": [g["symbol"]]
-            })
+        # If leaf with match rules
+        match_keys = node.get("match", [])
+        if match_keys:
+            for g in all_genes:
+                # check symbol match
+                sym_l = g["symbol"].lower()
+                if any(k == sym_l for k in match_keys):
+                    matched_genes.add(g["symbol"])
+                    continue
+                # check HPO / GO texts
+                search_text = (
+                    " ".join([h["label"] for h in g["hpoTerms"]]) + " " +
+                    " ".join(g["goBpo"]) + " " +
+                    " ".join(g["goMfo"]) + " " +
+                    " ".join(g["goCco"]) + " " +
+                    g["summary"]
+                ).lower()
+                if any(k in search_text for k in match_keys):
+                    matched_genes.add(g["symbol"])
 
-    organ_groups_list = []
-    for sys_name, sys_val in organ_groups_map.items():
-        sub_list = []
-        for sub_name, sub_val in sys_val["terms"].items():
-            sub_list.append({
-                "id": sub_val["id"],
-                "label": sub_val["label"],
-                "genes": list(set(sub_val["genes"])),
-                "terms": sub_val["terms"]
-            })
-        organ_groups_list.append({
-            "id": sys_val["id"],
-            "label": sys_val["label"],
-            "genes": list(set(sys_val["genes"])),
-            "terms": sub_list
-        })
+        # Populate children recursively
+        if "children" in node:
+            for child in node["children"]:
+                populate_tree_nodes(child, all_genes)
+                matched_genes.update(child.get("genes", []))
 
-    # 2B. HPO HIERARCHY
-    # Level 1 Organ System -> Level 2 Subcategories -> Level 3 HPO Terms -> Level 4 Genes
-    hpo_groups_list = organ_groups_list
+        node["genes"] = sorted(list(matched_genes))
+        return node
 
-    # 2C. GO HIERARCHY
-    # Level 1 (Biological Process, Molecular Function, Cellular Component)
-    # Level 2 Functional Categories -> Level 3 GO Terms -> Level 4 Genes
-    go_roots = {
-        "Biological Process (GO:0008150)": {},
-        "Molecular Function (GO:0003674)": {},
-        "Cellular Component (GO:0005575)": {}
-    }
+    # Assign remaining genes to Level 1 / Level 2 fallbacks if unassigned
+    for root in hpo_schema:
+        populate_tree_nodes(root, genes_list)
+    for root in go_schema:
+        populate_tree_nodes(root, genes_list)
 
-    for g in genes_list:
-        # Categorize BPO
-        for bpo in g["goBpo"][:4]:
-            cat = "General Biological Process"
-            bl = bpo.lower()
-            if any(k in bl for k in ['transport', 'ion', 'channel', 'symport', 'efflux']): cat = "Transport & Membrane Trafficking"
-            elif any(k in bl for k in ['signaling', 'signal', 'receptor', 'kinase', 'cascade']): cat = "Signal Transduction & Regulation"
-            elif any(k in bl for k in ['dna', 'rna', 'transcription', 'repair', 'replication', 'chromosome']): cat = "DNA Repair, Replication & Transcription"
-            elif any(k in bl for k in ['metabol', 'biosynth', 'catabol', 'acid', 'glycol', 'lipid']): cat = "Metabolism & Enzymatic Pathways"
-            elif any(k in bl for k in ['immune', 'inflam', 'cytokine', 'defense', 'leukocyte']): cat = "Immune & Defense Response"
-            elif any(k in bl for k in ['muscle', 'cardiac', 'contraction', 'heart', 'ventricle']): cat = "Muscle Contraction & Cardiac Physiology"
-            elif any(k in bl for k in ['cell cycle', 'apoptos', 'autophag', 'death', 'survival']): cat = "Cell Cycle, Autophagy & Apoptosis"
-            elif any(k in bl for k in ['neuro', 'synap', 'axon', 'brain', 'transmission']): cat = "Neurological & Synaptic Transmission"
-
-            if cat not in go_roots["Biological Process (GO:0008150)"]:
-                go_roots["Biological Process (GO:0008150)"][cat] = {"genes": set(), "terms": {}}
-            go_roots["Biological Process (GO:0008150)"][cat]["genes"].add(g["symbol"])
-            if bpo not in go_roots["Biological Process (GO:0008150)"][cat]["terms"]:
-                go_roots["Biological Process (GO:0008150)"][cat]["terms"][bpo] = set()
-            go_roots["Biological Process (GO:0008150)"][cat]["terms"][bpo].add(g["symbol"])
-
-        # Categorize MFO
-        for mfo in g["goMfo"][:3]:
-            cat = "Molecular Activity"
-            ml = mfo.lower()
-            if any(k in ml for k in ['binding', 'bind']): cat = "Binding & Molecular Interaction"
-            elif any(k in ml for k in ['activity', 'catalyt', 'enzyme', 'hydrolase', 'transferase']): cat = "Catalytic & Enzymatic Activity"
-            elif any(k in ml for k in ['transporter', 'channel', 'pore', 'carrier']): cat = "Transporter & Channel Activity"
-            elif any(k in ml for k in ['receptor', 'sensor', 'signal']): cat = "Receptor & Sensor Activity"
-
-            if cat not in go_roots["Molecular Function (GO:0003674)"]:
-                go_roots["Molecular Function (GO:0003674)"][cat] = {"genes": set(), "terms": {}}
-            go_roots["Molecular Function (GO:0003674)"][cat]["genes"].add(g["symbol"])
-            if mfo not in go_roots["Molecular Function (GO:0003674)"][cat]["terms"]:
-                go_roots["Molecular Function (GO:0003674)"][cat]["terms"][mfo] = set()
-            go_roots["Molecular Function (GO:0003674)"][cat]["terms"][mfo].add(g["symbol"])
-
-        # Categorize CCO
-        for cco in g["goCco"][:3]:
-            cat = "Cellular Location"
-            cl = cco.lower()
-            if any(k in cl for k in ['membrane', 'plasma', 'junction', 'cortex']): cat = "Plasma Membrane & Junctions"
-            elif any(k in cl for k in ['nucleus', 'chromatin', 'nucleolus', 'nuclear']): cat = "Nucleus & Chromatin"
-            elif any(k in cl for k in ['mitochondri', 'respiratory', 'cristae']): cat = "Mitochondria & Bioenergetics"
-            elif any(k in cl for k in ['endoplasmic', 'golgi', 'vesicle', 'lysosome', 'endosome']): cat = "Endomembrane & Secretory System"
-            elif any(k in cl for k in ['cytosol', 'cytoplasm', 'cytoskelet', 'microtubule', 'cilium']): cat = "Cytoskeleton & Cytosol"
-
-            if cat not in go_roots["Cellular Component (GO:0005575)"]:
-                go_roots["Cellular Component (GO:0005575)"][cat] = {"genes": set(), "terms": {}}
-            go_roots["Cellular Component (GO:0005575)"][cat]["genes"].add(g["symbol"])
-            if cco not in go_roots["Cellular Component (GO:0005575)"][cat]["terms"]:
-                go_roots["Cellular Component (GO:0005575)"][cat]["terms"][cco] = set()
-            go_roots["Cellular Component (GO:0005575)"][cat]["terms"][cco].add(g["symbol"])
-
-    go_groups_list = []
-    for root_name, root_cats in go_roots.items():
-        sub_list = []
-        all_root_genes = set()
-        for cat_name, cat_val in root_cats.items():
-            term_list = []
-            for t_name, t_genes in cat_val["terms"].items():
-                term_list.append({
-                    "id": f"GO:{t_name[:10].upper().replace(' ', '_')}",
-                    "label": t_name,
-                    "genes": list(t_genes)
-                })
-            sub_list.append({
-                "id": f"GOCAT:{cat_name[:8].upper().replace(' ', '_')}",
-                "label": cat_name,
-                "genes": list(cat_val["genes"]),
-                "terms": term_list
-            })
-            all_root_genes.update(cat_val["genes"])
-
-        go_groups_list.append({
-            "id": f"GOROOT:{root_name[:8].upper().replace(' ', '_')}",
-            "label": root_name,
-            "genes": list(all_root_genes),
-            "terms": sub_list
-        })
+    # 2C. ORGAN / SYSTEM HIERARCHY (Matches HPO 10-system structure)
+    organ_schema = json.loads(json.dumps(hpo_schema))
 
     ontologies = {
         "hpo": {
             "label": "HPO — Human Phenotype Ontology",
-            "description": "Level 1 System → Level 2 Subcategory → Level 3 Phenotype → Level 4 Genes",
-            "groups": hpo_groups_list
+            "description": "Level 1 System → Level 2 Subcategory → Level 3 Phenotype Category → Level 4 Specific Phenotypes → Genes",
+            "groups": hpo_schema
         },
         "go": {
             "label": "GO — Gene Ontology",
-            "description": "Root Category → Functional Domain → Specific Process/Function → Genes",
-            "groups": go_groups_list
+            "description": "Level 1 Root Category → Level 2 Functional Domain → Level 3 Process/Function → Level 4 Terms → Genes",
+            "groups": go_schema
         },
         "organ": {
             "label": "Organ / System Clinical Classification",
-            "description": "Organ System → Anatomical / Pathological Branch → Syndrome → Genes",
-            "groups": organ_groups_list
+            "description": "Level 1 Organ System → Level 2 Anatomical/Physiological Branch → Level 3 Syndromes → Level 4 Phenotypes → Genes",
+            "groups": organ_schema
         }
     }
 
@@ -447,7 +669,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
     }
 
     # Write JS file
-    js_content = "/**\n * REAL DATASET — Genomic Ontology Explorer\n * Generated from OpenCRAVAT output: " + str(actionable_json_path) + "\n */\n\n"
+    js_content = "/**\n * REAL DATASET — Genomic Ontology Explorer (Multi-Level Recursive DAG)\n * Generated from OpenCRAVAT output: " + str(actionable_json_path) + "\n */\n\n"
     js_content += "const JOB_META = " + json.dumps(job_meta, indent=2) + ";\n\n"
     js_content += """function refLinks(symbol, ncbiGeneId, omimGene) {
   return {

@@ -1,7 +1,7 @@
 /**
- * Genomic Ontology Explorer — app logic (v3)
- * Full Multi-Level Hierarchy & Inspection (Level 1, 2, 3, 4)
- * Real OpenCRAVAT dataset integration with Genome Browser lollipop visualizer.
+ * Genomic Ontology Explorer — app logic (v3.5)
+ * Full Recursive Multi-Level DAG Hierarchy (Level 1 -> 2 -> 3 -> 4 -> Gene)
+ * Unified Node Selection, Rich Phenotypes Tab Rollup, and Interactive Genome Browser.
  */
 
 (function () {
@@ -12,11 +12,11 @@
   // -----------------------------------------------------------------
   const state = {
     tree: "hpo",
-    layout: "tree",               // default to Tree for rich 4-level navigation
+    layout: "tree",               // default to Tree for rich multi-level exploration
     scopeFindingsOnly: false,
     treeSearch: "",
-    selectedTarget: null,         // { type: 'gene'|'category', symbol?, id?, label?, level?, genes:[] }
-    expandedNodes: new Set(),      // ontology group/term ids currently expanded
+    selectedTarget: null,         // node or gene object
+    expandedNodes: new Set(),      // ontology node ids currently expanded
     expandedVariantRows: new Set() // "gene:variantId" currently expanded (study detail)
   };
 
@@ -60,6 +60,12 @@
         btn.classList.add("active");
         state.tree = btn.dataset.tree;
         state.expandedNodes.clear();
+        
+        // Auto-select first root group of new ontology
+        const groups = filteredOntology();
+        if (groups && groups.length) {
+          selectCategory(groups[0]);
+        }
         renderLeftPanel();
       });
     });
@@ -100,43 +106,31 @@
   }
 
   // -----------------------------------------------------------------
-  // Filtered Ontology Data Model (Unified 4-Level)
+  // Filtered Ontology Data Model (Recursive Arbitrary-Depth)
   // -----------------------------------------------------------------
+  function filterNode(node) {
+    let nodeGenes = Array.from(new Set(node.genes || []));
+    if (state.scopeFindingsOnly) nodeGenes = nodeGenes.filter(geneHasFindings);
+
+    const filteredChildren = (node.children || [])
+      .map(filterNode)
+      .filter(Boolean);
+
+    const nodeHit = matchesSearch(node.label) || matchesSearch(node.id) || nodeGenes.some(matchesSearch);
+    if (state.scopeFindingsOnly && !nodeGenes.length && !filteredChildren.length) return null;
+    if (state.treeSearch && !nodeHit && !filteredChildren.length) return null;
+
+    return {
+      ...node,
+      genes: nodeGenes,
+      children: filteredChildren
+    };
+  }
+
   function filteredOntology() {
     const ont = ONTOLOGIES[state.tree] || ONTOLOGIES["hpo"];
     if (!ont || !ont.groups) return [];
-    const out = [];
-
-    ont.groups.forEach((group) => {
-      let groupGenes = Array.from(new Set(group.genes || []));
-      if (state.scopeFindingsOnly) groupGenes = groupGenes.filter(geneHasFindings);
-      if (state.scopeFindingsOnly && !groupGenes.length) return;
-
-      const subcategories = (group.terms || []).map((subcat) => {
-        let subGenes = Array.from(new Set(subcat.genes || []));
-        if (state.scopeFindingsOnly) subGenes = subGenes.filter(geneHasFindings);
-        if (state.scopeFindingsOnly && !subGenes.length) return null;
-
-        const terms = (subcat.terms || []).map((term) => {
-          let termGenes = Array.from(new Set(term.genes || []));
-          if (state.scopeFindingsOnly) termGenes = termGenes.filter(geneHasFindings);
-          if (state.treeSearch) termGenes = termGenes.filter((s) => matchesSearch(s) || matchesSearch(term.label) || matchesSearch(term.id));
-          if (state.treeSearch && !termGenes.length && !matchesSearch(term.label) && !matchesSearch(term.id)) return null;
-          return { term, genes: termGenes };
-        }).filter(Boolean);
-
-        const subcatHit = matchesSearch(subcat.label) || matchesSearch(subcat.id) || subGenes.some(matchesSearch) || terms.length > 0;
-        if (state.treeSearch && !subcatHit) return null;
-
-        return { subcategory: subcat, genes: subGenes, terms };
-      }).filter(Boolean);
-
-      const groupHit = matchesSearch(group.label) || matchesSearch(group.id) || groupGenes.some(matchesSearch) || subcategories.length > 0;
-      if (state.treeSearch && !groupHit) return;
-
-      out.push({ group, genes: groupGenes, subcategories });
-    });
-    return out;
+    return ont.groups.map(filterNode).filter(Boolean);
   }
 
   function renderLeftPanel() {
@@ -152,7 +146,7 @@
   }
 
   // -----------------------------------------------------------------
-  // Tree / List Rendering with Multi-Level Selection
+  // Recursive Multi-Level Tree & List Rendering
   // -----------------------------------------------------------------
   function renderTreeOrList() {
     const data = filteredOntology();
@@ -160,131 +154,98 @@
     scroll.className = "tree-scroll" + (state.layout === "list" ? " tree-list-mode" : "");
     scroll.innerHTML = "";
 
-    data.forEach(({ group, genes: groupGenes, subcategories }) => {
-      const totalGenes = groupGenes.length;
-      const groupEl = document.createElement("div");
-      groupEl.className = "tree-group";
+    if (state.layout === "list") {
+      // List mode: Group (Level 1) -> all genes directly
+      data.forEach((group) => {
+        const groupEl = document.createElement("div");
+        groupEl.className = "tree-group";
+        const isOpen = state.expandedNodes.has(group.id) || !!state.treeSearch;
+        const isSelected = state.selectedTarget && state.selectedTarget.id === group.id;
 
-      const isOpen = state.expandedNodes.has(group.id) || !!state.treeSearch;
-      const isSelected = state.selectedTarget && state.selectedTarget.id === group.id;
+        const row = document.createElement("div");
+        row.className = "tree-row tree-row--organ" + (isOpen ? " expanded" : "") + (isSelected ? " selected" : "");
+        row.innerHTML =
+          '<span class="caret">' + (isOpen ? "\u25BE" : "\u25B8") + '</span><span class="node-dot"></span>' +
+          "<span>" + group.label + "</span>" +
+          '<span class="count-chip">' + group.genes.length + " genes</span>";
 
-      // LEVEL 1: System / Root Group
-      const row = document.createElement("div");
-      row.className = "tree-row tree-row--organ" + (isOpen ? " expanded" : "") + (isSelected ? " selected" : "");
-      row.innerHTML =
-        '<span class="caret">' + (isOpen ? "\u25BE" : "\u25B8") + '</span><span class="node-dot"></span>' +
-        "<span>" + group.label + "</span>" +
-        '<span class="count-chip">' + totalGenes + " gene" + (totalGenes === 1 ? "" : "s") + "</span>";
-
-      row.addEventListener("click", (e) => {
-        // Toggle expansion
-        if (state.expandedNodes.has(group.id)) state.expandedNodes.delete(group.id);
-        else state.expandedNodes.add(group.id);
-
-        // Select Level 1 Category
-        selectCategory({
-          type: "category",
-          level: 1,
-          id: group.id,
-          label: group.label,
-          levelName: "Organ System / Root Category",
-          genes: groupGenes,
-          subcategories
+        row.addEventListener("click", () => {
+          if (state.expandedNodes.has(group.id)) state.expandedNodes.delete(group.id);
+          else state.expandedNodes.add(group.id);
+          selectCategory(group);
         });
+        groupEl.appendChild(row);
+
+        const childWrap = document.createElement("div");
+        childWrap.className = "tree-children" + (isOpen ? " open" : "");
+        group.genes.forEach((sym) => childWrap.appendChild(makeGeneRow(sym)));
+        groupEl.appendChild(childWrap);
+        scroll.appendChild(groupEl);
       });
-      groupEl.appendChild(row);
-
-      const childWrap = document.createElement("div");
-      childWrap.className = "tree-children" + (isOpen ? " open" : "");
-
-      if (state.layout === "tree" && subcategories.length) {
-        subcategories.forEach(({ subcategory: subcat, genes: subGenes, terms }) => {
-          const subOpen = state.expandedNodes.has(subcat.id) || !!state.treeSearch;
-          const subSelected = state.selectedTarget && state.selectedTarget.id === subcat.id;
-
-          // LEVEL 2: Subcategory
-          const subRow = document.createElement("div");
-          subRow.className = "tree-row tree-row--subcat" + (subOpen ? " expanded" : "") + (subSelected ? " selected" : "");
-          subRow.innerHTML =
-            '<span class="caret">' + (subOpen ? "\u25BE" : "\u25B8") + '</span><span class="node-dot" style="background:var(--teal);"></span>' +
-            "<span>" + subcat.label + "</span>" +
-            '<span class="count-chip">' + subGenes.length + "</span>";
-
-          subRow.addEventListener("click", (e) => {
-            e.stopPropagation();
-            if (state.expandedNodes.has(subcat.id)) state.expandedNodes.delete(subcat.id);
-            else state.expandedNodes.add(subcat.id);
-
-            selectCategory({
-              type: "category",
-              level: 2,
-              id: subcat.id,
-              label: subcat.label,
-              levelName: "Subcategory / Clinical Partition",
-              genes: subGenes,
-              parentLabel: group.label,
-              terms
-            });
-          });
-          childWrap.appendChild(subRow);
-
-          const subChildWrap = document.createElement("div");
-          subChildWrap.className = "tree-children" + (subOpen ? " open" : "");
-
-          if (terms && terms.length) {
-            terms.forEach(({ term, genes: termGenes }) => {
-              const termOpen = state.expandedNodes.has(term.id) || !!state.treeSearch;
-              const termSelected = state.selectedTarget && state.selectedTarget.id === term.id;
-
-              // LEVEL 3: Phenotype / GO Term
-              const termRow = document.createElement("div");
-              termRow.className = "tree-row tree-row--term" + (termOpen ? " expanded" : "") + (termSelected ? " selected" : "");
-              termRow.innerHTML =
-                '<span class="caret">' + (termOpen ? "\u25BE" : "\u25B8") + '</span><span class="node-dot"></span>' +
-                "<span>" + term.label + '</span><span class="count-chip mono">' + term.id + "</span>";
-
-              termRow.addEventListener("click", (e) => {
-                e.stopPropagation();
-                if (state.expandedNodes.has(term.id)) state.expandedNodes.delete(term.id);
-                else state.expandedNodes.add(term.id);
-
-                selectCategory({
-                  type: "category",
-                  level: 3,
-                  id: term.id,
-                  label: term.label,
-                  levelName: "Phenotype / Functional Term (" + term.id + ")",
-                  genes: termGenes,
-                  parentLabel: subcat.label
-                });
-              });
-              subChildWrap.appendChild(termRow);
-
-              // LEVEL 4: Genes under this Term
-              const geneWrap = document.createElement("div");
-              geneWrap.className = "tree-children" + (termOpen ? " open" : "");
-              termGenes.forEach((sym) => geneWrap.appendChild(makeGeneRow(sym)));
-              subChildWrap.appendChild(geneWrap);
-            });
-          } else {
-            // Direct genes under subcategory
-            subGenes.forEach((sym) => subChildWrap.appendChild(makeGeneRow(sym)));
-          }
-
-          childWrap.appendChild(subChildWrap);
-        });
-      } else {
-        // Flat List mode: System -> All Genes directly
-        groupGenes.forEach((sym) => childWrap.appendChild(makeGeneRow(sym)));
-      }
-
-      groupEl.appendChild(childWrap);
-      scroll.appendChild(groupEl);
-    });
+    } else {
+      // Tree mode: Recursive multi-level rendering (Level 1 -> 2 -> 3 -> 4 -> Gene)
+      data.forEach((rootNode) => {
+        scroll.appendChild(renderTreeNodeRecursive(rootNode, 0));
+      });
+    }
 
     if (!scroll.children.length) {
       scroll.innerHTML = '<div style="padding:20px;color:var(--slate);font-size:12.5px;">No matches under the current filters.</div>';
     }
+  }
+
+  function renderTreeNodeRecursive(node, depth) {
+    const wrap = document.createElement("div");
+    wrap.className = "tree-node-wrap";
+
+    const isOpen = state.expandedNodes.has(node.id) || (depth === 0 && state.expandedNodes.size === 0) || !!state.treeSearch;
+    const isSelected = state.selectedTarget && state.selectedTarget.id === node.id;
+    const hasChildren = (node.children && node.children.length > 0) || (node.genes && node.genes.length > 0);
+
+    const row = document.createElement("div");
+    const levelClass = depth === 0 ? "tree-row--organ" : (depth === 1 ? "tree-row--subcat" : "tree-row--term");
+    row.className = "tree-row " + levelClass + (isOpen ? " expanded" : "") + (isSelected ? " selected" : "");
+    row.style.paddingLeft = (12 + depth * 14) + "px";
+
+    const dotStyle = depth === 0 ? "" : (depth === 1 ? "background:var(--teal);" : "background:var(--slate-light);");
+    const countLabel = node.genes.length + (depth === 0 ? " genes" : "");
+
+    row.innerHTML =
+      (hasChildren ? '<span class="caret">' + (isOpen ? "\u25BE" : "\u25B8") + '</span>' : '<span class="caret" style="opacity:0;">•</span>') +
+      '<span class="node-dot" style="' + dotStyle + '"></span>' +
+      '<span class="tree-node-title">' + node.label + '</span>' +
+      (node.id && node.id.startsWith("HP:") || node.id.startsWith("GO:") ? '<span class="count-chip mono">' + node.id + '</span>' : '') +
+      '<span class="count-chip">' + countLabel + '</span>';
+
+    row.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (hasChildren) {
+        if (state.expandedNodes.has(node.id)) state.expandedNodes.delete(node.id);
+        else state.expandedNodes.add(node.id);
+      }
+      selectCategory(node);
+    });
+
+    wrap.appendChild(row);
+
+    const childWrap = document.createElement("div");
+    childWrap.className = "tree-children" + (isOpen ? " open" : "");
+
+    if (node.children && node.children.length > 0) {
+      node.children.forEach((child) => {
+        childWrap.appendChild(renderTreeNodeRecursive(child, depth + 1));
+      });
+    } else if (node.genes && node.genes.length > 0) {
+      // Leaf level -> render genes
+      node.genes.forEach((sym) => {
+        const geneRow = makeGeneRow(sym);
+        geneRow.style.paddingLeft = (16 + (depth + 1) * 14) + "px";
+        childWrap.appendChild(geneRow);
+      });
+    }
+
+    wrap.appendChild(childWrap);
+    return wrap;
   }
 
   function makeGeneRow(symbol) {
@@ -294,7 +255,7 @@
     row.className = "tree-row tree-row--gene" + (isSelected ? " selected" : "");
     const flagged = g && g.variants.some((v) => v.category === "concern");
     row.innerHTML =
-      '<span class="node-dot"></span><span>' + symbol + "</span>" +
+      '<span class="node-dot"></span><span style="font-weight:600;">' + symbol + "</span>" +
       (flagged ? '<span class="count-chip" style="color:var(--concern);border-color:var(--concern-bg);font-weight:700;">flag</span>' : "");
     row.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -309,14 +270,14 @@
     renderInspectionPanel();
   }
 
-  function selectCategory(catObj) {
-    state.selectedTarget = catObj;
+  function selectCategory(node) {
+    state.selectedTarget = { ...node, type: "category" };
     if (state.layout === "graph") renderGraph(); else renderTreeOrList();
     renderInspectionPanel();
   }
 
   // -----------------------------------------------------------------
-  // Graph layout mode — Interactive Multi-Level Node/Edge Diagram
+  // Graph layout mode — Interactive Multi-Level Visualizer
   // -----------------------------------------------------------------
   function renderGraph() {
     const panel = document.querySelector(".tree-panel");
@@ -330,34 +291,41 @@
     host.innerHTML = "";
 
     const data = filteredOntology();
-    const ROW_H = 32, GROUP_X = 26, SUBCAT_X = 170, GENE_X = 340, PAD_TOP = 20, WIDTH = 680;
+    const ROW_H = 34, L1_X = 26, L2_X = 175, L3_X = 330, GENE_X = 490, PAD_TOP = 20, WIDTH = 760;
 
     const svgns = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgns, "svg");
     svg.setAttribute("class", "graph-svg");
     svg.setAttribute("width", WIDTH);
 
-    const geneChips = []; // { y, genes:[] }
+    const geneChips = [];
     let y = PAD_TOP;
     const edges = [];
     const nodes = [];
 
-    data.forEach(({ group, genes: groupGenes, subcategories }) => {
-      const groupY = y;
-      nodes.push({ type: "group", id: group.id, x: GROUP_X, y: groupY, label: group.label, genes: groupGenes, level: 1 });
+    data.forEach((root) => {
+      const rootY = y;
+      nodes.push({ id: root.id, x: L1_X, y: rootY, label: root.label, node: root, level: 1 });
       y += ROW_H;
 
-      subcategories.forEach(({ subcategory: subcat, genes: subGenes }) => {
-        const subcatY = y;
-        nodes.push({ type: "subcat", id: subcat.id, x: SUBCAT_X, y: subcatY, label: subcat.label, genes: subGenes, level: 2 });
-        edges.push({ x1: GROUP_X + 6, y1: groupY, x2: SUBCAT_X - 6, y2: subcatY });
-        geneChips.push({ y: subcatY, genes: subGenes });
+      (root.children || []).forEach((sub) => {
+        const subY = y;
+        nodes.push({ id: sub.id, x: L2_X, y: subY, label: sub.label, node: sub, level: 2 });
+        edges.push({ x1: L1_X + 6, y1: rootY, x2: L2_X - 6, y2: subY });
         y += ROW_H;
+
+        (sub.children || []).slice(0, 3).forEach((term) => {
+          const termY = y;
+          nodes.push({ id: term.id, x: L3_X, y: termY, label: term.label, node: term, level: 3 });
+          edges.push({ x1: L2_X + 6, y1: subY, x2: L3_X - 6, y2: termY });
+          geneChips.push({ y: termY, genes: term.genes || [] });
+          y += ROW_H;
+        });
       });
-      y += 8; // gap between groups
+      y += 10;
     });
 
-    const totalHeight = y + 20;
+    const totalHeight = Math.max(500, y + 30);
     svg.setAttribute("height", totalHeight);
     svg.setAttribute("viewBox", "0 0 " + WIDTH + " " + totalHeight);
 
@@ -366,7 +334,6 @@
       const line = document.createElementNS(svgns, "line");
       line.setAttribute("x1", e.x1); line.setAttribute("y1", e.y1);
       line.setAttribute("x2", e.x2); line.setAttribute("y2", e.y2);
-      line.setAttribute("class", "graph-edge");
       line.setAttribute("stroke", "var(--line)");
       line.setAttribute("stroke-width", "1.5");
       svg.appendChild(line);
@@ -380,31 +347,20 @@
 
       const circle = document.createElementNS(svgns, "circle");
       circle.setAttribute("cx", n.x); circle.setAttribute("cy", n.y);
-      circle.setAttribute("r", n.type === "group" ? 6 : 4.5);
-      circle.setAttribute("fill", isSel ? "var(--concern)" : (n.type === "group" ? "var(--teal-dark)" : "var(--teal)"));
+      circle.setAttribute("r", n.level === 1 ? 6.5 : (n.level === 2 ? 5 : 4));
+      circle.setAttribute("fill", isSel ? "var(--concern)" : (n.level === 1 ? "var(--teal-dark)" : "var(--teal)"));
       gNode.appendChild(circle);
 
       const text = document.createElementNS(svgns, "text");
       text.setAttribute("x", n.x + 10);
       text.setAttribute("y", n.y + 4);
-      text.setAttribute("class", "graph-node-label " + n.type);
-      text.setAttribute("font-size", n.type === "group" ? "12px" : "11px");
-      text.setAttribute("font-weight", n.type === "group" ? "700" : "600");
+      text.setAttribute("font-size", n.level === 1 ? "12px" : (n.level === 2 ? "11px" : "10.5px"));
+      text.setAttribute("font-weight", n.level === 1 ? "700" : "600");
       text.setAttribute("fill", isSel ? "var(--teal-dark)" : "var(--ink)");
-      text.textContent = n.label.length > 24 ? n.label.substring(0, 22) + "…" : n.label;
+      text.textContent = n.label.length > 22 ? n.label.substring(0, 20) + "…" : n.label;
       gNode.appendChild(text);
 
-      gNode.addEventListener("click", () => {
-        selectCategory({
-          type: "category",
-          level: n.level,
-          id: n.id,
-          label: n.label,
-          levelName: n.type === "group" ? "Organ System / Root Category" : "Subcategory",
-          genes: n.genes
-        });
-      });
-
+      gNode.addEventListener("click", () => selectCategory(n.node));
       svg.appendChild(gNode);
     });
 
@@ -416,22 +372,18 @@
     geneLayer.style.width = WIDTH + "px";
     geneLayer.style.height = totalHeight + "px";
     geneChips.forEach((row) => {
-      row.genes.slice(0, 4).forEach((sym, i) => {
+      (row.genes || []).slice(0, 4).forEach((sym, i) => {
         const chip = document.createElement("div");
         const isGeneSel = state.selectedTarget && state.selectedTarget.type === "gene" && state.selectedTarget.symbol === sym;
         chip.className = "graph-gene-chip" + (isGeneSel ? " selected" : "");
         chip.textContent = sym;
-        chip.style.left = (GENE_X + i * 68) + "px";
+        chip.style.left = (GENE_X + i * 66) + "px";
         chip.style.top = (row.y - 10) + "px";
         chip.addEventListener("click", () => selectGene(sym));
         geneLayer.appendChild(chip);
       });
     });
     host.appendChild(geneLayer);
-
-    if (!data.length) {
-      host.innerHTML = '<div style="padding:20px;color:var(--slate);font-size:12.5px;">No matches under the current filters.</div>';
-    }
   }
 
   // -----------------------------------------------------------------
@@ -537,6 +489,20 @@
   // -----------------------------------------------------------------
   // 2. Category / Domain Rollup View (Multi-Level Aggregation)
   // -----------------------------------------------------------------
+  function collectDescendantSubOntologies(node) {
+    const subTerms = [];
+    function walk(n) {
+      if (n.children && n.children.length) {
+        n.children.forEach((c) => {
+          subTerms.push(c);
+          walk(c);
+        });
+      }
+    }
+    walk(node);
+    return subTerms;
+  }
+
   function renderCategoryRollupView(wrap, cat) {
     const geneObjects = (cat.genes || []).map(geneBySymbol).filter(Boolean);
     const allVariants = geneObjects.flatMap((g) => g.variants);
@@ -549,27 +515,22 @@
     const phasedHetCount = allVariants.filter((v) => v.zygosity === "Heterozygous" && v.phase && v.phase !== "Unknown").length;
     const phasedPct = heteroCount ? Math.round((phasedHetCount / heteroCount) * 100) : 0;
 
-    // Collect all HPO terms across genes in domain
-    const hpoTermsMap = {};
-    geneObjects.forEach((g) => {
-      (g.hpoTerms || []).forEach((t) => {
-        if (!hpoTermsMap[t.id]) hpoTermsMap[t.id] = { id: t.id, label: t.label, genes: [] };
-        hpoTermsMap[t.id].genes.push(g.symbol);
-      });
-    });
-    const domainHpos = Object.values(hpoTermsMap);
+    // Direct and descendant sub-ontologies under this selected category
+    const subOntologies = collectDescendantSubOntologies(cat);
+
+    const levelBadge = cat.level ? "Level " + cat.level : (cat.id && (cat.id.startsWith("HP:") || cat.id.startsWith("GO:")) ? cat.id : "Category");
 
     wrap.innerHTML =
       '<div class="category-head">' +
         '<div>' +
-          '<h1><span>' + cat.label + '</span> <span class="category-level-badge">' + (cat.levelName || "Category") + '</span></h1>' +
-          '<div class="category-meta mono">' + (cat.parentLabel ? cat.parentLabel + " \u2192 " : "") + cat.label + " · " + geneObjects.length + " Genes · " + totalVariants + " Actionable Variants</div>" +
+          '<h1><span>' + cat.label + '</span> <span class="category-level-badge">' + levelBadge + '</span></h1>' +
+          '<div class="category-meta mono">' + (cat.id ? cat.id + " · " : "") + geneObjects.length + " Genes · " + totalVariants + " Actionable Variants</div>" +
         '</div>' +
       '</div>' +
 
       '<div class="gene-tabs" id="gene-tabs">' +
         '<button data-tab="overview" class="active">Overview</button>' +
-        '<button data-tab="phenotypes">Phenotypes (' + domainHpos.length + ')</button>' +
+        '<button data-tab="phenotypes">Phenotypes / Sub-Ontologies (' + subOntologies.length + ')</button>' +
         '<button data-tab="variants">Variants (' + totalVariants + ')</button>' +
         '<button data-tab="studies">Studies</button>' +
         '<button data-tab="publications">Publications</button>' +
@@ -582,13 +543,13 @@
           kpi(protectCount, "Protective") +
           kpi(uncertainCount, "Uncertain") +
           kpi(phasedPct + "%", "Het. variants phased") +
-          kpi(domainHpos.length, "HPO terms") +
+          kpi(subOntologies.length, "Sub-ontologies") +
           kpi(totalVariants, "Total variants") +
         '</div>' +
 
         '<div class="panel-box">' +
-          '<h3>Clinical & Biological Overview</h3>' +
-          '<p>Roll-up summary of all findings classified under <strong>' + cat.label + '</strong>. This branch comprises <strong>' + geneObjects.length + ' genes</strong> and <strong>' + totalVariants + ' actionable variants</strong> identified in the patient’s phased sequencing data.</p>' +
+          '<h3>Clinical & Biological Domain Summary</h3>' +
+          '<p>Roll-up analysis of findings categorized under <strong>' + cat.label + '</strong> (' + (cat.id || "Domain") + '). Encompasses <strong>' + geneObjects.length + ' genes</strong> with <strong>' + totalVariants + ' actionable variants</strong> identified across patient sequencing data.</p>' +
         '</div>' +
 
         '<div class="panel-box">' +
@@ -607,15 +568,16 @@
       '</div>' +
 
       '<div class="gene-pane" data-pane="phenotypes">' +
-        (domainHpos.length
-          ? '<div class="hpo-card-grid">' + domainHpos.slice(0, 40).map((t) =>
-              '<div class="hpo-card">' +
-                '<div class="id">' + t.id + '</div>' +
-                '<div class="label">' + t.label + '</div>' +
-                '<div class="evidence" style="margin-top:6px;font-size:11px;color:var(--teal-dark);font-weight:600;">Genes: ' + t.genes.join(", ") + '</div>' +
+        '<div class="section-title"><span class="eyebrow">Sub-Level Ontologies & Phenotypic Branches (' + subOntologies.length + ')</span></div>' +
+        (subOntologies.length
+          ? '<div class="hpo-card-grid">' + subOntologies.map((s) =>
+              '<div class="hpo-card" style="cursor:pointer;" data-node-id="' + s.id + '">' +
+                '<div class="id" style="display:flex;justify-content:space-between;"><span>' + s.id + '</span><span class="category-level-badge" style="font-size:9px;">Level ' + (s.level || "Sub") + '</span></div>' +
+                '<div class="label" style="font-weight:700;margin-top:4px;">' + s.label + '</div>' +
+                '<div class="evidence" style="margin-top:6px;font-size:11px;color:var(--teal-dark);font-weight:600;">' + (s.genes ? s.genes.length + ' Genes: ' + s.genes.slice(0, 8).join(", ") + (s.genes.length > 8 ? "…" : "") : "") + '</div>' +
               '</div>'
             ).join("") + '</div>'
-          : '<div class="pub-empty">No curated HPO terms assigned to genes in this category.</div>') +
+          : '<div class="pub-empty">This is a terminal leaf phenotype term. View associated genes above or in the Variants tab.</div>') +
       '</div>' +
 
       '<div class="gene-pane" data-pane="variants">' +
@@ -630,15 +592,25 @@
         '<div class="pub-grid">' +
           geneObjects.flatMap((g) => g.publications || []).map(pubCard).join("") +
         '</div>' +
-        (geneObjects.every((g) => !g.publications || !g.publications.length) ? '<div class="pub-empty">No curated publications for this category.</div>' : "") +
+        (geneObjects.every((g) => !g.publications || !g.publications.length) ? '<div class="pub-empty">No curated publications directly indexed for this category.</div>' : "") +
       '</div>';
 
     wireTabSwitching(wrap);
 
-    // Clicking any gene chip inside the rollup view drills down to that single gene!
+    // Clicking gene chip drills down to gene
     wrap.querySelectorAll(".gene-chip-item").forEach((chip) => {
-      chip.addEventListener("click", () => {
-        selectGene(chip.dataset.gene);
+      chip.addEventListener("click", () => selectGene(chip.dataset.gene));
+    });
+
+    // Clicking phenotype card in phenotypes tab drills down to that sub-ontology!
+    wrap.querySelectorAll(".hpo-card[data-node-id]").forEach((card) => {
+      card.addEventListener("click", () => {
+        const targetNodeId = card.dataset.nodeId;
+        const targetSub = subOntologies.find((s) => s.id === targetNodeId);
+        if (targetSub) {
+          state.expandedNodes.add(targetNodeId);
+          selectCategory(targetSub);
+        }
       });
     });
 
@@ -757,7 +729,6 @@
 
     if (!isExpanded) return mainRow;
 
-    // Expandable Study Row
     const detailRow =
       '<tr class="variant-detail-row"><td colspan="14">' +
       '<div class="study-card" style="margin:6px 0;background:#fff;">' +
@@ -833,7 +804,6 @@
     locusEl.textContent = gene.chromosome || (variants[0] ? variants[0].coordinate : "chrX");
     detailEl.innerHTML = '<div class="variant-info-box">Click on any lollipop marker below to inspect variant amino acid consequence and call quality.</div>';
 
-    // Build SVG Exon Track with Lollipops
     const width = 720, height = 180, padX = 40;
     const svgns = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgns, "svg");
@@ -851,7 +821,6 @@
     axisLine.setAttribute("stroke-width", "2");
     svg.appendChild(axisLine);
 
-    // Mock Exons along the axis
     const exons = [
       { start: 0.05, end: 0.18 },
       { start: 0.26, end: 0.42 },
@@ -877,7 +846,6 @@
       svg.appendChild(label);
     });
 
-    // Variant Lollipops
     const varList = Array.isArray(variants) ? variants : [variants];
     const lollipopGroup = document.createElementNS(svgns, "g");
     lollipopGroup.setAttribute("class", "lollipops-group");
@@ -987,7 +955,6 @@
     const phaseF = byId("filter-phase").value;
     const zygF = byId("filter-zygosity").value;
 
-    // Populate gene filter if empty
     const geneSelect = byId("filter-gene");
     if (geneSelect && geneSelect.children.length <= 1) {
       GENES.forEach((g) => {
@@ -1109,7 +1076,6 @@
     );
   }
 
-  // Close genome browser modal
   const modalClose = byId("genome-modal-close");
   if (modalClose) {
     modalClose.addEventListener("click", () => {
@@ -1124,7 +1090,6 @@
     initTabs();
     initOntologySwitch();
 
-    // Setup filter listeners in variants view
     ["filter-gene", "filter-clinvar", "filter-phase", "filter-zygosity"].forEach((id) => {
       const el = byId(id);
       if (el) el.addEventListener("change", renderVariantsTable);
@@ -1139,15 +1104,7 @@
     // Default select first Level 1 Category
     const filtered = filteredOntology();
     if (filtered.length > 0) {
-      selectCategory({
-        type: "category",
-        level: 1,
-        id: filtered[0].group.id,
-        label: filtered[0].group.label,
-        levelName: "Organ System / Root Category",
-        genes: filtered[0].genes,
-        subcategories: filtered[0].subcategories
-      });
+      selectCategory(filtered[0]);
     }
   });
 
