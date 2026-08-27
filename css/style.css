@@ -915,3 +915,151 @@ table.data-table tbody tr:last-child td { border-bottom: none; }
   padding: 1px 5px;
   color: var(--teal-dark);
 }
+
+/* ---------------------------------------------------------------------
+   Artistic Genetic & Epigenetic Watermark
+   --------------------------------------------------------------------- */
+.dna-watermark {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.065;
+  overflow: hidden;
+}
+.dna-watermark svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------------------------------------------------------------------
+   Gene Header Card inside Variant Sections
+   --------------------------------------------------------------------- */
+.variant-gene-group {
+  margin-bottom: 18px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.variant-gene-header {
+  padding: 10px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.variant-gene-title {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal-dark);
+}
+.variant-gene-fullname {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--slate);
+  margin-left: 8px;
+}
+.variant-gene-desc {
+  font-size: 11.5px;
+  color: var(--slate);
+  margin-top: 4px;
+  line-height: 1.4;
+  max-width: 850px;
+}
+
+/* ---------------------------------------------------------------------
+   Rich Expanded Variant Clinical Drawer
+   --------------------------------------------------------------------- */
+.variant-drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  margin: 6px 0;
+}
+.variant-drawer-box {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+.variant-drawer-box h4 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin: 0 0 6px 0;
+  letter-spacing: 0.5px;
+}
+.drawer-metric-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  padding: 2px 0;
+  border-bottom: 1px dashed #f1f5f9;
+}
+.drawer-metric-row:last-child {
+  border-bottom: none;
+}
+.drawer-metric-lbl {
+  color: var(--slate);
+}
+.drawer-metric-val {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------
+   Interactive Graph Mode Zoom & Pan Controls
+   --------------------------------------------------------------------- */
+.graph-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.graph-toolbar button {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--teal-dark);
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.graph-toolbar button:hover {
+  background: var(--teal);
+  color: #fff;
+}
+.graph-wrap {
+  position: relative;
+  overflow: auto;
+  cursor: grab;
+  user-select: none;
+}
+.graph-wrap:active {
+  cursor: grabbing;
+}

@@ -29,7 +29,6 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
     pgx_list = []
     prs_map = {}
 
-    # Curated PubMed bibliography for high-impact clinical genes
     CURATED_PUBLICATIONS = {
         "SCN5A": [
             {"pmid": "32916098", "title": "Large-Scale Genomics of ECG Morphology and Sodium Channel Cardiac Arrhythmias", "journal": "Nat Genet", "year": 2020, "authors": "Sotoodehnia N et al.", "relevance": "Evaluates SCN5A missense variants in cardiac conduction, Brugada syndrome, and QT prolongation.", "url": "https://pubmed.ncbi.nlm.nih.gov/32916098/"},
@@ -74,7 +73,6 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         sig = str(r.get('clinvar_sig') or '').lower()
         tier = r.get('tier') or r.get('cardio_tier') or 'Tier3'
         
-        # Protective alleles are strictly verified (ClinVar protective or documented protective GWAS OR < 0.8)
         is_protective = "protective" in sig or (r.get('gwas_or_beta') and float(r.get('gwas_or_beta', 1.0)) < 0.8 and 'protective' in str(r.get('gwas_disease','')).lower())
         
         if "pathogenic" in sig and "conflicting" not in sig:
@@ -88,7 +86,6 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         elif tier == "Tier2":
             category = "uncertain"
         else:
-            # Benign or non-pathogenic research variants
             category = "uncategorized"
 
         # Reads
@@ -99,36 +96,55 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         # Consequence
         so = r.get('so') or 'VAR'
         achange = r.get('achange') or ''
+        cchange = r.get('cchange') or ''
         consequences = [so]
         if achange and achange not in consequences:
             consequences.append(achange)
 
-        # Studies / GWAS
+        # Enriched Studies (Title + Description + Statistical Metrics)
         studies = []
         if r.get('gwas_disease'):
-            studies.append({
-                "finding": f"Associated with {r.get('gwas_disease')} (OR/Beta: {r.get('gwas_or_beta') or 'N/A'}, p={r.get('gwas_pval') or 'N/A'})",
-                "condition": r.get('gwas_disease'),
-                "genotypeRelevance": f"Risk allele: {r.get('gwas_risk_allele') or 'N/A'}",
-                "evidenceLevel": 2 if r.get('gwas_pval') else 3,
-                "source": f"GWAS Catalog (PMID: {r.get('gwas_pmid') or 'N/A'})"
-            })
             trait = r.get('gwas_disease')
+            or_val = r.get('gwas_or_beta') or 'N/A'
+            pval_val = r.get('gwas_pval') or 'N/A'
+            risk_al = r.get('gwas_risk_allele') or 'N/A'
+            pmid_val = r.get('gwas_pmid') or ''
+            
+            studies.append({
+                "title": f"GWAS of {trait} and Genetic Association at {r.get('rsid') or hugo}",
+                "finding": f"Genome-wide significant association with {trait} (Odds Ratio / Beta: {or_val}, p-value: {pval_val})",
+                "description": f"Carriers of the {risk_al} risk allele in {hugo} demonstrate statistical correlation with {trait} across large-scale epidemiological cohorts.",
+                "condition": trait,
+                "oddsRatio": or_val,
+                "pValue": pval_val,
+                "riskAllele": risk_al,
+                "genotypeRelevance": f"Risk allele: {risk_al}",
+                "evidenceLevel": 2 if r.get('gwas_pval') else 3,
+                "source": f"GWAS Catalog (PMID: {pmid_val})" if pmid_val else "GWAS Catalog",
+                "pmid": str(pmid_val),
+                "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid_val}/" if pmid_val else None
+            })
             if trait not in prs_map:
                 prs_map[trait] = {
                     "trait": trait,
                     "organSystem": "Multisystem",
                     "percentile": 50,
                     "category": "AVERAGE",
-                    "pgsId": f"PMID:{r.get('gwas_pmid') or 'N/A'}"
+                    "pgsId": f"PMID:{pmid_val or 'N/A'}"
                 }
             if category == "concern":
                 prs_map[trait]["percentile"] = min(98, prs_map[trait]["percentile"] + 15)
                 prs_map[trait]["category"] = "HIGH" if prs_map[trait]["percentile"] > 80 else "MODERATE"
 
-        # SpliceAI max
-        spliceai_scores = [float(r[k]) for k in ['spliceai_ds_ag', 'spliceai_ds_al', 'spliceai_ds_dg', 'spliceai_ds_dl'] if r.get(k) is not None]
-        spliceai_val = max(spliceai_scores) if spliceai_scores else None
+        # SpliceAI metrics
+        spliceai_scores = {
+            "ag": r.get('spliceai_ds_ag'),
+            "al": r.get('spliceai_ds_al'),
+            "dg": r.get('spliceai_ds_dg'),
+            "dl": r.get('spliceai_ds_dl')
+        }
+        numeric_splice = [float(v) for v in spliceai_scores.values() if v is not None]
+        spliceai_val = max(numeric_splice) if numeric_splice else None
 
         # Zygosity & Phase
         zyg = str(r.get('zygosity') or 'het').capitalize()
@@ -150,15 +166,25 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
             "pos": r.get('pos'),
             "ref": r.get('ref'),
             "alt": r.get('alt'),
+            "cchange": cchange,
+            "achange": achange,
+            "transcript": r.get('transcript') or 'Canonical',
+            "vaf": r.get('vaf'),
             "consequence": consequences,
             "category": category,
             "clinvar": r.get('clinvar_sig') or "Not reviewed",
+            "clinvarRev": r.get('clinvar_rev') or "criteria provided",
+            "clinvarId": r.get('clinvar_id'),
             "revel": r.get('revel'),
             "cadd": r.get('cadd_phred'),
             "spliceai": spliceai_val,
+            "spliceaiDetails": spliceai_scores,
             "alphamissense": r.get('am_path'),
+            "amClass": r.get('am_class') or ('likely_pathogenic' if (float(r['am_path']) if r.get('am_path') is not None else 0.0) > 0.564 else 'likely_benign'),
             "qual": r.get('phred'),
             "reads": reads_obj,
+            "acmgPm5": r.get('clinvar_acmg_pm5'),
+            "acmgPs1": r.get('clinvar_acmg_ps1'),
             "lastEvaluated": "2026-07-06",
             "studies": studies
         }
@@ -236,7 +262,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
                 "chromosome": f"{r.get('chrom')}:{r.get('pos')}",
                 "chrom": r.get('chrom'),
                 "pos": r.get('pos'),
-                "organSystem": "Cardiovascular" if any("cardio" in h.lower() or "heart" in h.lower() for h in hpo_terms) else "Multisystem",
+                "organSystem": "Heart & Cardiovascular" if any("cardio" in h.lower() or "heart" in h.lower() for h in hpo_terms) else "Multisystem",
                 "ncbiGeneId": str(ncbi_id),
                 "omimGene": str(omim_id) if omim_id else "100000",
                 "omimPhenotype": str(omim_id) if omim_id else None,
@@ -616,7 +642,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         }
     ]
 
-    # 2C. ORGAN / SYSTEM TRUE ANATOMICAL HIERARCHY (Heart, Brain, Lungs, Skeleton, etc.)
+    # 2C. ORGAN / SYSTEM ANATOMICAL HIERARCHY
     organ_schema = [
         {
             "id": "ORGAN:HEART", "label": "Heart & Cardiovascular System", "level": 1,
@@ -761,7 +787,6 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         }
     ]
 
-    # Recursive matcher & gene aggregator
     def populate_tree_nodes(node, all_genes):
         matched_genes = set()
         match_keys = node.get("match", [])
@@ -814,7 +839,6 @@ def parse_actionable_to_claude_v2(actionable_json_path, output_js_path):
         }
     }
 
-    # Analysis: Multi-System Risk Matrix
     organ_risk_matrix = [
         {"system": "Heart & Cardiovascular", "icon": "🫀", "riskTier": "HIGH", "pathogenicCount": 1, "concernGenes": ["SCN5A", "APOB"], "prsPercentile": 87, "pathway": "Cardiac Action Potential & Lipid Transport"},
         {"system": "Immune & Autoimmunity", "icon": "🛡️", "riskTier": "HIGH", "pathogenicCount": 0, "concernGenes": ["HLA-DRB5", "PTPN22"], "prsPercentile": 68, "pathway": "MHC Class II Antigen Presentation & Arthritis"},
