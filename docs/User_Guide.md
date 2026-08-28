@@ -1,305 +1,125 @@
-# User Guide — ontology_report
+# User Guide: Genomic Ontology Reporting & Clinical Pipeline (v5.1)
 
-This guide covers running the report, reading the output, and tuning the
-ontology selection. For the design rationale see [`PLAN.md`](PLAN.md).
+Welcome to the **Genomic Ontology Reporting & Clinical Pipeline**. This platform translates Whole Genome Sequencing (WGS), Whole Exome Sequencing (WES), and targeted panel variant calls into formal multi-level Directed Acyclic Graph (DAG) biomedical ontologies (**HPO**, **GO**, and **Anatomical Organ/System** views), integrating in-silico predictors, polygenic risk scores (PRS), pharmacogenomic recommendations (CPIC/DPWG), and peer-reviewed literature.
 
 ---
 
-## 1. Prerequisites
+## 1. Environment & Prerequisites
+
+Activate your micromamba or conda environment containing Python 3.10+ and OpenCRAVAT:
 
 ```bash
 micromamba activate cravat_env
-oc module ls | grep -E "hpo|go|clinvar|clingen|omim|gnomad4"   # confirm modules present
 ```
 
-The report reads two ontology databases directly:
-
-- `/data/opencravat/modules/annotators/hpo/data/hpo.sqlite`
-- `/data/opencravat/modules/annotators/go/data/go.sqlite`
-
-If your modules live elsewhere, set `OC_MODULES_DIR` before running:
-
+### 1.1 Python Dependencies
+Install required packages:
 ```bash
-export OC_MODULES_DIR=/path/to/opencravat/modules
+pip install pyyaml openpyxl pydantic linkml-runtime requests
 ```
 
 ---
 
-## 2. Running
+## 2. Running OpenCRAVAT (OC) Annotation
 
+To generate the rich multi-annotator SQLite database from raw VCF files, run OpenCRAVAT with the full suite of clinical and functional annotators.
+
+### 2.1 Complete OpenCRAVAT Annotators List
+The pipeline leverages the following **25 essential annotators**:
+
+* **Clinical & Pathogenicity**: `clinvar`, `clingen`, `civic`, `clinvar_acmg`
+* **Ontologies**: `hpo`, `go`
+* **Gene Models & Disease Databases**: `ncbigene`, `omim`, `interpro`
+* **In-Silico Missense & Splicing Predictors**: `revel`, `alphamissense`, `cadd`, `spliceai`, `bayesdel`, `metarnn`, `esm1b`, `varity`
+* **Non-Coding & Regulatory**: `linsight`, `ncer`, `regulomedb`, `ccre_screen`
+* **Population & Frequency**: `gnomad4`, `dbsnp`, `vcfinfo`, `gtex`
+* **Pharmacogenomics & GWAS**: `pharmgkb`, `gwas_catalog`
+
+### 2.2 Bash Command to Install All Annotators
 ```bash
-cd ~/My-Projects/genomics/ontology_report
-./run_ontology_report.sh [-c CONFIG] [-R RENDERER] [-o] [-E] [-S] [-D] <INPUT> <OUTPUT_DIR> <PREFIX>
+oc module install hpo go clinvar clingen omim ncbigene revel alphamissense \
+  bayesdel metarnn esm1b varity spliceai cadd linsight ncer regulomedb \
+  ccre_screen gtex dbsnp vcfinfo gwas_catalog pharmgkb civic interpro
 ```
 
-### CLI Parameters & Options:
-- `-c CONFIG` — The **domain** config (e.g. `config/cardiology.yaml`, `config/hereditary_cancer.yaml`, `config/autoimmunity.yaml`).
-- `-R RENDERER` — The **visualization style**:
-  - `glass`: Modern Tailwind glassmorphism card layout with deep clinical metrics.
-  - `browser`: Desktop two-pane Variant Browser with searchable gene sidebar.
-  - `dashboard`: Executive overview with polygenic score percentiles and category filters.
-  - `autoimmune`: Specialized SVG trait-burden chart + live/cached GWAS study tables.
-- `-o` — **Offline enrichment**: Use the local cache only; make zero network calls.
-- `-E` — Skip the enrichment stage entirely.
-- `-S` — Split deliverables into monogenic and polygenic reports (dashboard mode).
-- `-D` — Automated Google Drive upload via `cloud_delivery_service.py`.
-- `<INPUT>` — An existing `.sqlite` database (annotation skipped, runs in seconds) or a raw `.vcf`/`.vcf.gz` (OpenCRAVAT annotation runs first).
-- `<OUTPUT_DIR>` — Destination directory for all reports and deliverables.
-- `<PREFIX>` — Sample/patient identifier used in filenames and report headers.
-
-### Examples:
-
+### 2.3 Bash Command to Run OpenCRAVAT on a VCF
 ```bash
-OUT=/data/Genomes/TEST/Data/Final/2026-03-22/ontology_reports
-
-# Run Cardiology in modern glassmorphism style:
-./run_ontology_report.sh -c config/cardiology.yaml -R glass "$OUT/TEST.sqlite" "$OUT" TEST
-
-# Run Two-Pane Variant Browser layout:
-./run_ontology_report.sh -c config/cardiology.yaml -R browser "$OUT/TEST.sqlite" "$OUT" TEST
-
-# Run Autoimmune domain with SVG trait-burden chart (offline):
-./run_ontology_report.sh -c config/autoimmunity.yaml -R autoimmune -o "$OUT/TEST.sqlite" "$OUT" TEST
-```
-
-### The Seven Pipeline Stages:
-
-1. **Annotate** (skipped for `.sqlite`) — Runs `oc run` across 100+ annotator modules.
-2. **Build Panel** — Extracts all genes annotated with target HPO phenotypes and GO functions into `<prefix>_<domain>_panel.json`.
-3. **Probe Schema** — Detects available annotator columns, zygosity fields, and dbSNP rsIDs → `<prefix>_schema.json`.
-4. **Filter & Tier** — Executes domain-agnostic actionability rules and assigns Tiers 1/2/3 with reason codes → `<prefix>_<domain>_actionable.{sqlite,json}`.
-5. **Enrich** — Injects NCBI Gene descriptions and live GWAS Catalog study evidence → cached in `<prefix>_<domain>_enrich_cache.json`.
-6. **Render** — Builds interactive HTML, flat TSV, and formatted text summary according to `-R <renderer>`.
-7. **Native Export** — Emits native OpenCRAVAT `.xlsx` and `.vcf` exports via `oc report --filtersql`.
-8. **Optional Cloud Delivery** — Dispatches report to Google Drive via `cloud_delivery_service.py` (`-D` flag).
-
----
-
-## 3. Reading the report
-
-Open `<prefix>_<domain>_report.html` in a browser. Layout:
-
-- **Header stats** — actionable count, per-tier counts, panel size, variants scanned.
-- **Filter box** — type a gene symbol or a reason code to live-filter cards.
-- **Tier sections**
-  - **Tier 1 — Reportable / Pathogenic-grade**
-  - **Tier 2 — VUS of interest**
-  - **Tier 3 — Monitor / regulatory**
-- **Each card** shows location, consequence, **zygosity** (+ variant allele
-  fraction and dbSNP rsID), population AF (gnomAD4 + All of Us), ClinVar (linked),
-  key predictor scores, the **NCBI Gene description** (after enrichment), the
-  gene's **HPO phenotype context** and **GO function context** (with outbound
-  HPO/GenCC links), and the full list of **reason codes**.
-- **Print / Export PDF** button uses the browser print dialog.
-
-### Zygosity
-
-Zygosity is normalized to `Heterozygous` / `Homozygous` / `Hemizygous` from
-whatever the database carries (single-sample `vcfinfo__zygosity`, or the
-per-sample `sample` table on multi-sample databases). When only read depths are
-present the variant allele fraction is derived as `alt_reads / tot_reads`.
-
-### NCBI Gene description
-
-Added by the enrichment stage from NCBI Gene (E-utilities): the official gene
-description and cytogenetic band, with a link to the gene's NCBI page. Absent if
-enrichment was skipped or the gene could not be resolved.
-
-### The autoimmunity report
-
-`config/autoimmunity.yaml` uses the `autoimmune` renderer, which adds two things
-on top of the standard tiered cards:
-
-- a **trait-burden chart** (inline SVG) summarising how many catalogued GWAS
-  risk-allele associations point at each autoimmune trait across your genome,
-  coloured by the strongest reported p-value; and
-- per-variant **current GWAS Catalog study evidence** (trait, p-value, odds
-  ratio, risk allele, PubMed link), fetched live and cached.
-
-Because autoimmune risk is polygenic, this domain keeps **common** risk alleles
-via the `gwas_catalog` `domain_evidence` rule (`bypass_frequency: true`); such
-variants are tagged `GWAS_RISK_ALLELE` and `RISK_ALLELE_COMMON`.
-
-### Reason codes
-
-| Code | Meaning | Kind |
-|------|---------|------|
-| `CLINVAR_PLP` | ClinVar Pathogenic / Likely pathogenic | phenotype |
-| `CLINVAR_VUS` | ClinVar Uncertain significance | phenotype |
-| `CLINVAR_CONFLICT` | ClinVar conflicting classifications | phenotype |
-| `CLINGEN_VALIDITY` | ClinGen gene–disease validity present | phenotype |
-| `OMIM_DISEASE` | OMIM disease entry present | phenotype |
-| `HPO_<TERM>` | Gene's HPO annotation matched a configured phenotype term | phenotype |
-| `GO_<TERM>` | Gene's GO annotation matched a configured function term | phenotype |
-| `<CODE>` (from `domain_evidence`) | Configured domain evidence column present (e.g. `ARRVARS_KNOWN`, `CANCER_HOTSPOT`) | phenotype/genotype |
-| `LOF_<so>` | Loss-of-function consequence (stop/frameshift/splice/…) | genotype |
-| `MISSENSE` / `INFRAME_INDEL` | coding consequence | genotype |
-| `PP3_<predictor>` | Predictor above threshold (REVEL/AM/… + configured `domain_predictors`) | genotype |
-| `PP3_CONSENSUS` | ≥ N predictors agree (config `pp3_consensus_n`) | genotype |
-| `SPLICEAI_HIGH` / `SPLICEAI_MOD` | SpliceAI Δ ≥ tier1 / ≥ min | genotype |
-| `PM2_RARE` / `RARE_TIER2` | rare at Tier 1 / Tier 2 frequency threshold | genotype |
-| `NONCODING_CADD/LINSIGHT/NCER/REGULOMEDB` | regulatory support (non-coding) | genotype |
-| `PVS1_HAPLOINSUFFICIENT` | LoF in a curated haploinsufficient gene | genotype |
-| `GWAS_RISK_ALLELE` | catalogued in `gwas_catalog` (config `domain_evidence`) | phenotype |
-| `COMMON_AF_FLAG` | kept because ClinVar P/LP but common in population | caution |
-| `RISK_ALLELE_COMMON` | kept via a `bypass_frequency` domain evidence though common (e.g. GWAS risk allele) | caution |
-
----
-
-## 4. Defining / tuning a domain — the only file you edit
-
-Pick a domain config under `config/` (or copy `config/template.yaml` to make a
-new one). Everything below lives in that file.
-
-### Add/remove phenotypes (HPO)
-Add exact term IDs (high precision) and/or keyword substrings (broader recall):
-
-```yaml
-hpo:
-  term_ids:
-    - HP:0001644   # Dilated cardiomyopathy
-  term_keywords:
-    - cardiomyopathy
-```
-
-Find term IDs with:
-
-```bash
-python3 - <<'PY'
-import sqlite3
-c=sqlite3.connect("/data/opencravat/modules/annotators/hpo/data/hpo.sqlite").cursor()
-for r in c.execute("select distinct hpo_id, hpo_term from genes where lower(hpo_term) like '%arrhythmia%' limit 20"):
-    print(r)
-PY
-```
-
-### Add/remove functions (GO)
-```yaml
-go:
-  term_keywords:
-    - heart contraction
-    - potassium channel activity
-```
-
-### Precision vs recall
-```yaml
-panel:
-  min_ontology_support: 1   # 1 = union (recall). 2 = gene must hit BOTH HPO and GO (precision).
-```
-
-### Thresholds
-- `frequency:` — `max_af` is the hard actionability ceiling; `tier1_af`/`tier2_af`
-  drive rarity-based tier upgrades.
-- `predictors:` — generic pan-disease cutoffs and `pp3_consensus_n`.
-- `noncoding:` — CADD/LINSIGHT/ncER/RegulomeDB cutoffs.
-- `haploinsufficient_genes:` — genes where LoF → Tier 1.
-
-### Optional domain-specific signals (portable, no code changes)
-- `domain_predictors:` — disease-tuned model columns + a threshold. Each firing
-  adds a `PP3_<code>` reason and counts toward the predictor consensus.
-  ```yaml
-  domain_predictors:
-    - code: CARDIOBOOST
-      score_cols: [cardioboost__cardiomyopathy, cardioboost__arrhythmias]
-      text_cols:  [cardioboost__cardiomyopathy1, cardioboost__arrhythmias1]
-      min: 0.90
-  ```
-- `domain_evidence:` — any OpenCRAVAT column(s) whose presence makes a variant
-  actionable and adds a reason code:
-  ```yaml
-  domain_evidence:
-    - code: CANCER_HOTSPOT
-      kind: phenotype
-      columns: [cancer_hotspots__samples]
-    - code: GWAS_RISK_ALLELE
-      kind: phenotype
-      bypass_frequency: true          # keep this variant even if population-common
-      columns: [gwas_catalog__trait, gwas_catalog__pmid]
-  ```
-  Columns that are not present in a given database are ignored automatically, so
-  the same config runs against databases with different annotator sets.
-  `bypass_frequency: true` (default false) lets an evidence hit keep a variant
-  that exceeds the frequency ceiling — essential for polygenic domains whose risk
-  alleles are common (see `config/autoimmunity.yaml`).
-
-### Enrichment (config `report:` block)
-```yaml
-report:
-  renderer: autoimmune       # or omit / "generic"
-  enrichment:
-    genes: true              # NCBI Gene descriptions (default on)
-    studies: true            # live GWAS Catalog study evidence
-```
-The orchestrator reads this block to decide which enrichments to run and which
-renderer to use. Run with `-o` for offline (cache-only) or `-E` to skip.
-
-After editing, just re-run stages 2–6 (they are fast); re-annotation is only
-needed if you add a **new annotator** that must be present in the SQLite.
-
----
-
-## 5. Rebuilding just the panel (to preview gene selection)
-
-```bash
-python3 lib/build_ontology_panel.py --config config/hereditary_cancer.yaml --out /tmp/panel.json
-python3 - <<'PY'
-import json; p=json.load(open("/tmp/panel.json"))
-print(p["counts"])
-print("BRCA1 in panel:", "BRCA1" in p["genes"])
-PY
+oc run /path/to/input_phased.vcf.gz \
+  -l hg38 \
+  -a hpo go clinvar clingen omim ncbigene revel alphamissense bayesdel metarnn esm1b varity spliceai cadd linsight ncer regulomedb ccre_screen gtex dbsnp vcfinfo gwas_catalog pharmgkb civic interpro \
+  -d /path/to/output_dir \
+  --mp $(nproc) \
+  -n Sample_Prefix
 ```
 
 ---
 
-## 6. Troubleshooting
+## 3. Running the Unified Ontology Pipeline Engine
 
-| Symptom | Cause / fix |
-|---------|-------------|
-| `HPO data not found` | Wrong modules dir — set `OC_MODULES_DIR`. |
-| Panel is huge/tiny | Adjust `min_ontology_support` or trim keywords in the config. |
-| Many `COMMON_AF_FLAG` Tier 1s | These are ClinVar P/LP but population-common; review manually. |
-| Native Excel/VCF missing | Non-fatal; the orchestrator warns and continues. Re-run stage 7 manually with `oc report`. |
-| Few actionable variants on test data | The TEST VCF is SV-heavy; symbolic `<...>` ALTs are dropped by the OC converter (see PLAN §Scope). |
-| No gene descriptions / study evidence | Enrichment was skipped (`-E`), offline (`-o`) with an empty cache, or the network was unreachable. The report still builds; re-run online to populate. |
-| Zygosity shows `-` | The database has no genotype columns (`vcfinfo__zygosity` or a `sample` table). Annotate with `vcfinfo`, or use a multi-sample DB. |
-| Enrichment slow | Each new gene/variant is one or more API calls (cached afterwards). Set `NCBI_API_KEY`; results cache to `<prefix>_<domain>_enrich_cache.json`. |
+You can execute the entire end-to-end report generation using either the Python runner (`run_ontology_pipeline.py`) or the Bash wrapper (`run_ontology_master_pipeline.sh`).
+
+### 3.1 Accepted Input Sources
+1. **Raw or Phased VCF (`.vcf`, `.vcf.gz`)**: Automatically runs `oc run` with all 25 annotators if an annotated database does not already exist.
+2. **Pre-Annotated SQLite Database (`.sqlite`)**: Immediately executes filtering, enrichment, and report rendering.
+3. **OpenCRAVAT Job ID (e.g. `260706-105810`)**: Automatically locates the SQLite database and phased VCF in `/data/opencravat/jobs/default/<JOB_ID>/`.
+
+### 3.2 Command Examples
+
+#### Option A: Running from OpenCRAVAT Job ID
+```bash
+# Python Engine
+python3 run_ontology_pipeline.py --sample DE_master --input 260706-105810
+
+# Bash Wrapper
+./run_ontology_master_pipeline.sh DE_master 260706-105810
+```
+
+#### Option B: Running directly from a VCF / VCF.GZ file
+```bash
+# Python Engine
+python3 run_ontology_pipeline.py --sample HG003 --input /data/genomes/HG003.phased.vcf.gz
+
+# Bash Wrapper
+./run_ontology_master_pipeline.sh HG003 /data/genomes/HG003.phased.vcf.gz
+```
+
+#### Option C: Running from an annotated SQLite database
+```bash
+python3 run_ontology_pipeline.py --sample Patient_101 --input /path/to/Patient_101.sqlite
+```
 
 ---
 
-## 7. Validating changes
+## 4. Output Deliverables & Google Drive Sync
 
-Always run the offline suites after editing `lib/`:
+The pipeline automatically creates a dated subfolder under your local `reports/` directory and synchronizes all deliverables to your Google Drive `"Ontology"` folder:
 
-```bash
-python3 tests/test_flow.py        # generic engine, every decision path
-python3 tests/test_autoimmune.py  # autoimmunity, zygosity, enrichment, renderer
-```
+### 4.1 Output Path Structure
+* **Local Workspace**: `./reports/{Sample_ID}-{DD-MM-YYYY}/`
+* **Google Drive Target**: `~/Google Drive/My Drive/Ontology/{Sample_ID}-{DD-MM-YYYY}/`
 
-`test_flow.py` builds a mock database exercising every decision path and asserts
-the expected tiers and reason codes (including the config-driven
-`domain_evidence` path), so it is domain-independent. `test_autoimmune.py`
-additionally checks zygosity normalization, the `bypass_frequency` mechanism,
-offline enrichment injection (from a pre-seeded cache — no network), and the
-autoimmune renderer's SVG chart + study tables. To eyeball a full sample report:
-
-```bash
-python3 tests/demo_autoimmune.py /tmp/ai_demo            # live enrichment
-python3 tests/demo_autoimmune.py /tmp/ai_demo --offline  # cache-only
-```
+### 4.2 Generated Deliverables
+| File Name Pattern | Description |
+| :--- | :--- |
+| **`{Sample_ID}_visual_explorer.html`** | Standalone interactive Visual Ontology Explorer (D3 DAG hierarchy, non-redundant variant drawers, zoomable graph, interactive exons). |
+| **`{Sample_ID}_master_ontology_report.html`** | Comprehensive Universal Master Hub Report with full domain breakdowns. |
+| **`{Sample_ID}_master_actionable.json`** | Filtered, tiered actionable variants dataset with protective frequency bypass. |
+| **`{Sample_ID}_variants.tsv`** | Tab-separated matrix of all clinical variant calls, in-silico scores, and phasing. |
+| **`{Sample_ID}_summary.txt`** | Text summary for clinical review. |
+| **`{Sample_ID}_report.pdf`** | Headless Chrome auto-generated high-resolution PDF document. |
+| **`{Sample_ID}_iOS_bundle.zip`** | Portable offline archive containing all HTML, TSV, and JSON assets. |
 
 ---
 
-## 8. Defining a brand-new domain (worked recipe)
+## 5. Visual Ontology Explorer Interactive Features
 
-1. `cp config/template.yaml config/neuro.yaml`
-2. Set `domain: neuro`, `report_title: …`.
-3. Find relevant HPO IDs/keywords (`Seizure`, `Intellectual disability`, …) and
-   GO terms (`neuron differentiation`, `synaptic signaling`, …) using the
-   snippet in §4; paste them into `hpo:`/`go:`.
-4. Optionally add `force_include`, `haploinsufficient_genes`, `domain_predictors`,
-   `domain_evidence`.
-5. Preview the panel (§5). Adjust `min_ontology_support`/keywords until the gene
-   count and known genes look right.
-6. Run: `./run_ontology_report.sh -c config/neuro.yaml <db> <outdir> <prefix>`.
-
-No Python changes are ever required to add a domain.
+1. **Expanding Variant Details**:
+   * Click on the character/symbol (**`▸`** / **`▾`**) to the left of the **`rs`** identifier to expand or collapse the 4-box clinical drawer.
+2. **Active rs Links**:
+   * Clicking directly on any **`rsID`** opens the official NCBI dbSNP (or ClinVar) page in a new browser tab.
+3. **Variant-Specific Literature & Studies**:
+   * The expanded variant drawer displays direct links to **LitVar2**, **GWAS Catalog**, **UCSC Genome Browser (GRCh38)**, and associated PubMed articles referenced by that specific variant.
+4. **Protective & Drug Response Filtering**:
+   * Protective variants ($MAF \approx 0.10 - 0.76$) and CPIC/DPWG pharmacogenomic drug responses bypass the 1% rare disease ceiling and are categorized in green under **Protective Associations**.
+5. **Phasing Badges**:
+   * Direct extraction from VCF piped genotypes displays **Maternal** (`0|1`), **Paternal** (`1|0`), **Homozygous** (`1|1`), or **Unphased** badges.

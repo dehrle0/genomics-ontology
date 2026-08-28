@@ -1132,3 +1132,50 @@ table.data-table tbody tr:last-child td { border-bottom: none; }
   padding: 28px 30px 100px;
   box-sizing: border-box;
 }
+
+/* ---------------------------------------------------------------------
+   Variant Expander Button & RS Links
+   --------------------------------------------------------------------- */
+.variant-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--slate-light);
+  color: var(--teal-dark);
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  user-select: none;
+}
+.variant-toggle-btn:hover {
+  background: var(--teal);
+  color: #ffffff;
+  transform: scale(1.08);
+}
+.variant-rs-link {
+  color: var(--teal-dark);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+.variant-rs-link:hover {
+  color: var(--teal);
+}
+.variant-pub-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--teal);
+  text-decoration: none;
+}
+.variant-pub-link:hover {
+  text-decoration: underline;
+}

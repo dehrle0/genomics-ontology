@@ -1,5 +1,7 @@
 /**
- * Genomic Ontology Explorer — app logic (v5.0)
+ * Genomic Ontology Explorer — app logic (v5.1)
+ * Dedicated Left-Caret Variant Expander Toggle, Active dbSNP rs Links,
+ * Variant-Specific Publication & Study Citations (LitVar2, GWAS Catalog, PubMed),
  * Non-redundant Variant Drawers with Autosomal Dominant / Recessive Trait Badges,
  * Direct UCSC Genome Browser (GRCh38) Linking, Full ClinVar Protective Variants Support,
  * Phased Haplotypes (Maternal/Paternal), and Smooth Scrolling Across All Views.
@@ -805,16 +807,23 @@
   }
 
   // -----------------------------------------------------------------
-  // Non-Redundant Comprehensive Variant Detail Drawer
+  // Non-Redundant Comprehensive Variant Detail Drawer (v5.1)
   // -----------------------------------------------------------------
   function variantRow(geneSymbol, v) {
     const badgeCls = { concern: "badge--concern", protective: "badge--protect", uncertain: "badge--uncertain", uncategorized: "badge--neutral" };
     const rowKey = (geneSymbol || v.gene) + ":" + v.id;
     const isExpanded = state.expandedVariantRows.has(rowKey);
 
+    const rsUrl = v.id.startsWith("rs")
+      ? `https://www.ncbi.nlm.nih.gov/snp/${v.id}`
+      : (v.clinvarId ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${v.clinvarId}/` : (v.ucscUrl || '#'));
+
     const mainRow =
       '<tr data-gene="' + (geneSymbol || v.gene) + '" data-vid="' + v.id + '" class="' + (isExpanded ? "expanded" : "") + '">' +
-      '<td class="mono" style="font-weight:700;color:var(--teal-dark);"><span class="caret" style="margin-right:6px;">' + (isExpanded ? "\u25BE" : "\u25B8") + '</span>' + v.id + "</td>" +
+      '<td class="mono" style="font-weight:700;white-space:nowrap;">' +
+        '<span class="variant-toggle-btn" data-toggle="' + rowKey + '" title="Click to ' + (isExpanded ? "collapse" : "expand") + ' variant details">' + (isExpanded ? "\u25BE" : "\u25B8") + '</span>' +
+        '<a href="' + rsUrl + '" target="_blank" rel="noopener" class="variant-rs-link" title="Open in NCBI dbSNP / ClinVar (' + v.id + ') ↗">' + v.id + '</a>' +
+      "</td>" +
       '<td class="mono">' + v.genotype + "</td>" +
       "<td>" + v.zygosity + "</td>" +
       "<td>" + phaseTag(v.phase) + "</td>" +
@@ -836,6 +845,10 @@
     const alStr = sDetails.al !== undefined && sDetails.al !== null ? Number(sDetails.al).toFixed(2) : "0.00";
     const dgStr = sDetails.dg !== undefined && sDetails.dg !== null ? Number(sDetails.dg).toFixed(2) : "0.00";
     const dlStr = sDetails.dl !== undefined && sDetails.dl !== null ? Number(sDetails.dl).toFixed(2) : "0.00";
+
+    // Build specific literature & study links for this variant
+    const litvarUrl = `https://www.ncbi.nlm.nih.gov/research/litvar2/doc/literature?query=${encodeURIComponent(v.id)}`;
+    const gwasVarUrl = `https://www.ebi.ac.uk/gwas/variants/${encodeURIComponent(v.id)}`;
 
     const detailRow =
       '<tr class="variant-detail-row"><td colspan="13">' +
@@ -877,20 +890,25 @@
           (v.clinvarId ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">ClinVar ID:</span><span class="drawer-metric-val"><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/' + v.clinvarId + '/" target="_blank" rel="noopener">VCV#' + v.clinvarId + ' ↗</a></span></div>' : '') +
         '</div>' +
 
-        // Box 4: UCSC Genome Browser & Research
+        // Box 4: Genome Browser, Literature & Studies
         '<div class="variant-drawer-box">' +
-          '<h4>Genome Browser & Research</h4>' +
-          '<div style="margin-bottom:6px;">' +
-            '<a class="ref-link" href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;display:inline-block;padding:3px 8px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal-dark);border-radius:3px;">View in UCSC Genome Browser (hg38) ↗</a>' +
+          '<h4>Variant Literature & Studies</h4>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">' +
+            '<a class="ref-link" href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;padding:3px 8px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal-dark);border-radius:3px;">UCSC Browser ↗</a>' +
+            '<a class="ref-link" href="' + litvarUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">LitVar2 Papers ↗</a>' +
+            (v.id.startsWith("rs") ? '<a class="ref-link" href="' + gwasVarUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">GWAS Catalog ↗</a>' : '') +
           '</div>' +
           (v.studies && v.studies.length
             ? v.studies.map((s) =>
                 '<div style="margin-top:4px;border-top:1px dashed var(--line);padding-top:4px;">' +
-                  '<div style="font-weight:700;font-size:11px;color:var(--teal-dark);">' + s.title + '</div>' +
-                  '<div style="font-size:10.5px;color:var(--slate);">' + s.finding + '</div>' +
+                  '<div style="font-weight:700;font-size:11px;color:var(--teal-dark);">' +
+                    (s.url ? '<a href="' + s.url + '" target="_blank" rel="noopener" style="color:var(--teal-dark);text-decoration:underline;">' + s.title + ' ↗</a>' : s.title) +
+                  '</div>' +
+                  '<div style="font-size:10.5px;color:var(--slate);margin-top:1px;">' + s.finding + '</div>' +
+                  (s.pmid ? '<div style="margin-top:2px;"><a href="https://pubmed.ncbi.nlm.nih.gov/' + s.pmid + '/" target="_blank" rel="noopener" class="variant-pub-link">PubMed PMID: ' + s.pmid + ' ↗</a></div>' : '') +
                 '</div>'
               ).join("")
-            : '<div style="font-size:11px;color:var(--slate);">No specific GWAS study associations flagged.</div>') +
+            : '<div style="font-size:11px;color:var(--slate);">No specific GWAS study associations flagged. Check <a href="' + litvarUrl + '" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:underline;">LitVar2</a> for literature.</div>') +
         '</div>' +
       '</div>' +
       '</td></tr>';
@@ -914,7 +932,9 @@
       studiesList.map(({ variant: v, study: s }) =>
         '<div class="study-card">' +
           '<div class="study-card__head">' +
-            '<span class="study-card__variant" data-gene="' + (v.gene || '') + '" data-vid="' + v.id + '">' + s.title + '</span>' +
+            '<span class="study-card__variant" data-gene="' + (v.gene || '') + '" data-vid="' + v.id + '">' +
+              (s.url ? '<a href="' + s.url + '" target="_blank" rel="noopener" style="color:var(--teal-dark);text-decoration:underline;">' + s.title + ' ↗</a>' : s.title) +
+            '</span>' +
             '<span class="study-card__condition">' + s.condition + '</span>' +
           '</div>' +
           '<div class="study-card__finding" style="font-weight:600;margin-top:3px;">' + s.finding + '</div>' +
@@ -922,6 +942,7 @@
           '<div class="study-card__foot">' +
             '<span>' + s.source + '</span>' +
             '<span>' + s.genotypeRelevance + (s.pValue && s.pValue !== 'N/A' ? ' · p=' + s.pValue : '') + '</span>' +
+            (s.pmid ? '<a href="https://pubmed.ncbi.nlm.nih.gov/' + s.pmid + '/" target="_blank" rel="noopener" style="color:var(--teal);font-weight:700;margin-left:auto;">PMID: ' + s.pmid + ' ↗</a>' : '') +
           '</div>' +
         '</div>'
       ).join("") +
@@ -929,13 +950,29 @@
   }
 
   function wireVariantsPane(wrap) {
-    wrap.querySelectorAll(".variant-table tbody tr[data-vid]").forEach((tr) => {
-      tr.addEventListener("click", () => {
-        const rowKey = tr.dataset.gene + ":" + tr.dataset.vid;
+    // 1. Toggle on click of the character/symbol to the left of rs
+    wrap.querySelectorAll(".variant-toggle-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const rowKey = btn.dataset.toggle;
         if (state.expandedVariantRows.has(rowKey)) state.expandedVariantRows.delete(rowKey);
         else state.expandedVariantRows.add(rowKey);
         renderInspectionPanel();
       });
+    });
+
+    // 2. Also allow clicking the first td cell (outside links) to toggle
+    wrap.querySelectorAll(".variant-table tbody tr[data-vid]").forEach((tr) => {
+      const firstTd = tr.querySelector("td:first-child");
+      if (firstTd) {
+        firstTd.addEventListener("click", (e) => {
+          if (e.target.tagName.toLowerCase() === 'a') return; // Don't intercept actual links
+          const rowKey = tr.dataset.gene + ":" + tr.dataset.vid;
+          if (state.expandedVariantRows.has(rowKey)) state.expandedVariantRows.delete(rowKey);
+          else state.expandedVariantRows.add(rowKey);
+          renderInspectionPanel();
+        });
+      }
     });
   }
 
@@ -1125,23 +1162,30 @@
     const badgeCls = { concern: "badge--concern", protective: "badge--protect", uncertain: "badge--uncertain", uncategorized: "badge--neutral" };
 
     const tbody = byId("variants-table").querySelector("tbody");
-    tbody.innerHTML = rows.map((v) =>
-      '<tr data-gene="' + v.gene + '" data-vid="' + v.id + '" style="cursor:pointer;">' +
-      '<td class="mono" style="font-weight:700;color:var(--teal-dark);">' + v.id + "</td>" +
-      '<td class="mono">' + v.gene + "</td>" +
-      "<td><span class=\"badge " + (badgeCls[v.category] || "badge--neutral") + "\">" + v.clinvar + "</span></td>" +
-      "<td>" + (v.revel === null || v.revel === undefined ? '<span class="na-cell">\u2014</span>' : v.revel) + "</td>" +
-      scoreColumnsCells(v) +
-      '<td class="mono">' + v.coordinate + "</td>" +
-      "<td>" + v.zygosity + "</td>" +
-      "<td>" + phaseTag(v.phase) + "</td>" +
-      "<td>" + (typeof v.maf === 'number' ? v.maf.toFixed(4) : v.maf) + "</td>" +
-      "<td>" + v.consequence.map((c) => '<span class="chip">' + c + "</span>").join("") + "</td>" +
-      "</tr>"
-    ).join("");
+    tbody.innerHTML = rows.map((v) => {
+      const rsUrl = v.id.startsWith("rs")
+        ? `https://www.ncbi.nlm.nih.gov/snp/${v.id}`
+        : (v.clinvarId ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${v.clinvarId}/` : (v.ucscUrl || '#'));
+
+      return (
+        '<tr data-gene="' + v.gene + '" data-vid="' + v.id + '" style="cursor:pointer;">' +
+        '<td class="mono" style="font-weight:700;"><a href="' + rsUrl + '" target="_blank" rel="noopener" class="variant-rs-link">' + v.id + '</a></td>' +
+        '<td class="mono">' + v.gene + "</td>" +
+        "<td><span class=\"badge " + (badgeCls[v.category] || "badge--neutral") + "\">" + v.clinvar + "</span></td>" +
+        "<td>" + (v.revel === null || v.revel === undefined ? '<span class="na-cell">\u2014</span>' : v.revel) + "</td>" +
+        scoreColumnsCells(v) +
+        '<td class="mono">' + v.coordinate + "</td>" +
+        "<td>" + v.zygosity + "</td>" +
+        "<td>" + phaseTag(v.phase) + "</td>" +
+        "<td>" + (typeof v.maf === 'number' ? v.maf.toFixed(4) : v.maf) + "</td>" +
+        "<td>" + v.consequence.map((c) => '<span class="chip">' + c + "</span>").join("") + "</td>" +
+        "</tr>"
+      );
+    }).join("");
 
     tbody.querySelectorAll("tr").forEach((tr) => {
-      tr.addEventListener("click", () => {
+      tr.addEventListener("click", (e) => {
+        if (e.target.tagName.toLowerCase() === 'a') return;
         const sym = tr.dataset.gene;
         document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("active"));
         document.querySelector('.tabs button[data-view="ontology"]').classList.add("active");
