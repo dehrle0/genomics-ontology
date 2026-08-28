@@ -85150,8 +85150,8 @@
     "studies_requested": false,
     "records_with_gene_info": 609,
     "records_with_study_evidence": 0,
-    "remote_calls": 941,
-    "remote_errors": 147,
+    "remote_calls": 0,
+    "remote_errors": 0,
     "cache": "/home/daniel-ehrle/My-Projects/genomics-ontology/genomics-ontology/reports/DE_master-28-08-2026/DE_master_enrich_cache.json"
   }
 }

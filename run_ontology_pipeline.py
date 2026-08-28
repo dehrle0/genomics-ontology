@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """
 run_ontology_pipeline.py
-Unified Command-Line Execution Engine for the Genomic Ontology Reporting System.
+Unified Command-Line Execution Engine for the Genomic Ontology Reporting System (v5.2).
 
-Accepts:
-  - Sample / Patient ID (e.g., DE_master, HG003)
-  - Input Source: .vcf, .vcf.gz, .sqlite, or OpenCRAVAT Job ID (e.g. 260706-105810)
+Produces standalone, 100% self-contained HTML5 deliverables (like Chrome "Webpage, Complete"):
+  - {Sample_ID}_visual_explorer.html (Self-contained HTML5 with inlined CSS, Data, and Client JS)
+  - {Sample_ID}_master_ontology_report.html (Self-contained Master Hub HTML5)
+  - {Sample_ID}_master_actionable.json
+  - {Sample_ID}_variants.tsv
+  - {Sample_ID}_summary.txt
+  - {Sample_ID}_report.pdf (Headless Chrome generated)
+  - {Sample_ID}_iOS_bundle.zip
 
-Outputs deliverables (HTML, JSON, TSV, TXT, PDF, ZIP) to:
-  Google Drive: ~/Google Drive/My Drive/Ontology/{Sample_ID}-{DD-MM-YYYY}/
-  Local Reports: ./reports/{Sample_ID}-{DD-MM-YYYY}/
+Outputs to:
+  Google Drive : ~/Google Drive/My Drive/Ontology/{Sample_ID}-{DD-MM-YYYY}/
+  Local Project: ./reports/{Sample_ID}-{DD-MM-YYYY}/
 """
 
 import os
@@ -74,7 +79,6 @@ def resolve_input(input_source, sample_id, work_dir):
     raw_db = None
     vcf_path = None
 
-    # Check if input is OpenCRAVAT Job ID or directory
     if not os.path.exists(input_source):
         job_dir_candidate = f"/data/opencravat/jobs/default/{input_source}"
         if os.path.exists(job_dir_candidate):
@@ -123,6 +127,32 @@ def resolve_input(input_source, sample_id, work_dir):
         raise ValueError(f"Unrecognized input format: {input_source}. Expected .vcf, .vcf.gz, .sqlite, or OC Job ID.")
 
     return raw_db, vcf_path
+
+def build_standalone_html5(template_html, css_path, js_data_path, js_app_path, out_html):
+    """
+    Builds a 100% self-contained standalone HTML5 deliverable (like Chrome 'Save As: Webpage, Complete')
+    with inlined CSS styles, inlined dataset, and inlined application logic.
+    """
+    with open(template_html, 'r', encoding='utf-8') as f:
+        html = f.read()
+    with open(css_path, 'r', encoding='utf-8') as f:
+        css = f.read()
+    with open(js_data_path, 'r', encoding='utf-8') as f:
+        js_data = f.read()
+    with open(js_app_path, 'r', encoding='utf-8') as f:
+        js_app = f.read()
+
+    # Inline CSS
+    html = html.replace('<link rel="stylesheet" href="css/style.css" />', f'<style>\n{css}\n</style>')
+    html = html.replace('<link rel="stylesheet" href="css/style.css">', f'<style>\n{css}\n</style>')
+    # Inline Data & App JS
+    html = html.replace('<script src="data/mock-data.js"></script>', f'<script>\n{js_data}\n</script>')
+    html = html.replace('<script src="js/app.js"></script>', f'<script>\n{js_app}\n</script>')
+
+    with open(out_html, 'w', encoding='utf-8') as f:
+        f.write(html)
+    print(f"[HTML5 Standalone Engine] Built complete single-file report ({os.path.getsize(out_html)/1024:.1f} KB): {out_html}")
+    return out_html
 
 def generate_pdf_report(html_path, pdf_path):
     """
@@ -188,7 +218,7 @@ def main():
     os.makedirs(local_outdir, exist_ok=True)
 
     print("==================================================================")
-    print(f"GENOMIC ONTOLOGY PIPELINE ENGINE (v5.1)")
+    print(f"GENOMIC ONTOLOGY PIPELINE ENGINE (v5.2)")
     print(f"  Sample / Patient ID : {args.sample_id}")
     print(f"  Input Source        : {args.input}")
     print(f"  Execution Date      : {date_str}")
@@ -265,7 +295,7 @@ def main():
         print(f"[Enrichment Note] Completed / Cached fallback applied: {e}")
 
     # 6. Render Master Hub & Standalone Visual Explorer
-    print("\n[Stage 6/7] Rendering Master Hub & Visual Explorer deliverables...")
+    print("\n[Stage 6/7] Rendering Master Hub & Standalone Single-File Visual Explorer HTML5...")
     subprocess.run([
         "python3", "lib/render_master_hub.py",
         "--in-json", act_json,
@@ -283,7 +313,15 @@ def main():
         vcf_path or "/dev/null",
         mock_data_js
     ], check=True)
-    shutil.copy2(os.path.join(script_dir, "index.html"), visual_explorer_html)
+
+    # Build 100% Self-Contained Standalone HTML5 Document (Chrome "Save As: Webpage, Complete")
+    build_standalone_html5(
+        os.path.join(script_dir, "index.html"),
+        os.path.join(script_dir, "css", "style.css"),
+        mock_data_js,
+        os.path.join(script_dir, "js", "app.js"),
+        visual_explorer_html
+    )
 
     # 7. Generate PDF & Zip Bundle
     print("\n[Stage 7/7] Generating PDF report and packaging deliverables...")
@@ -317,15 +355,15 @@ def main():
 
     print("\n==================================================================")
     print("✨ PIPELINE COMPLETE. ALL DELIVERABLES GENERATED SUCCESSFULLY:")
-    print(f"  1. Visual Explorer HTML : {visual_explorer_html}")
-    print(f"  2. Universal Master Hub : {master_hub_html}")
-    print(f"  3. Actionable JSON      : {act_json}")
-    print(f"  4. Variant TSV Matrix   : {tsv_report}")
-    print(f"  5. Clinical Summary TXT : {txt_report}")
-    print(f"  6. Printable PDF Report : {pdf_report}")
-    print(f"  7. Offline iOS Bundle   : {zip_bundle}")
+    print(f"  1. Visual Explorer HTML (Standalone HTML5) : {visual_explorer_html}")
+    print(f"  2. Universal Master Hub (HTML5)            : {master_hub_html}")
+    print(f"  3. Actionable JSON                         : {act_json}")
+    print(f"  4. Variant TSV Matrix                      : {tsv_report}")
+    print(f"  5. Clinical Summary TXT                    : {txt_report}")
+    print(f"  6. Printable PDF Report                    : {pdf_report}")
+    print(f"  7. Offline iOS Bundle                      : {zip_bundle}")
     if not args.local_only:
-        print(f"  👉 Google Drive Folder  : ~/Google Drive/My Drive/Ontology/{subfolder_name}/")
+        print(f"  👉 Google Drive Folder                     : ~/Google Drive/My Drive/Ontology/{subfolder_name}/")
     print("==================================================================")
 
 if __name__ == "__main__":

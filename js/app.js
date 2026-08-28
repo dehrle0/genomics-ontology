@@ -1,10 +1,10 @@
 /**
- * Genomic Ontology Explorer — app logic (v5.1)
- * Dedicated Left-Caret Variant Expander Toggle, Active dbSNP rs Links,
- * Variant-Specific Publication & Study Citations (LitVar2, GWAS Catalog, PubMed),
+ * Genomic Ontology Explorer — app logic (v5.2)
+ * Dedicated Left-Caret Variant Expander Toggle, dbSNP rs Links (Non-rs Coordinate IDs Unlinked),
+ * Multi-Resource Variant Literature & Preprints (LitVar2, bioRxiv/medRxiv, Europe PMC, GWAS Catalog, PubMed),
  * Non-redundant Variant Drawers with Autosomal Dominant / Recessive Trait Badges,
  * Direct UCSC Genome Browser (GRCh38) Linking, Full ClinVar Protective Variants Support,
- * Phased Haplotypes (Maternal/Paternal), and Smooth Scrolling Across All Views.
+ * Phased Haplotypes (Maternal/Paternal), and Standalone HTML5 Compatibility.
  */
 
 (function () {
@@ -807,22 +807,23 @@
   }
 
   // -----------------------------------------------------------------
-  // Non-Redundant Comprehensive Variant Detail Drawer (v5.1)
+  // Non-Redundant Comprehensive Variant Detail Drawer (v5.2)
   // -----------------------------------------------------------------
   function variantRow(geneSymbol, v) {
     const badgeCls = { concern: "badge--concern", protective: "badge--protect", uncertain: "badge--uncertain", uncategorized: "badge--neutral" };
     const rowKey = (geneSymbol || v.gene) + ":" + v.id;
     const isExpanded = state.expandedVariantRows.has(rowKey);
 
-    const rsUrl = v.id.startsWith("rs")
-      ? `https://www.ncbi.nlm.nih.gov/snp/${v.id}`
-      : (v.clinvarId ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${v.clinvarId}/` : (v.ucscUrl || '#'));
+    const isRsId = typeof v.id === "string" && v.id.toLowerCase().startsWith("rs");
+    const idHtml = isRsId
+      ? '<a href="https://www.ncbi.nlm.nih.gov/snp/' + v.id + '" target="_blank" rel="noopener" class="variant-rs-link" title="Open in NCBI dbSNP (' + v.id + ') ↗">' + v.id + '</a>'
+      : '<span class="variant-coord-id">' + v.id + '</span>';
 
     const mainRow =
       '<tr data-gene="' + (geneSymbol || v.gene) + '" data-vid="' + v.id + '" class="' + (isExpanded ? "expanded" : "") + '">' +
       '<td class="mono" style="font-weight:700;white-space:nowrap;">' +
         '<span class="variant-toggle-btn" data-toggle="' + rowKey + '" title="Click to ' + (isExpanded ? "collapse" : "expand") + ' variant details">' + (isExpanded ? "\u25BE" : "\u25B8") + '</span>' +
-        '<a href="' + rsUrl + '" target="_blank" rel="noopener" class="variant-rs-link" title="Open in NCBI dbSNP / ClinVar (' + v.id + ') ↗">' + v.id + '</a>' +
+        idHtml +
       "</td>" +
       '<td class="mono">' + v.genotype + "</td>" +
       "<td>" + v.zygosity + "</td>" +
@@ -846,10 +847,13 @@
     const dgStr = sDetails.dg !== undefined && sDetails.dg !== null ? Number(sDetails.dg).toFixed(2) : "0.00";
     const dlStr = sDetails.dl !== undefined && sDetails.dl !== null ? Number(sDetails.dl).toFixed(2) : "0.00";
 
-    // Build specific literature & study links for this variant (LitVar2 docsum format)
-    const litvarUrl = v.id.startsWith("rs")
+    // Build specific literature, preprints & study links for this variant
+    const geneNameStr = geneSymbol || v.gene || "";
+    const litvarUrl = isRsId
       ? `https://www.ncbi.nlm.nih.gov/research/litvar2/docsum?variant=litvar@${encodeURIComponent(v.id)}%23%23&query=${encodeURIComponent(v.id)}`
       : `https://www.ncbi.nlm.nih.gov/research/litvar2/docsum?query=${encodeURIComponent(v.id)}`;
+    const biorxivUrl = `https://www.biorxiv.org/search/${encodeURIComponent(geneNameStr + " " + v.id)}`;
+    const europePmcUrl = `https://europepmc.org/search?query=${encodeURIComponent(geneNameStr + " " + v.id)}`;
     const gwasVarUrl = `https://www.ebi.ac.uk/gwas/variants/${encodeURIComponent(v.id)}`;
 
     const detailRow =
@@ -892,13 +896,15 @@
           (v.clinvarId ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">ClinVar ID:</span><span class="drawer-metric-val"><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/' + v.clinvarId + '/" target="_blank" rel="noopener">VCV#' + v.clinvarId + ' ↗</a></span></div>' : '') +
         '</div>' +
 
-        // Box 4: Genome Browser, Literature & Studies
+        // Box 4: Genome Browser, Preprints, Literature & Studies
         '<div class="variant-drawer-box">' +
-          '<h4>Variant Literature & Studies</h4>' +
+          '<h4>Literature, Preprints & Studies</h4>' +
           '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">' +
             '<a class="ref-link" href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;padding:3px 8px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal-dark);border-radius:3px;">UCSC Browser ↗</a>' +
             '<a class="ref-link" href="' + litvarUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">LitVar2 Papers ↗</a>' +
-            (v.id.startsWith("rs") ? '<a class="ref-link" href="' + gwasVarUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">GWAS Catalog ↗</a>' : '') +
+            '<a class="ref-link" href="' + biorxivUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">bioRxiv Preprints ↗</a>' +
+            '<a class="ref-link" href="' + europePmcUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">Europe PMC ↗</a>' +
+            (isRsId ? '<a class="ref-link" href="' + gwasVarUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">GWAS Catalog ↗</a>' : '') +
           '</div>' +
           (v.studies && v.studies.length
             ? v.studies.map((s) =>
@@ -910,7 +916,7 @@
                   (s.pmid ? '<div style="margin-top:2px;"><a href="https://pubmed.ncbi.nlm.nih.gov/' + s.pmid + '/" target="_blank" rel="noopener" class="variant-pub-link">PubMed PMID: ' + s.pmid + ' ↗</a></div>' : '') +
                 '</div>'
               ).join("")
-            : '<div style="font-size:11px;color:var(--slate);">No specific GWAS study associations flagged. Check <a href="' + litvarUrl + '" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:underline;">LitVar2</a> for literature.</div>') +
+            : '<div style="font-size:11px;color:var(--slate);">No specific GWAS study associations flagged. Search <a href="' + litvarUrl + '" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:underline;">LitVar2</a> or <a href="' + biorxivUrl + '" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:underline;">bioRxiv</a> for emerging findings.</div>') +
         '</div>' +
       '</div>' +
       '</td></tr>';
@@ -1165,13 +1171,14 @@
 
     const tbody = byId("variants-table").querySelector("tbody");
     tbody.innerHTML = rows.map((v) => {
-      const rsUrl = v.id.startsWith("rs")
-        ? `https://www.ncbi.nlm.nih.gov/snp/${v.id}`
-        : (v.clinvarId ? `https://www.ncbi.nlm.nih.gov/clinvar/variation/${v.clinvarId}/` : (v.ucscUrl || '#'));
+      const isRsId = typeof v.id === "string" && v.id.toLowerCase().startsWith("rs");
+      const idHtml = isRsId
+        ? '<a href="https://www.ncbi.nlm.nih.gov/snp/' + v.id + '" target="_blank" rel="noopener" class="variant-rs-link" title="Open in NCBI dbSNP (' + v.id + ') ↗">' + v.id + '</a>'
+        : '<span class="variant-coord-id">' + v.id + '</span>';
 
       return (
         '<tr data-gene="' + v.gene + '" data-vid="' + v.id + '" style="cursor:pointer;">' +
-        '<td class="mono" style="font-weight:700;"><a href="' + rsUrl + '" target="_blank" rel="noopener" class="variant-rs-link">' + v.id + '</a></td>' +
+        '<td class="mono" style="font-weight:700;">' + idHtml + '</td>' +
         '<td class="mono">' + v.gene + "</td>" +
         "<td><span class=\"badge " + (badgeCls[v.category] || "badge--neutral") + "\">" + v.clinvar + "</span></td>" +
         "<td>" + (v.revel === null || v.revel === undefined ? '<span class="na-cell">\u2014</span>' : v.revel) + "</td>" +
