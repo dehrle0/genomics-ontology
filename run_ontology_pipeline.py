@@ -12,9 +12,10 @@ Produces standalone, 100% self-contained HTML5 deliverables (like Chrome "Webpag
   - {Sample_ID}_report.pdf (Headless Chrome generated)
   - {Sample_ID}_iOS_bundle.zip
 
-Outputs to:
-  Google Drive : ~/Google Drive/My Drive/Ontology/{Sample_ID}-{DD-MM-YYYY}/
-  Local Project: ./reports/{Sample_ID}-{DD-MM-YYYY}/
+Delivers automatically to:
+  1. Google Drive Cloud Remote (via rclone to drive:Ontology/{Sample_ID}-{DD-MM-YYYY}/)
+  2. Local Google Drive Directory (~/Google Drive/My Drive/Ontology/{Sample_ID}-{DD-MM-YYYY}/)
+  3. Local Project Workspace (./reports/{Sample_ID}-{DD-MM-YYYY}/)
 """
 
 import os
@@ -34,6 +35,22 @@ OC_ANNOTATORS = [
     "dbsnp", "vcfinfo", "gwas_catalog", "pharmgkb", "civic", "interpro"
 ]
 
+def find_rclone():
+    """
+    Finds rclone executable across standard and conda/micromamba paths.
+    """
+    candidates = [
+        shutil.which("rclone"),
+        os.path.expanduser("~/micromamba/envs/cravat_env/bin/rclone"),
+        os.path.expanduser("~/micromamba/pkgs/rclone-1.75.0-h519d9b9_0/bin/rclone"),
+        "/usr/bin/rclone",
+        "/usr/local/bin/rclone"
+    ]
+    for c in candidates:
+        if c and os.path.exists(c) and os.access(c, os.X_OK):
+            return c
+    return None
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Run end-to-end Genomic Ontology Report from VCF, SQLite, or OpenCRAVAT Job ID."
@@ -52,7 +69,7 @@ def parse_args():
     parser.add_argument(
         "--gdrive-dir",
         default=os.path.expanduser("~/Google Drive/My Drive/Ontology"),
-        help="Target Google Drive directory (default: ~/Google Drive/My Drive/Ontology)"
+        help="Target local Google Drive directory (default: ~/Google Drive/My Drive/Ontology)"
     )
     parser.add_argument(
         "--config", "-c",
@@ -142,10 +159,8 @@ def build_standalone_html5(template_html, css_path, js_data_path, js_app_path, o
     with open(js_app_path, 'r', encoding='utf-8') as f:
         js_app = f.read()
 
-    # Inline CSS
     html = html.replace('<link rel="stylesheet" href="css/style.css" />', f'<style>\n{css}\n</style>')
     html = html.replace('<link rel="stylesheet" href="css/style.css">', f'<style>\n{css}\n</style>')
-    # Inline Data & App JS
     html = html.replace('<script src="data/mock-data.js"></script>', f'<script>\n{js_data}\n</script>')
     html = html.replace('<script src="js/app.js"></script>', f'<script>\n{js_app}\n</script>')
 
@@ -182,34 +197,46 @@ def generate_pdf_report(html_path, pdf_path):
         print(f"[PDF Engine Warning] Failed to render PDF: {e}")
         return False
 
-def deliver_to_google_drive(src_files, gdrive_target_dir):
+def deliver_to_google_drive(src_files, local_gdrive_dir, subfolder_name):
     """
-    Syncs generated files to the target Google Drive directory and uses rclone if available.
+    Syncs generated files to both local Google Drive directory and cloud remote via rclone.
     """
-    os.makedirs(gdrive_target_dir, exist_ok=True)
+    # 1. Local sync directory
+    target_local_dir = os.path.join(local_gdrive_dir, subfolder_name)
+    os.makedirs(target_local_dir, exist_ok=True)
     for f in src_files:
         if os.path.exists(f):
-            dest = os.path.join(gdrive_target_dir, os.path.basename(f))
+            dest = os.path.join(target_local_dir, os.path.basename(f))
             shutil.copy2(f, dest)
-            print(f"  [GDrive Sync] Copied -> {dest}")
+            print(f"  [Local GDrive Sync] Copied -> {dest}")
 
-    # Optional Rclone Cloud Sync
-    rclone_bin = shutil.which("rclone")
+    # Also copy to root local Ontology folder for legacy view
+    for f in src_files:
+        if os.path.exists(f) and f.endswith((".html", ".tsv", ".txt", ".pdf", ".zip")):
+            dest_root = os.path.join(local_gdrive_dir, os.path.basename(f))
+            shutil.copy2(f, dest_root)
+
+    # 2. Cloud rclone Sync
+    rclone_bin = find_rclone()
     if rclone_bin:
-        rel_folder = os.path.basename(gdrive_target_dir)
-        cmd = [rclone_bin, "copy", gdrive_target_dir, f"drive:Ontology/{rel_folder}/"]
-        try:
-            subprocess.run(cmd, capture_output=True, timeout=30)
-            print(f"  [rclone Cloud Sync] Synced folder to remote Google Drive: drive:Ontology/{rel_folder}/")
-        except Exception:
-            pass
+        print(f"\n  [rclone Cloud Sync] Found rclone at: {rclone_bin}")
+        for remote in ["drive:Ontology", "gdrive:Ontology"]:
+            try:
+                cmd = [rclone_bin, "copy", target_local_dir, f"{remote}/{subfolder_name}/"]
+                res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+                if res.returncode == 0:
+                    print(f"  [rclone Cloud Sync] Uploaded to Google Drive Cloud: {remote}/{subfolder_name}/")
+                    # Also upload top-level files
+                    subprocess.run([rclone_bin, "copy", target_local_dir, f"{remote}/"], capture_output=True, timeout=60)
+                    break
+            except Exception as e:
+                print(f"  [rclone Cloud Sync Note] {remote} error: {e}")
 
 def main():
     args = parse_args()
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
 
-    # Format Date as dd-mm-yyyy
     now = datetime.now()
     date_str = now.strftime("%d-%m-%Y")
     subfolder_name = f"{args.sample_id}-{date_str}"
@@ -230,7 +257,6 @@ def main():
     print(f"[Stage 1] Resolved Database : {raw_db}")
     print(f"[Stage 1] Resolved VCF File : {vcf_path or 'None (will use DB attributes)'}")
 
-    # File naming based on sample / source prefix
     base_prefix = args.sample_id
     schema_json = os.path.join(local_outdir, f"{base_prefix}_schema.json")
     panel_json = os.path.join(local_outdir, f"{base_prefix}_master_panel.json")
@@ -238,14 +264,12 @@ def main():
     act_json = os.path.join(local_outdir, f"{base_prefix}_master_actionable.json")
     enrich_cache = os.path.join(local_outdir, f"{base_prefix}_enrich_cache.json")
 
-    # Pre-seed enrich cache from existing reports if available
     if not os.path.exists(enrich_cache):
         for candidate in glob.glob(os.path.join(script_dir, "reports", "*", "*enrich_cache.json")):
             if os.path.exists(candidate) and os.path.getsize(candidate) > 1000:
                 shutil.copy2(candidate, enrich_cache)
                 break
 
-    # Output Deliverables
     visual_explorer_html = os.path.join(local_outdir, f"{base_prefix}_visual_explorer.html")
     master_hub_html = os.path.join(local_outdir, f"{base_prefix}_master_ontology_report.html")
     tsv_report = os.path.join(local_outdir, f"{base_prefix}_variants.tsv")
@@ -314,7 +338,6 @@ def main():
         mock_data_js
     ], check=True)
 
-    # Build 100% Self-Contained Standalone HTML5 Document (Chrome "Save As: Webpage, Complete")
     build_standalone_html5(
         os.path.join(script_dir, "index.html"),
         os.path.join(script_dir, "css", "style.css"),
@@ -349,12 +372,11 @@ def main():
     ]
 
     if not args.local_only:
-        gdrive_target = os.path.join(args.gdrive_dir, subfolder_name)
-        print(f"\n[Google Drive Delivery] Uploading deliverables to: {gdrive_target}...")
-        deliver_to_google_drive(deliverables, gdrive_target)
+        print(f"\n[Google Drive Delivery] Uploading deliverables to Google Drive...")
+        deliver_to_google_drive(deliverables, args.gdrive_dir, subfolder_name)
 
     print("\n==================================================================")
-    print("✨ PIPELINE COMPLETE. ALL DELIVERABLES GENERATED SUCCESSFULLY:")
+    print("✨ PIPELINE COMPLETE. ALL DELIVERABLES GENERATED & SYNCED:")
     print(f"  1. Visual Explorer HTML (Standalone HTML5) : {visual_explorer_html}")
     print(f"  2. Universal Master Hub (HTML5)            : {master_hub_html}")
     print(f"  3. Actionable JSON                         : {act_json}")
@@ -363,7 +385,8 @@ def main():
     print(f"  6. Printable PDF Report                    : {pdf_report}")
     print(f"  7. Offline iOS Bundle                      : {zip_bundle}")
     if not args.local_only:
-        print(f"  👉 Google Drive Folder                     : ~/Google Drive/My Drive/Ontology/{subfolder_name}/")
+        print(f"  👉 Google Drive Cloud Remote               : drive:Ontology/{subfolder_name}/")
+        print(f"  👉 Google Drive Local Directory            : {args.gdrive_dir}/{subfolder_name}/")
     print("==================================================================")
 
 if __name__ == "__main__":
