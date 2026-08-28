@@ -846,8 +846,10 @@
     const dgStr = sDetails.dg !== undefined && sDetails.dg !== null ? Number(sDetails.dg).toFixed(2) : "0.00";
     const dlStr = sDetails.dl !== undefined && sDetails.dl !== null ? Number(sDetails.dl).toFixed(2) : "0.00";
 
-    // Build specific literature & study links for this variant
-    const litvarUrl = `https://www.ncbi.nlm.nih.gov/research/litvar2/doc/literature?query=${encodeURIComponent(v.id)}`;
+    // Build specific literature & study links for this variant (LitVar2 docsum format)
+    const litvarUrl = v.id.startsWith("rs")
+      ? `https://www.ncbi.nlm.nih.gov/research/litvar2/docsum?variant=litvar@${encodeURIComponent(v.id)}%23%23&query=${encodeURIComponent(v.id)}`
+      : `https://www.ncbi.nlm.nih.gov/research/litvar2/docsum?query=${encodeURIComponent(v.id)}`;
     const gwasVarUrl = `https://www.ebi.ac.uk/gwas/variants/${encodeURIComponent(v.id)}`;
 
     const detailRow =
