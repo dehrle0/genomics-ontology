@@ -1,3 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Genomic Ontology Explorer</title>
+<style>
+/* =========================================================================
+   GENOMIC ONTOLOGY EXPLORER — design tokens
+   -------------------------------------------------------------------------
+   Palette (named, so it stays deliberate rather than accidental):
+     --ink        #17222B   primary text
+     --slate      #5B6675   secondary text / captions
+     --paper      #F6F7F9   app background
+     --panel      #FFFFFF   card / panel surface
+     --line       #E1E5EA   hairline borders
+     --teal       #1C5B5E   brand / primary accent (navigation, active states)
+     --teal-dim   #E4EEEE   teal tint for hovers/selection
+     --amber      #B5722A   signature accent — used ONLY for the phase glyph
+                            (parental origin), so it carries one meaning
+     --concern    #B3261E   / --concern-bg  #FBEAE9
+     --protect    #1E7B4D   / --protect-bg  #E8F5EE
+     --uncertain  #2A5C99   / --uncertain-bg #EAF1FB
+     --neutral    #5B6675   / --neutral-bg  #EEF0F3
+
+   Type: system sans for UI chrome (fast, reliable offline), monospace for
+   every genomic identifier (rsID, HGVS, coordinates) — the monospace
+   column is the signature: it visually separates "data" from "prose"
+   the way a real variant table always does.
+   ========================================================================= */
+
+:root {
+  --ink: #17222b;
+  --slate: #5b6675;
+  --slate-light: #8993a1;
+  --paper: #f6f7f9;
+  --panel: #ffffff;
+  --line: #e1e5ea;
+  --line-strong: #c9cfd6;
+
+  --teal: #1c5b5e;
+  --teal-dark: #123f41;
+  --teal-dim: #e4eeee;
+
+  --amber: #b5722a;
+  --amber-dim: #f5e9dc;
+
+  --concern: #b3261e;
+  --concern-bg: #fbeae9;
+  --protect: #1e7b4d;
+  --protect-bg: #e8f5ee;
+  --uncertain: #2a5c99;
+  --uncertain-bg: #eaf1fb;
+  --neutral: #5b6675;
+  --neutral-bg: #eef0f3;
+
+  --radius: 6px;
+  --radius-sm: 4px;
+  --shadow-1: 0 1px 2px rgba(23, 34, 43, 0.06);
+  --shadow-2: 0 4px 16px rgba(23, 34, 43, 0.10);
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "IBM Plex Sans", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select { font-family: inherit; font-size: inherit; color: inherit; }
+
+.mono { font-family: var(--font-mono); }
+
+a { color: var(--teal); }
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* ---------------------------------------------------------------------
+   App shell
+   --------------------------------------------------------------------- */
+/* Faint colorful DNA watermark — sits behind the app; only shows through
+   the app's own transparent gaps (view padding, empty states), never
+   over an opaque white card or table, so legibility is never affected. */
+.dna-watermark {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.07;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 56px;
+  padding: 0 18px;
+  background: var(--teal-dark);
+  color: #fff;
+  flex: 0 0 auto;
+  z-index: 20;
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.topbar__brand .glyph {
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid rgba(255,255,255,0.85);
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  flex: 1 1 auto;
+  overflow-x: auto;
+}
+.tabs button {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.72);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tabs button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.tabs button.active { background: rgba(255,255,255,0.16); color: #fff; }
+.tabs button:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.topbar__meta {
+  font-size: 12px;
+  color: rgba(255,255,255,0.65);
+  white-space: nowrap;
+}
+
+.view {
+  flex: 1 1 auto;
+  overflow: hidden;
+  display: none;
+}
+.view.active { display: flex; }
+
+/* ---------------------------------------------------------------------
+   Ontology view: left tree, right gene detail
+   --------------------------------------------------------------------- */
+.ontology {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.tree-panel {
+  width: 340px;
+  flex: 0 0 auto;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tree-panel__head {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ontology-switch {
+  display: flex;
+  gap: 4px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 3px;
+  margin-bottom: 10px;
+}
+.ontology-switch button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 6px 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--slate);
+}
+.ontology-switch button.active {
+  background: var(--teal);
+  color: #fff;
+}
+
+.tree-search {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--paper);
+}
+
+.layout-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 9px;
+  font-size: 12px;
+  color: var(--slate);
+}
+.layout-toggle label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+
+.scope-toggle {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--slate);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tree-legend {
+  display: flex;
+  gap: 12px;
+  padding: 8px 14px;
+  font-size: 11px;
+  color: var(--slate);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.tree-legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+.dot--organ { background: var(--teal); }
+.dot--term { background: var(--uncertain); }
+.dot--gene { background: var(--amber); }
+
+.tree-scroll {
+  overflow-y: auto;
+  padding: 6px 6px 20px;
+  flex: 1 1 auto;
+}
+
+.tree-group { margin-bottom: 2px; }
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  user-select: none;
+}
+.tree-row:hover { background: var(--paper); }
+.tree-row .caret {
+  width: 14px; text-align: center; color: var(--slate-light); font-size: 10px;
+  transition: transform 0.12s ease;
+}
+.tree-row.expanded .caret { transform: rotate(90deg); }
+.tree-row .node-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+.tree-row--organ { font-weight: 700; font-size: 13px; }
+.tree-row--organ .node-dot { background: var(--teal); }
+.tree-row--term { font-size: 12.5px; color: var(--ink); }
+.tree-row--term .node-dot { background: var(--uncertain); }
+.tree-row--gene {
+  font-size: 12.5px;
+  font-family: var(--font-mono);
+  color: var(--teal-dark);
+}
+.tree-row--gene .node-dot { background: var(--amber); }
+.tree-row--gene.selected { background: var(--teal-dim); font-weight: 700; }
+.tree-row .count-chip {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--slate);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1px 6px;
+}
+.tree-children { margin-left: 18px; display: none; }
+.tree-children.open { display: block; }
+.tree-list-mode .tree-children { margin-left: 12px; }
+
+/* ---------------------------------------------------------------------
+   Gene detail (right panel of Ontology view)
+   --------------------------------------------------------------------- */
+.gene-detail {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 20px 26px 40px;
+}
+
+.gene-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--slate);
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+  padding: 40px;
+}
+.gene-empty .glyph-lg { font-size: 30px; opacity: 0.4; font-family: var(--font-mono); }
+
+.gene-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+.gene-head h1 {
+  font-size: 21px;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.gene-head h1 .sym { font-family: var(--font-mono); font-weight: 700; color: var(--teal-dark); }
+.gene-head h1 .full { font-weight: 400; color: var(--slate); font-size: 15px; }
+
+.btn {
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  padding: 7px 13px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.btn:hover { background: var(--paper); }
+.btn--primary { background: var(--teal); color: #fff; border-color: var(--teal); }
+.btn--primary:hover { background: var(--teal-dark); }
+
+.gene-coord {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--slate);
+  margin-bottom: 16px;
+}
+
+.gene-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 18px;
+}
+.gene-tabs button {
+  background: transparent;
+  border: none;
+  padding: 9px 4px;
+  margin-right: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--slate);
+  border-bottom: 2px solid transparent;
+}
+.gene-tabs button.active { color: var(--teal-dark); border-bottom-color: var(--teal); }
+
+.gene-pane { display: none; }
+.gene-pane.active { display: block; }
+
+.kpi-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.kpi {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  min-width: 118px;
+}
+.kpi .num { font-size: 20px; font-weight: 700; font-family: var(--font-mono); }
+.kpi .lbl { font-size: 11px; color: var(--slate); margin-top: 2px; }
+
+.panel-box {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.panel-box h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate); }
+.panel-box p { margin: 0; }
+
+.pathology-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--neutral-bg);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: 12.5px;
+  margin-top: 6px;
+}
+.pathology-chip .tag { font-size: 10.5px; background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; border-radius: 8px; color: var(--slate); }
+
+.hpo-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.hpo-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--uncertain);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.hpo-card .id { font-family: var(--font-mono); font-size: 11px; color: var(--uncertain); }
+.hpo-card .label { font-weight: 600; margin: 3px 0; }
+.hpo-card .evidence { font-size: 11.5px; color: var(--slate); }
+
+/* summary category bars, matches mockup's colored section headers */
+.cat-summary { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.cat-pill {
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.cat-pill .n { font-family: var(--font-mono); }
+.cat-pill--concern { background: var(--concern-bg); color: var(--concern); }
+.cat-pill--protect { background: var(--protect-bg); color: var(--protect); }
+.cat-pill--uncertain { background: var(--uncertain-bg); color: var(--uncertain); }
+.cat-pill--neutral { background: var(--neutral-bg); color: var(--neutral); }
+
+.variant-section { margin-bottom: 14px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.variant-section__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  color: #fff;
+}
+.variant-section__head .caret { margin-left: auto; font-size: 11px; }
+.variant-section__head.concern { background: var(--concern); }
+.variant-section__head.protect { background: var(--protect); }
+.variant-section__head.uncertain { background: var(--uncertain); }
+.variant-section__head.neutral { background: var(--neutral); }
+
+.variant-table { width: 100%; border-collapse: collapse; }
+.variant-table th {
+  text-align: left;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--slate);
+  padding: 8px 12px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.variant-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  font-size: 13px;
+}
+.variant-table tbody tr:last-child td { border-bottom: none; }
+.variant-table tbody tr:hover { background: var(--paper); }
+.variant-table .vid { font-family: var(--font-mono); font-weight: 700; color: var(--teal-dark); cursor: pointer; }
+.variant-table .geno { font-family: var(--font-mono); }
+.chip { display: inline-block; background: var(--neutral-bg); color: var(--neutral); border-radius: 8px; padding: 1px 7px; font-size: 10.5px; margin: 1px 3px 1px 0; }
+.chip--missense { background: var(--amber-dim); color: var(--amber); }
+
+.phase-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; }
+.phase-tag.maternal { color: var(--concern); }
+.phase-tag.paternal { color: var(--uncertain); }
+.phase-tag.unknown, .phase-tag.na { color: var(--slate); }
+.phase-tag .glyph { font-family: var(--font-mono); }
+
+.study-row { border-top: 1px dashed var(--line); background: var(--paper); }
+.study-row td { padding: 10px 12px 12px 32px; }
+.study-line { display: grid; grid-template-columns: 1.6fr 1fr 1.4fr; gap: 14px; padding: 6px 0; font-size: 12.5px; }
+.study-line + .study-line { border-top: 1px solid var(--line); }
+.study-line .dot-lead::before { content: "\25CF"; font-size: 7px; margin-right: 7px; color: var(--slate-light); position: relative; top: -2px; }
+.study-line .relevance b { color: var(--protect); }
+
+.pub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 12px; }
+.pub-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.pub-card h4 { margin: 0 0 4px; font-size: 13.5px; line-height: 1.3; }
+.pub-card .byline { font-size: 11.5px; color: var(--slate); margin-bottom: 8px; }
+.pub-card .finding { font-size: 12.5px; margin-bottom: 8px; }
+.pub-card .tags { margin-bottom: 8px; }
+.pub-card a { font-size: 12px; font-weight: 600; }
+.pub-empty { color: var(--slate); font-size: 13px; padding: 10px 0; }
+
+/* ---------------------------------------------------------------------
+   Genes / Variants list views
+   --------------------------------------------------------------------- */
+.list-view {
+  width: 100%;
+  padding: 20px 26px;
+  overflow-y: auto;
+}
+.list-view__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+.list-view__head h1 { font-size: 19px; margin: 0; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.filters select, .filters input {
+  padding: 6px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+
+.data-table-wrap { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+table.data-table { width: 100%; border-collapse: collapse; }
+table.data-table th {
+  text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em;
+  color: var(--slate); padding: 10px 12px; background: var(--paper); border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; cursor: pointer; white-space: nowrap;
+}
+table.data-table td { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 13px; }
+table.data-table tbody tr:hover { background: var(--paper); cursor: pointer; }
+table.data-table tbody tr:last-child td { border-bottom: none; }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.badge--concern { background: var(--concern-bg); color: var(--concern); }
+.badge--protect { background: var(--protect-bg); color: var(--protect); }
+.badge--uncertain { background: var(--uncertain-bg); color: var(--uncertain); }
+.badge--neutral { background: var(--neutral-bg); color: var(--neutral); }
+
+.bar-cell { display: flex; align-items: center; gap: 7px; }
+.bar-track { width: 60px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--teal); }
+
+/* ---------------------------------------------------------------------
+   Analysis view
+   --------------------------------------------------------------------- */
+.analysis-view { width: 100%; overflow-y: auto; padding: 20px 26px 40px; }
+.analysis-view h1 { font-size: 19px; margin: 0 0 4px; }
+.analysis-sub { color: var(--slate); font-size: 12.5px; margin-bottom: 18px; }
+
+.kpi-strip { display: flex; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+.kpi-strip .kpi { flex: 1 1 140px; }
+
+.section-title { font-size: 14px; font-weight: 700; margin: 26px 0 10px; display: flex; align-items: center; gap: 8px; }
+.section-title .eyebrow { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--slate); font-weight: 700; }
+
+.prs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 12px; }
+.prs-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.prs-card__head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.prs-card__head .trait { font-weight: 700; font-size: 13.5px; }
+.prs-track { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+.prs-fill { height: 100%; }
+.prs-fill.HIGH { background: var(--concern); }
+.prs-fill.MODERATE { background: var(--amber); }
+.prs-fill.PROTECTIVE { background: var(--protect); }
+.prs-foot { display: flex; justify-content: space-between; font-size: 11px; color: var(--slate); }
+.prs-foot a { color: var(--slate); }
+
+.pgx-table th, .pgx-table td { font-size: 13px; }
+.action-tier { font-weight: 700; font-size: 11.5px; }
+.action-tier.Actionable { color: var(--concern); }
+.action-tier.Informational { color: var(--slate); }
+
+/* ---------------------------------------------------------------------
+   Reports view
+   --------------------------------------------------------------------- */
+.reports-view { width: 100%; overflow-y: auto; padding: 24px 30px 50px; display: flex; justify-content: center; }
+.report-sheet { max-width: 820px; width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 36px 42px; }
+.report-sheet__masthead { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--teal-dark); padding-bottom: 14px; margin-bottom: 18px; }
+.report-sheet__masthead h1 { margin: 0 0 4px; font-size: 20px; }
+.report-sheet__masthead .meta { font-size: 12px; color: var(--slate); }
+.report-actions { display: flex; gap: 8px; }
+.report-narrative { font-size: 14px; line-height: 1.7; margin-bottom: 26px; }
+.report-narrative p { margin: 0; }
+
+/* ---------------------------------------------------------------------
+   Genome-browser stub modal (hook for future IGV.js embed)
+   --------------------------------------------------------------------- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(23,34,43,0.45);
+  display: none; align-items: center; justify-content: center; z-index: 100;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--panel); border-radius: var(--radius); width: 560px; max-width: 92vw;
+  box-shadow: var(--shadow-2); padding: 22px 24px;
+}
+.modal h3 { margin: 0 0 8px; }
+.modal p { color: var(--slate); font-size: 13px; line-height: 1.6; }
+.modal__locus {
+  font-family: var(--font-mono); background: var(--paper); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 14px; margin: 14px 0; font-size: 12.5px; color: var(--slate);
+}
+.modal__foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+/* ---------------------------------------------------------------------
+   Ontology tree — Graph layout mode
+   --------------------------------------------------------------------- */
+.graph-wrap {
+  position: relative;
+  overflow-x: auto;
+  padding: 10px 4px 20px;
+}
+.graph-svg { display: block; }
+.graph-node-label { font-size: 12px; fill: var(--ink); }
+.graph-node-label.group { font-weight: 700; fill: var(--teal-dark); font-size: 12.5px; }
+.graph-node-label.term { fill: var(--uncertain); }
+.graph-edge { stroke: var(--line-strong); stroke-width: 1.4; }
+.graph-genes-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+.graph-gene-chip {
+  position: absolute;
+  pointer-events: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--teal-dark);
+  background: var(--teal-dim);
+  border: 1px solid var(--teal);
+  border-radius: 10px;
+  padding: 1px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.graph-gene-chip.selected { background: var(--teal); color: #fff; }
+.graph-gene-chip:hover { background: var(--teal); color: #fff; }
+
+/* ---------------------------------------------------------------------
+   Reference links row (Overview tab)
+   --------------------------------------------------------------------- */
+.ref-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.ref-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--teal-dark);
+  background: var(--teal-dim);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  text-decoration: none;
+}
+.ref-link:hover { background: var(--teal); color: #fff; }
+
+/* ---------------------------------------------------------------------
+   Studies tab (aggregated evidence, separate from curated Publications)
+   --------------------------------------------------------------------- */
+.study-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--slate-light);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.study-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 5px; }
+.study-card__variant { font-family: var(--font-mono); font-weight: 700; color: var(--teal-dark); cursor: pointer; }
+.study-card__variant:hover { text-decoration: underline; }
+.study-card__condition { font-size: 11.5px; color: var(--slate); }
+.study-card__finding { font-size: 13px; margin-bottom: 4px; }
+.study-card__foot { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--slate); }
+.evidence-dots { display: inline-flex; gap: 2px; vertical-align: middle; }
+.evidence-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); display: inline-block; }
+.evidence-dots span.filled { background: var(--teal); }
+
+/* ---------------------------------------------------------------------
+   Score chips / bars for CADD, SpliceAI, AlphaMissense, QUAL, Reads
+   --------------------------------------------------------------------- */
+.score-cell { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.score-bar-track { width: 34px; height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; flex: 0 0 auto; }
+.score-bar-fill { height: 100%; background: var(--teal); }
+.score-bar-fill.hot { background: var(--concern); }
+.reads-frac { font-family: var(--font-mono); font-size: 12px; }
+.reads-pct { font-size: 11px; color: var(--slate); }
+.na-cell { color: var(--slate-light); }
+
+/* Wide clinical tables scroll horizontally rather than compress columns */
+.data-table-wrap { overflow-x: auto; }
+.variant-section .variant-table { min-width: 920px; }
+#variants-table { min-width: 1080px; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+@media (max-width: 900px) {
+  .tree-panel { width: 260px; }
+  .study-line { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------------
+   Multi-Level Selection & Category Inspection Styling
+   --------------------------------------------------------------------- */
+.tree-row--subcat {
+  padding-left: 24px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--teal-dark);
+}
+.tree-row--subcat:hover {
+  background: var(--teal-dim);
+}
+.tree-row--subcat.selected {
+  background: var(--teal-dim);
+  border-left: 3px solid var(--teal);
+  color: var(--teal-dark);
+}
+.tree-row.selected {
+  background: var(--teal-dim);
+  border-left: 3px solid var(--teal);
+}
+
+.category-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 15px;
+}
+.category-head h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.category-level-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: var(--teal-dim);
+  color: var(--teal-dark);
+  border: 1px solid var(--line);
+}
+.category-meta {
+  font-size: 12px;
+  color: var(--slate);
+}
+
+.gene-chip-roster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.gene-chip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--teal-dark);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.gene-chip-item:hover {
+  background: var(--teal);
+  color: #fff;
+  border-color: var(--teal);
+}
+.gene-chip-item.has-concern {
+  border-color: var(--concern);
+  color: var(--concern);
+  background: var(--concern-bg);
+}
+.gene-chip-item.has-concern:hover {
+  background: var(--concern);
+  color: #fff;
+}
+
+/* Genome Browser SVG Track */
+.genome-browser-container {
+  margin-top: 15px;
+  padding: 15px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+}
+.genome-browser-svg {
+  display: block;
+  font-family: var(--font-mono);
+}
+.lollipops-group circle {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.lollipops-group circle:hover {
+  transform: scale(1.3);
+}
+.variant-info-box {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--teal-dim);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+}
+
+/* ---------------------------------------------------------------------
+   Analysis View: Multi-System Genomic Risk Matrix
+   --------------------------------------------------------------------- */
+.risk-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.risk-matrix-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  transition: all 0.15s ease;
+}
+.risk-matrix-card:hover {
+  border-color: var(--teal);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.risk-matrix-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.risk-matrix-card__title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.risk-matrix-card__tier {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.risk-matrix-card__tier.HIGH {
+  background: var(--concern-bg);
+  color: var(--concern);
+  border: 1px solid var(--concern);
+}
+.risk-matrix-card__tier.MODERATE {
+  background: var(--uncertain-bg);
+  color: var(--uncertain);
+  border: 1px solid var(--uncertain);
+}
+.risk-matrix-card__tier.TYPICAL {
+  background: var(--protect-bg);
+  color: var(--protect);
+  border: 1px solid var(--protect);
+}
+.risk-matrix-card__body {
+  font-size: 12px;
+  color: var(--slate);
+  line-height: 1.4;
+}
+.risk-matrix-card__genes {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.risk-matrix-card__gene {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--teal-dark);
+}
+
+/* ---------------------------------------------------------------------
+   Artistic Genetic & Epigenetic Watermark
+   --------------------------------------------------------------------- */
+.dna-watermark {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.065;
+  overflow: hidden;
+}
+.dna-watermark svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------------------------------------------------------------------
+   Gene Header Card inside Variant Sections
+   --------------------------------------------------------------------- */
+.variant-gene-group {
+  margin-bottom: 18px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.variant-gene-header {
+  padding: 10px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.variant-gene-title {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--teal-dark);
+}
+.variant-gene-fullname {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--slate);
+  margin-left: 8px;
+}
+.variant-gene-desc {
+  font-size: 11.5px;
+  color: var(--slate);
+  margin-top: 4px;
+  line-height: 1.4;
+  max-width: 850px;
+}
+
+/* ---------------------------------------------------------------------
+   Rich Expanded Variant Clinical Drawer
+   --------------------------------------------------------------------- */
+.variant-drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  margin: 6px 0;
+}
+.variant-drawer-box {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+.variant-drawer-box h4 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin: 0 0 6px 0;
+  letter-spacing: 0.5px;
+}
+.drawer-metric-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  padding: 2px 0;
+  border-bottom: 1px dashed #f1f5f9;
+}
+.drawer-metric-row:last-child {
+  border-bottom: none;
+}
+.drawer-metric-lbl {
+  color: var(--slate);
+}
+.drawer-metric-val {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------
+   Interactive Graph Mode Zoom & Pan Controls
+   --------------------------------------------------------------------- */
+.graph-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.graph-toolbar button {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--teal-dark);
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.graph-toolbar button:hover {
+  background: var(--teal);
+  color: #fff;
+}
+.graph-wrap {
+  position: relative;
+  overflow: auto;
+  cursor: grab;
+  user-select: none;
+}
+.graph-wrap:active {
+  cursor: grabbing;
+}
+
+/* ---------------------------------------------------------------------
+   Inheritance Model Badges (Autosomal Dominant / Recessive)
+   --------------------------------------------------------------------- */
+.badge--ad {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+.badge--ar {
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #8b5cf6;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+.badge--complex {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+/* ---------------------------------------------------------------------
+   Reports & Analysis View Scrolling Fix
+   --------------------------------------------------------------------- */
+#view-reports {
+  overflow-y: auto !important;
+  height: calc(100vh - 56px);
+  display: none;
+}
+#view-reports.active {
+  display: block !important;
+}
+.reports-view {
+  width: 100%;
+  min-height: 100%;
+  padding: 28px 30px 100px;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+#view-analysis {
+  overflow-y: auto !important;
+  height: calc(100vh - 56px);
+  display: none;
+}
+#view-analysis.active {
+  display: block !important;
+}
+.analysis-view {
+  width: 100%;
+  min-height: 100%;
+  padding: 28px 30px 100px;
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------------------
+   Variant Expander Button & RS Links
+   --------------------------------------------------------------------- */
+.variant-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--slate-light);
+  color: var(--teal-dark);
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  user-select: none;
+}
+.variant-toggle-btn:hover {
+  background: var(--teal);
+  color: #ffffff;
+  transform: scale(1.08);
+}
+.variant-rs-link {
+  color: var(--teal-dark);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+.variant-rs-link:hover {
+  color: var(--teal);
+}
+.variant-pub-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--teal);
+  text-decoration: none;
+}
+.variant-pub-link:hover {
+  text-decoration: underline;
+}
+
+</style>
+</head>
+<body>
+
+<!-- Artistic Genetic & Epigenetic Faint Background Watermark -->
+<div class="dna-watermark" aria-hidden="true">
+  <svg viewBox="0 0 1200 1000" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="helix-cyan-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.8" />
+        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.8" />
+      </linearGradient>
+      <linearGradient id="helix-purple-rose" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.8" />
+        <stop offset="100%" stop-color="#f43f5e" stop-opacity="0.8" />
+      </linearGradient>
+      <linearGradient id="helix-emerald-teal" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#10b981" stop-opacity="0.8" />
+        <stop offset="100%" stop-color="#0d9488" stop-opacity="0.8" />
+      </linearGradient>
+      <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="8" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+    </defs>
+
+    <!-- Primary DNA Double Helix Strand 1 -->
+    <path d="M 100 0 Q 300 250 100 500 T 100 1000" fill="none" stroke="url(#helix-cyan-blue)" stroke-width="4" filter="url(#soft-glow)" />
+    <path d="M 300 0 Q 100 250 300 500 T 300 1000" fill="none" stroke="url(#helix-purple-rose)" stroke-width="4" filter="url(#soft-glow)" />
+
+    <!-- Secondary DNA Double Helix Strand 2 (Right Side) -->
+    <path d="M 900 0 Q 1100 250 900 500 T 900 1000" fill="none" stroke="url(#helix-purple-rose)" stroke-width="3" />
+    <path d="M 1100 0 Q 900 250 1100 500 T 1100 1000" fill="none" stroke="url(#helix-emerald-teal)" stroke-width="3" />
+
+    <!-- Epigenetic Nucleosome / Histone Octamer Discs & Chromatin Beads -->
+    <circle cx="200" cy="180" r="28" fill="#8b5cf6" opacity="0.35" />
+    <circle cx="200" cy="180" r="14" fill="#6366f1" opacity="0.5" />
+    <line x1="200" y1="152" x2="200" y2="135" stroke="#f43f5e" stroke-width="2.5" />
+    <circle cx="200" cy="132" r="5" fill="#f43f5e" />
+
+    <circle cx="200" cy="680" r="32" fill="#06b6d4" opacity="0.35" />
+    <circle cx="200" cy="680" r="16" fill="#0284c7" opacity="0.5" />
+    <line x1="200" y1="648" x2="200" y2="630" stroke="#10b981" stroke-width="2.5" />
+    <polygon points="196,630 204,630 200,622" fill="#10b981" />
+
+    <circle cx="1000" cy="380" r="30" fill="#f43f5e" opacity="0.3" />
+    <circle cx="1000" cy="380" r="15" fill="#e11d48" opacity="0.5" />
+    <line x1="1000" y1="350" x2="1000" y2="335" stroke="#8b5cf6" stroke-width="2.5" />
+    <circle cx="1000" cy="332" r="5" fill="#8b5cf6" />
+
+    <!-- Connecting Hydrogen Base Rungs -->
+    <line x1="130" y1="100" x2="270" y2="100" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="4,4" />
+    <line x1="170" y1="200" x2="230" y2="200" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="4,4" />
+    <line x1="130" y1="300" x2="270" y2="300" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="4,4" />
+    <line x1="170" y1="400" x2="230" y2="400" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4,4" />
+    <line x1="130" y1="600" x2="270" y2="600" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="4,4" />
+    <line x1="170" y1="700" x2="230" y2="700" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="4,4" />
+    <line x1="130" y1="800" x2="270" y2="800" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="4,4" />
+    <line x1="170" y1="900" x2="230" y2="900" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4,4" />
+  </svg>
+</div>
+
+<div class="app">
+
+  <!-- ============================== TOPBAR ============================== -->
+  <div class="topbar">
+    <div class="topbar__brand">
+      <div class="topbar__logo">GO</div>
+      <div class="topbar__title">Genomic Ontology Explorer</div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Primary views">
+      <button data-view="ontology" class="active">Ontology</button>
+      <button data-view="genes">Genes</button>
+      <button data-view="variants">Variants</button>
+      <button data-view="analysis">Analysis</button>
+      <button data-view="reports">Reports</button>
+    </div>
+    <div class="topbar__meta mono" id="job-meta">DE_master (Phased WGS) · OpenCRAVAT 3.1.1 · 712 variants</div>
+  </div>
+
+  <!-- ============================== ONTOLOGY VIEW ============================== -->
+  <div class="view active" id="view-ontology">
+    <div class="ontology">
+
+      <!-- LEFT: ontology tree / graph -->
+      <div class="tree-panel">
+        <div class="tree-panel__head">
+          <div class="ontology-switch" id="ontology-switch">
+            <button data-tree="hpo" class="active">HPO</button>
+            <button data-tree="go">GO</button>
+            <button data-tree="organ">Organ/System</button>
+          </div>
+          <input type="text" class="tree-search" id="tree-search" placeholder="Search category, phenotype, CURIE, or gene…" />
+          <div class="layout-toggle">
+            <label><input type="radio" name="layout" value="tree" checked /> Tree</label>
+            <label><input type="radio" name="layout" value="graph" /> Graph</label>
+            <label><input type="radio" name="layout" value="list" /> List</label>
+          </div>
+          <div class="scope-toggle">
+            <label><input type="checkbox" id="scope-findings-only" /> Only systems with findings</label>
+          </div>
+        </div>
+        <div class="tree-legend">
+          <span><span class="dot dot--organ"></span>System / Category</span>
+          <span><span class="dot dot--term"></span>Phenotype / Term</span>
+          <span><span class="dot dot--gene"></span>Gene</span>
+        </div>
+        <div class="tree-scroll" id="tree-scroll"></div>
+      </div>
+
+      <!-- RIGHT: detail panel (gene OR ontology category rollup) -->
+      <div class="gene-detail" id="gene-detail">
+        <div class="gene-empty">
+          <div class="glyph-lg">◈</div>
+          <div><strong>Select any category or gene</strong> from the tree on the left to see its rolled-up overview, phenotypes, variants, studies, and publications.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== GENES VIEW ============================== -->
+  <div class="view" id="view-genes">
+    <div class="list-view">
+      <div class="list-view__head">
+        <h1>Genes</h1>
+        <div class="filters">
+          <input type="text" id="genes-search" placeholder="Filter by gene symbol…" />
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <table class="data-table" id="genes-table">
+          <thead>
+            <tr>
+              <th data-sort="symbol">Gene</th>
+              <th data-sort="organSystem">Organ system</th>
+              <th data-sort="variantsDetected">Variants</th>
+              <th data-sort="pathogenic">Pathogenic / Protective</th>
+              <th data-sort="phasedPct">Phased het. %</th>
+              <th data-sort="hpoTermCount">HPO terms</th>
+              <th data-sort="goTermCount">GO terms</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== VARIANTS VIEW ============================== -->
+  <div class="view" id="view-variants">
+    <div class="list-view">
+      <div class="list-view__head">
+        <h1>Variants</h1>
+        <div class="filters">
+          <select id="filter-gene"><option value="">All genes</option></select>
+          <select id="filter-clinvar">
+            <option value="">All ClinVar</option>
+            <option>Pathogenic</option>
+            <option>Likely pathogenic</option>
+            <option>Protective</option>
+            <option>Uncertain significance</option>
+            <option>Benign</option>
+            <option>Benign/Likely benign</option>
+            <option>Conflicting</option>
+            <option>Risk factor</option>
+            <option>Not reviewed</option>
+          </select>
+          <select id="filter-phase">
+            <option value="">All phase</option>
+            <option>Maternal</option>
+            <option>Paternal</option>
+            <option>Unphased</option>
+            <option>Unknown</option>
+            <option>N/A</option>
+          </select>
+          <select id="filter-zygosity">
+            <option value="">All zygosity</option>
+            <option>Heterozygous</option>
+            <option>Homozygous</option>
+            <option>Hemizygous</option>
+            <option>Homozygous (ref)</option>
+          </select>
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <table class="data-table" id="variants-table">
+          <thead>
+            <tr>
+              <th>Variant</th>
+              <th>Gene</th>
+              <th>ClinVar</th>
+              <th>REVEL</th>
+              <th>CADD</th>
+              <th>SpliceAI</th>
+              <th>AlphaMissense</th>
+              <th>QUAL</th>
+              <th>Reads (alt/total)</th>
+              <th>Coordinate</th>
+              <th>Zygosity</th>
+              <th>Phase</th>
+              <th>MAF</th>
+              <th>Consequence</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== ANALYSIS VIEW ============================== -->
+  <div class="view" id="view-analysis">
+    <div class="analysis-view">
+      <h1>Analysis & Clinical Interpretation</h1>
+      <div class="analysis-sub">Interpretation layer — multi-system risk aggregation across genes, polygenic risk, and pharmacogenomics.</div>
+
+      <div class="kpi-strip" id="analysis-kpis"></div>
+
+      <div class="section-title"><span class="eyebrow">Multi-system genomic risk profile</span></div>
+      <div class="risk-matrix-grid" id="organ-risk-grid"></div>
+
+      <div class="section-title"><span class="eyebrow">Polygenic risk scores (PRS)</span></div>
+      <div class="prs-grid" id="prs-grid"></div>
+
+      <div class="section-title"><span class="eyebrow">Pharmacogenomics (CPIC / DPWG)</span></div>
+      <div class="data-table-wrap">
+        <table class="data-table pgx-table">
+          <thead>
+            <tr><th>Gene</th><th>Diplotype</th><th>Predicted phenotype</th><th>Drug</th><th>Action tier</th><th>CPIC / DPWG guidance</th></tr>
+          </thead>
+          <tbody id="pgx-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== REPORTS VIEW ============================== -->
+  <div class="view" id="view-reports">
+    <div class="reports-view">
+      <div class="report-sheet">
+        <div class="report-sheet__masthead">
+          <div>
+            <h1>Clinical Genomics Summary</h1>
+            <div class="meta" id="report-meta"></div>
+          </div>
+          <div class="report-actions">
+            <button class="btn" onclick="window.print()">Print / Save PDF</button>
+            <button class="btn btn--primary" id="download-json-btn">Download JSON</button>
+          </div>
+        </div>
+        <div class="report-narrative" id="report-narrative"></div>
+        <div class="section-title"><span class="eyebrow">Gene breakdown</span></div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Gene</th><th>Variants detected</th><th>Pathogenic / LP</th><th>Protective</th><th>Uncertain</th></tr></thead>
+            <tbody id="report-gene-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Interactive Genome browser modal -->
+<div class="modal-backdrop" id="genome-modal">
+  <div class="modal" style="max-width: 800px; width: 95%;">
+    <h3 id="genome-modal-title">Interactive Locus & Exon Track</h3>
+    <p id="genome-modal-sub" style="color:var(--slate); font-size:12.5px; margin-bottom:10px;">Visualizing patient variant lollipop positions along the gene coordinates.</p>
+    <div class="modal__locus" id="genome-modal-locus"></div>
+    <div class="genome-browser-container" id="genome-browser-mount"></div>
+    <div id="genome-browser-variant-detail"></div>
+    <div class="modal__foot" style="margin-top:15px; display:flex; justify-content:flex-end; gap:8px;">
+      <button class="btn btn--primary" id="genome-modal-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
 /**
  * REAL DATASET — Genomic Ontology Explorer (Verified Multi-Level DAG)
  * Generated from OpenCRAVAT output: /home/daniel-ehrle/My-Projects/genomics-ontology/genomics-ontology/reports/Daniel_Ehrle-30-08-2026/Daniel_Ehrle_master_actionable.json
@@ -361883,3 +363351,1347 @@ const REPORT = {
     }
   ]
 };
+
+</script>
+<script>
+/**
+ * Genomic Ontology Explorer — app logic (v5.2)
+ * Dedicated Left-Caret Variant Expander Toggle, dbSNP rs Links (Non-rs Coordinate IDs Unlinked),
+ * Multi-Resource Variant Literature & Preprints (LitVar2, bioRxiv/medRxiv, Europe PMC, GWAS Catalog, PubMed),
+ * Non-redundant Variant Drawers with Autosomal Dominant / Recessive Trait Badges,
+ * Direct UCSC Genome Browser (GRCh38) Linking, Full ClinVar Protective Variants Support,
+ * Phased Haplotypes (Maternal/Paternal), and Standalone HTML5 Compatibility.
+ */
+
+(function () {
+  "use strict";
+
+  // -----------------------------------------------------------------
+  // Shared state
+  // -----------------------------------------------------------------
+  const state = {
+    tree: "hpo",
+    layout: "tree",               // default to Tree for rich multi-level exploration
+    scopeFindingsOnly: false,
+    treeSearch: "",
+    selectedTarget: null,         // node or gene object
+    activeSubTab: "overview",     // maintains active subtab (overview, phenotypes, variants, studies, publications)
+    graphScale: 1.0,              // graph zoom scale
+    expandedNodes: new Set(),      // ontology node ids currently expanded
+    expandedVariantRows: new Set() // "gene:variantId" currently expanded (study detail)
+  };
+
+  const byId = (id) => document.getElementById(id);
+  const geneBySymbol = (sym) => GENES.find((g) => g.symbol === sym);
+  const esc = (s) => (s === null || s === undefined ? "" : String(s));
+
+  // -----------------------------------------------------------------
+  // Top-level tab routing
+  // -----------------------------------------------------------------
+  function initTabs() {
+    document.querySelectorAll(".tabs button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+        const targetView = byId("view-" + btn.dataset.view);
+        if (targetView) targetView.classList.add("active");
+
+        if (btn.dataset.view === "genes") renderGenesTable();
+        else if (btn.dataset.view === "variants") renderVariantsTable();
+        else if (btn.dataset.view === "analysis") renderAnalysisView();
+        else if (btn.dataset.view === "reports") renderReportsView();
+      });
+    });
+
+    if (window.JOB_META) {
+      byId("job-meta").textContent =
+        JOB_META.sample + " · OpenCRAVAT " + JOB_META.opencravatVersion + " · " +
+        (JOB_META.uniqueVariants || 0).toLocaleString() + " variants";
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // ONTOLOGY VIEW — left panel controls
+  // -----------------------------------------------------------------
+  function initOntologySwitch() {
+    document.querySelectorAll("#ontology-switch button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#ontology-switch button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.tree = btn.dataset.tree;
+        state.expandedNodes.clear();
+        
+        const groups = filteredOntology();
+        if (groups && groups.length) {
+          selectCategory(groups[0]);
+        }
+        renderLeftPanel();
+      });
+    });
+
+    document.querySelectorAll('input[name="layout"]').forEach((r) => {
+      r.addEventListener("change", (e) => {
+        state.layout = e.target.value;
+        renderLeftPanel();
+      });
+    });
+
+    const scopeCheck = byId("scope-findings-only");
+    if (scopeCheck) {
+      scopeCheck.addEventListener("change", (e) => {
+        state.scopeFindingsOnly = e.target.checked;
+        renderLeftPanel();
+      });
+    }
+
+    const searchInput = byId("tree-search");
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        state.treeSearch = e.target.value.trim().toLowerCase();
+        renderLeftPanel();
+      });
+    }
+  }
+
+  function matchesSearch(text) {
+    if (!state.treeSearch) return true;
+    return (text || "").toLowerCase().includes(state.treeSearch);
+  }
+
+  function geneHasFindings(symbol) {
+    const g = geneBySymbol(symbol);
+    if (!g) return false;
+    return g.variants.some((v) => v.category === "concern" || v.category === "protective" || v.category === "uncertain");
+  }
+
+  // -----------------------------------------------------------------
+  // Filtered Ontology Data Model (Recursive Arbitrary-Depth)
+  // -----------------------------------------------------------------
+  function filterNode(node) {
+    let nodeGenes = Array.from(new Set(node.genes || []));
+    if (state.scopeFindingsOnly) nodeGenes = nodeGenes.filter(geneHasFindings);
+
+    const filteredChildren = (node.children || [])
+      .map(filterNode)
+      .filter(Boolean);
+
+    const nodeHit = matchesSearch(node.label) || matchesSearch(node.id) || nodeGenes.some(matchesSearch);
+    if (state.scopeFindingsOnly && !nodeGenes.length && !filteredChildren.length) return null;
+    if (state.treeSearch && !nodeHit && !filteredChildren.length) return null;
+
+    return {
+      ...node,
+      genes: nodeGenes,
+      children: filteredChildren
+    };
+  }
+
+  function filteredOntology() {
+    const ont = ONTOLOGIES[state.tree] || ONTOLOGIES["hpo"];
+    if (!ont || !ont.groups) return [];
+    return ont.groups.map(filterNode).filter(Boolean);
+  }
+
+  function renderLeftPanel() {
+    if (state.layout === "graph") {
+      byId("tree-scroll").style.display = "none";
+      renderGraph();
+    } else {
+      let graphHost = byId("graph-host");
+      if (graphHost) graphHost.remove();
+      byId("tree-scroll").style.display = "";
+      renderTreeOrList();
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Recursive Multi-Level Tree & List Rendering
+  // -----------------------------------------------------------------
+  function renderTreeOrList() {
+    const data = filteredOntology();
+    const scroll = byId("tree-scroll");
+    scroll.className = "tree-scroll" + (state.layout === "list" ? " tree-list-mode" : "");
+    scroll.innerHTML = "";
+
+    if (state.layout === "list") {
+      data.forEach((group) => {
+        const groupEl = document.createElement("div");
+        groupEl.className = "tree-group";
+        const isOpen = state.expandedNodes.has(group.id) || !!state.treeSearch;
+        const isSelected = state.selectedTarget && state.selectedTarget.id === group.id;
+
+        const row = document.createElement("div");
+        row.className = "tree-row tree-row--organ" + (isOpen ? " expanded" : "") + (isSelected ? " selected" : "");
+        row.innerHTML =
+          '<span class="caret">' + (isOpen ? "\u25BE" : "\u25B8") + '</span><span class="node-dot"></span>' +
+          "<span>" + group.label + "</span>" +
+          '<span class="count-chip">' + group.genes.length + " genes</span>";
+
+        row.addEventListener("click", () => {
+          if (state.expandedNodes.has(group.id)) state.expandedNodes.delete(group.id);
+          else state.expandedNodes.add(group.id);
+          selectCategory(group);
+        });
+        groupEl.appendChild(row);
+
+        const childWrap = document.createElement("div");
+        childWrap.className = "tree-children" + (isOpen ? " open" : "");
+        group.genes.forEach((sym) => childWrap.appendChild(makeGeneRow(sym)));
+        groupEl.appendChild(childWrap);
+        scroll.appendChild(groupEl);
+      });
+    } else {
+      data.forEach((rootNode) => {
+        scroll.appendChild(renderTreeNodeRecursive(rootNode, 0));
+      });
+    }
+
+    if (!scroll.children.length) {
+      scroll.innerHTML = '<div style="padding:20px;color:var(--slate);font-size:12.5px;">No matches under the current filters.</div>';
+    }
+  }
+
+  function renderTreeNodeRecursive(node, depth) {
+    const wrap = document.createElement("div");
+    wrap.className = "tree-node-wrap";
+
+    const isOpen = state.expandedNodes.has(node.id) || (depth === 0 && state.expandedNodes.size === 0) || !!state.treeSearch;
+    const isSelected = state.selectedTarget && state.selectedTarget.id === node.id;
+    const hasChildren = (node.children && node.children.length > 0) || (node.genes && node.genes.length > 0);
+
+    const row = document.createElement("div");
+    const levelClass = depth === 0 ? "tree-row--organ" : (depth === 1 ? "tree-row--subcat" : "tree-row--term");
+    row.className = "tree-row " + levelClass + (isOpen ? " expanded" : "") + (isSelected ? " selected" : "");
+    row.style.paddingLeft = (12 + depth * 14) + "px";
+
+    const dotStyle = depth === 0 ? "" : (depth === 1 ? "background:var(--teal);" : "background:var(--slate-light);");
+    const countLabel = node.genes.length + (depth === 0 ? " genes" : "");
+
+    row.innerHTML =
+      (hasChildren ? '<span class="caret">' + (isOpen ? "\u25BE" : "\u25B8") + '</span>' : '<span class="caret" style="opacity:0;">•</span>') +
+      '<span class="node-dot" style="' + dotStyle + '"></span>' +
+      '<span class="tree-node-title">' + node.label + '</span>' +
+      (node.id && (node.id.startsWith("HP:") || node.id.startsWith("GO:") || node.id.startsWith("ORGAN:")) ? '<span class="count-chip mono">' + node.id + '</span>' : '') +
+      '<span class="count-chip">' + countLabel + '</span>';
+
+    row.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (hasChildren) {
+        if (state.expandedNodes.has(node.id)) state.expandedNodes.delete(node.id);
+        else state.expandedNodes.add(node.id);
+      }
+      selectCategory(node);
+    });
+
+    wrap.appendChild(row);
+
+    const childWrap = document.createElement("div");
+    childWrap.className = "tree-children" + (isOpen ? " open" : "");
+
+    if (node.children && node.children.length > 0) {
+      node.children.forEach((child) => {
+        childWrap.appendChild(renderTreeNodeRecursive(child, depth + 1));
+      });
+    } else if (node.genes && node.genes.length > 0) {
+      node.genes.forEach((sym) => {
+        const geneRow = makeGeneRow(sym);
+        geneRow.style.paddingLeft = (16 + (depth + 1) * 14) + "px";
+        childWrap.appendChild(geneRow);
+      });
+    }
+
+    wrap.appendChild(childWrap);
+    return wrap;
+  }
+
+  function makeGeneRow(symbol) {
+    const g = geneBySymbol(symbol);
+    const row = document.createElement("div");
+    const isSelected = state.selectedTarget && state.selectedTarget.type === "gene" && state.selectedTarget.symbol === symbol;
+    row.className = "tree-row tree-row--gene" + (isSelected ? " selected" : "");
+    const flagged = g && g.variants.some((v) => v.category === "concern");
+    const isProt = g && g.variants.some((v) => v.category === "protective");
+    row.innerHTML =
+      '<span class="node-dot"></span><span style="font-weight:600;">' + symbol + "</span>" +
+      (flagged ? '<span class="count-chip" style="color:var(--concern);border-color:var(--concern-bg);font-weight:700;">concern</span>' : "") +
+      (isProt ? '<span class="count-chip" style="color:var(--protect);border-color:var(--protect-bg);font-weight:700;">protective</span>' : "");
+    row.addEventListener("click", (e) => {
+      e.stopPropagation();
+      selectGene(symbol);
+    });
+    return row;
+  }
+
+  function selectGene(symbol) {
+    state.selectedTarget = { type: "gene", symbol };
+    if (state.layout === "graph") renderGraph(); else renderTreeOrList();
+    renderInspectionPanel();
+  }
+
+  function selectCategory(node) {
+    state.selectedTarget = { ...node, type: "category" };
+    if (state.layout === "graph") renderGraph(); else renderTreeOrList();
+    renderInspectionPanel();
+  }
+
+  // -----------------------------------------------------------------
+  // Graph layout mode — Scalable, Zoomable SVG Hierarchy
+  // -----------------------------------------------------------------
+  function renderGraph() {
+    const panel = document.querySelector(".tree-panel");
+    let host = byId("graph-host");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "graph-host";
+      host.className = "graph-wrap";
+      panel.appendChild(host);
+    }
+    host.innerHTML = "";
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "graph-toolbar";
+    toolbar.innerHTML =
+      '<button id="graph-zoom-in" title="Zoom In">+</button>' +
+      '<button id="graph-zoom-out" title="Zoom Out">−</button>' +
+      '<button id="graph-zoom-reset" title="Reset View">↺</button>';
+    host.appendChild(toolbar);
+
+    toolbar.querySelector("#graph-zoom-in").addEventListener("click", (e) => {
+      e.stopPropagation();
+      state.graphScale = Math.min(2.0, state.graphScale + 0.15);
+      applyGraphTransform();
+    });
+    toolbar.querySelector("#graph-zoom-out").addEventListener("click", (e) => {
+      e.stopPropagation();
+      state.graphScale = Math.max(0.4, state.graphScale - 0.15);
+      applyGraphTransform();
+    });
+    toolbar.querySelector("#graph-zoom-reset").addEventListener("click", (e) => {
+      e.stopPropagation();
+      state.graphScale = 1.0;
+      applyGraphTransform();
+    });
+
+    const data = filteredOntology();
+    const ROW_H = 34, L1_X = 30, L2_X = 190, L3_X = 355, GENE_X = 520, PAD_TOP = 25, BASE_WIDTH = 800;
+
+    const canvasWrap = document.createElement("div");
+    canvasWrap.id = "graph-canvas-wrap";
+    canvasWrap.style.transformOrigin = "top left";
+    canvasWrap.style.transition = "transform 0.1s ease-out";
+
+    const svgns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgns, "svg");
+    svg.setAttribute("class", "graph-svg");
+    svg.setAttribute("width", BASE_WIDTH);
+
+    const geneChips = [];
+    let y = PAD_TOP;
+    const edges = [];
+    const nodes = [];
+
+    data.forEach((root) => {
+      const rootY = y;
+      nodes.push({ id: root.id, x: L1_X, y: rootY, label: root.label, node: root, level: 1 });
+      y += ROW_H;
+
+      (root.children || []).forEach((sub) => {
+        const subY = y;
+        nodes.push({ id: sub.id, x: L2_X, y: subY, label: sub.label, node: sub, level: 2 });
+        edges.push({ x1: L1_X + 8, y1: rootY, x2: L2_X - 8, y2: subY, strokeWidth: "1.75" });
+        y += ROW_H;
+
+        (sub.children || []).slice(0, 3).forEach((term) => {
+          const termY = y;
+          nodes.push({ id: term.id, x: L3_X, y: termY, label: term.label, node: term, level: 3 });
+          edges.push({ x1: L2_X + 8, y1: subY, x2: L3_X - 8, y2: termY, strokeWidth: "1.5" });
+          geneChips.push({ y: termY, genes: term.genes || [] });
+          y += ROW_H;
+        });
+      });
+      y += 14;
+    });
+
+    const totalHeight = Math.max(500, y + 40);
+    svg.setAttribute("height", totalHeight);
+    svg.setAttribute("viewBox", "0 0 " + BASE_WIDTH + " " + totalHeight);
+
+    edges.forEach((e) => {
+      const path = document.createElementNS(svgns, "path");
+      const midX = (e.x1 + e.x2) / 2;
+      const d = `M ${e.x1} ${e.y1} C ${midX} ${e.y1}, ${midX} ${e.y2}, ${e.x2} ${e.y2}`;
+      path.setAttribute("d", d);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "#64748b");
+      path.setAttribute("stroke-width", e.strokeWidth || "1.75");
+      path.setAttribute("stroke-opacity", "0.75");
+      svg.appendChild(path);
+    });
+
+    nodes.forEach((n) => {
+      const isSel = state.selectedTarget && state.selectedTarget.id === n.id;
+      const gNode = document.createElementNS(svgns, "g");
+      gNode.style.cursor = "pointer";
+
+      const circle = document.createElementNS(svgns, "circle");
+      circle.setAttribute("cx", n.x); circle.setAttribute("cy", n.y);
+      circle.setAttribute("r", n.level === 1 ? 6.5 : (n.level === 2 ? 5.0 : 4.0));
+      circle.setAttribute("fill", isSel ? "var(--concern)" : (n.level === 1 ? "var(--teal-dark)" : (n.level === 2 ? "var(--teal)" : "#64748b")));
+      circle.setAttribute("stroke", "#ffffff");
+      circle.setAttribute("stroke-width", "1.5");
+      gNode.appendChild(circle);
+
+      const text = document.createElementNS(svgns, "text");
+      text.setAttribute("x", n.x + 12);
+      text.setAttribute("y", n.y + 4);
+      text.setAttribute("font-size", n.level === 1 ? "12px" : (n.level === 2 ? "11px" : "10px"));
+      text.setAttribute("font-weight", n.level === 1 ? "700" : "600");
+      text.setAttribute("fill", isSel ? "var(--teal-dark)" : "var(--ink)");
+      text.textContent = n.label.length > 24 ? n.label.substring(0, 22) + "…" : n.label;
+      gNode.appendChild(text);
+
+      gNode.addEventListener("click", () => selectCategory(n.node));
+      svg.appendChild(gNode);
+    });
+
+    canvasWrap.appendChild(svg);
+
+    const geneLayer = document.createElement("div");
+    geneLayer.className = "graph-genes-layer";
+    geneLayer.style.width = BASE_WIDTH + "px";
+    geneLayer.style.height = totalHeight + "px";
+    geneChips.forEach((row) => {
+      (row.genes || []).slice(0, 4).forEach((sym, i) => {
+        const chip = document.createElement("div");
+        const isGeneSel = state.selectedTarget && state.selectedTarget.type === "gene" && state.selectedTarget.symbol === sym;
+        chip.className = "graph-gene-chip" + (isGeneSel ? " selected" : "");
+        chip.textContent = sym;
+        chip.style.left = (GENE_X + i * 66) + "px";
+        chip.style.top = (row.y - 10) + "px";
+        chip.addEventListener("click", () => selectGene(sym));
+        geneLayer.appendChild(chip);
+      });
+    });
+    canvasWrap.appendChild(geneLayer);
+
+    host.appendChild(canvasWrap);
+    applyGraphTransform();
+  }
+
+  function applyGraphTransform() {
+    const wrap = byId("graph-canvas-wrap");
+    if (wrap) {
+      wrap.style.transform = "scale(" + state.graphScale + ")";
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Inspection Router: Gene View OR Category Rollup View
+  // -----------------------------------------------------------------
+  function renderInspectionPanel() {
+    const wrap = byId("gene-detail");
+    if (!state.selectedTarget) {
+      wrap.innerHTML =
+        '<div class="gene-empty"><div class="glyph-lg">\u25C8</div>' +
+        "<div><strong>Select any category or gene</strong> from the tree on the left to see its rolled-up overview, phenotypes, variants, studies, and publications.</div></div>";
+      return;
+    }
+
+    if (state.selectedTarget.type === "gene") {
+      renderSingleGeneView(wrap, state.selectedTarget.symbol);
+    } else {
+      renderCategoryRollupView(wrap, state.selectedTarget);
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // 1. Single Gene Detail View
+  // -----------------------------------------------------------------
+  function renderSingleGeneView(wrap, symbol) {
+    const g = geneBySymbol(symbol);
+    if (!g) return;
+
+    const heteroCount = g.variants.filter((v) => v.zygosity === "Heterozygous").length;
+    const phasedHetCount = g.variants.filter((v) => v.zygosity === "Heterozygous" && (v.phase === "Maternal" || v.phase === "Paternal")).length;
+    const phasedPct = heteroCount ? Math.round((phasedHetCount / heteroCount) * 100) : 0;
+    const pathCount = g.variants.filter((v) => v.category === "concern").length;
+    const protectCount = g.variants.filter((v) => v.category === "protective").length;
+    const uncertainCount = g.variants.filter((v) => v.category === "uncertain").length;
+
+    const activeTab = state.activeSubTab || "overview";
+
+    wrap.innerHTML =
+      '<div class="gene-head">' +
+        '<div>' +
+          '<h1><span class="sym">' + g.symbol + '</span> <span class="full">' + g.name + '</span></h1>' +
+          '<div class="gene-coord mono" style="font-size:11.5px;color:var(--slate);margin-top:2px;">' + g.chromosome + " · pLI " + g.pli + " · LOEUF " + g.loeuf + " · " + g.organSystem + '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<a class="btn" href="' + (g.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="background:#fff;border:1px solid var(--line);font-size:11.5px;">UCSC Browser ↗</a>' +
+          '<button class="btn btn--primary" id="genome-browser-btn">Interactive Exons</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="gene-tabs" id="gene-tabs">' +
+        '<button data-tab="overview" class="' + (activeTab === "overview" ? "active" : "") + '">Overview</button>' +
+        '<button data-tab="phenotypes" class="' + (activeTab === "phenotypes" ? "active" : "") + '">Phenotypes (' + g.hpoTermCount + ')</button>' +
+        '<button data-tab="variants" class="' + (activeTab === "variants" ? "active" : "") + '">Variants (' + g.variants.length + ')</button>' +
+        '<button data-tab="studies" class="' + (activeTab === "studies" ? "active" : "") + '">Studies</button>' +
+        '<button data-tab="publications" class="' + (activeTab === "publications" ? "active" : "") + '">Publications (' + (g.publications ? g.publications.length : 0) + ')</button>' +
+      '</div>' +
+
+      '<div class="gene-pane ' + (activeTab === "overview" ? "active" : "") + '" data-pane="overview">' +
+        '<div class="kpi-row">' +
+          kpi(g.variantsDetected, "Variants detected") +
+          kpi(pathCount, "Potential concerns") +
+          kpi(protectCount, "Protective factors") +
+          kpi(uncertainCount, "Uncertain") +
+          kpi(phasedPct + "%", "Het. variants phased") +
+          kpi(g.hpoTermCount, "HPO terms") +
+          kpi(g.goTermCount, "GO terms") +
+          kpi(g.publications ? g.publications.length : 0, "Publications") +
+        '</div>' +
+        '<div class="panel-box"><h3>Gene summary</h3><p>' + g.summary + '</p></div>' +
+        (g.associatedPathology && g.associatedPathology.length
+          ? '<div class="panel-box"><h3>Associated pathology & Inheritance</h3>' +
+            g.associatedPathology.map((p) => {
+              const badges = (p.inheritance || []).map((inh) => {
+                const cls = inh.includes("Dominant") ? "badge--ad" : (inh.includes("Recessive") ? "badge--ar" : "badge--complex");
+                return '<span class="' + cls + '" style="margin-left:6px;">' + inh + '</span>';
+              }).join("");
+              return '<div class="pathology-chip" style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">' +
+                '<span>' + p.name + '</span>' +
+                '<div>' + badges + (p.omim ? '<span class="tag" style="margin-left:6px;">OMIM #' + p.omim + '</span>' : "") + '</div>' +
+                '</div>';
+            }).join("") + '</div>'
+          : '<div class="panel-box"><h3>Associated pathology</h3><p style="color:var(--slate);">No single-gene OMIM phenotype established; evaluated in quantitative/complex trait networks.</p></div>') +
+        '<div class="panel-box"><h3>Reference links</h3><div class="ref-links">' +
+          '<a class="ref-link" href="' + g.links.ncbiGene + '" target="_blank" rel="noopener">NCBI Gene (' + g.ncbiGeneId + ') ↗</a>' +
+          '<a class="ref-link" href="' + g.links.omim + '" target="_blank" rel="noopener">OMIM *' + g.omimGene + ' ↗</a>' +
+          (g.omimPhenotype ? '<a class="ref-link" href="https://omim.org/entry/' + g.omimPhenotype + '" target="_blank" rel="noopener">OMIM Phenotype #' + g.omimPhenotype + ' ↗</a>' : "") +
+          '<a class="ref-link" href="' + (g.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener">UCSC Genome Browser (hg38) ↗</a>' +
+          '<a class="ref-link" href="' + g.links.genecards + '" target="_blank" rel="noopener">GeneCards ↗</a>' +
+          '<a class="ref-link" href="' + g.links.clinvarGene + '" target="_blank" rel="noopener">ClinVar (gene) ↗</a>' +
+        '</div></div>' +
+      '</div>' +
+
+      '<div class="gene-pane ' + (activeTab === "phenotypes" ? "active" : "") + '" data-pane="phenotypes">' +
+        (g.hpoTerms && g.hpoTerms.length
+          ? '<div class="hpo-card-grid">' + g.hpoTerms.map((t) =>
+              '<div class="hpo-card"><div class="id">' + t.id + '</div><div class="label">' + t.label + '</div><div class="evidence">' + t.evidence + '</div></div>'
+            ).join("") + '</div>'
+          : '<div class="pub-empty">No curated HPO associations recorded for this gene.</div>') +
+      '</div>' +
+
+      '<div class="gene-pane ' + (activeTab === "variants" ? "active" : "") + '" data-pane="variants">' + renderVariantSectionList(g.variants, g.symbol) + '</div>' +
+
+      '<div class="gene-pane ' + (activeTab === "studies" ? "active" : "") + '" data-pane="studies">' + renderStudiesTabForVariants(g.variants) + '</div>' +
+
+      '<div class="gene-pane ' + (activeTab === "publications" ? "active" : "") + '" data-pane="publications">' +
+        (g.publications && g.publications.length
+          ? '<div class="pub-grid">' + g.publications.map(pubCard).join("") + '</div>'
+          : '<div class="pub-empty">No curated publications directly linked to this gene’s variants yet.</div>') +
+      '</div>';
+
+    wireTabSwitching(wrap);
+    byId("genome-browser-btn").addEventListener("click", () => openGenomeModal(g.symbol, g.variants));
+    wireVariantsPane(wrap);
+  }
+
+  // -----------------------------------------------------------------
+  // 2. Category / Domain Rollup View (Multi-Level Aggregation)
+  // -----------------------------------------------------------------
+  function collectDescendantSubOntologies(node) {
+    const subTerms = [];
+    function walk(n) {
+      if (n.children && n.children.length) {
+        n.children.forEach((c) => {
+          subTerms.push(c);
+          walk(c);
+        });
+      }
+    }
+    walk(node);
+    return subTerms;
+  }
+
+  function renderCategoryRollupView(wrap, cat) {
+    const geneObjects = (cat.genes || []).map(geneBySymbol).filter(Boolean);
+    const allVariants = geneObjects.flatMap((g) => g.variants);
+
+    const totalVariants = allVariants.length;
+    const pathCount = allVariants.filter((v) => v.category === "concern").length;
+    const protectCount = allVariants.filter((v) => v.category === "protective").length;
+    const uncertainCount = allVariants.filter((v) => v.category === "uncertain").length;
+    const heteroCount = allVariants.filter((v) => v.zygosity === "Heterozygous").length;
+    const phasedHetCount = allVariants.filter((v) => v.zygosity === "Heterozygous" && (v.phase === "Maternal" || v.phase === "Paternal")).length;
+    const phasedPct = heteroCount ? Math.round((phasedHetCount / heteroCount) * 100) : 0;
+
+    const subOntologies = collectDescendantSubOntologies(cat);
+    const allPubs = geneObjects.flatMap((g) => g.publications || []);
+
+    const levelBadge = cat.level ? "Level " + cat.level : (cat.id && (cat.id.startsWith("HP:") || cat.id.startsWith("GO:") || cat.id.startsWith("ORGAN:")) ? cat.id : "Category");
+
+    const activeTab = state.activeSubTab || "overview";
+
+    wrap.innerHTML =
+      '<div class="category-head">' +
+        '<div>' +
+          '<h1><span>' + cat.label + '</span> <span class="category-level-badge">' + levelBadge + '</span></h1>' +
+          '<div class="category-meta mono">' + (cat.id ? cat.id + " · " : "") + geneObjects.length + " Genes · " + totalVariants + " Actionable Variants</div>" +
+        '</div>' +
+      '</div>' +
+
+      '<div class="gene-tabs" id="gene-tabs">' +
+        '<button data-tab="overview" class="' + (activeTab === "overview" ? "active" : "") + '">Overview</button>' +
+        '<button data-tab="phenotypes" class="' + (activeTab === "phenotypes" ? "active" : "") + '">Phenotypes / Sub-Ontologies (' + subOntologies.length + ')</button>' +
+        '<button data-tab="variants" class="' + (activeTab === "variants" ? "active" : "") + '">Variants (' + totalVariants + ')</button>' +
+        '<button data-tab="studies" class="' + (activeTab === "studies" ? "active" : "") + '">Studies</button>' +
+        '<button data-tab="publications" class="' + (activeTab === "publications" ? "active" : "") + '">Publications (' + allPubs.length + ')</button>' +
+      '</div>' +
+
+      '<div class="gene-pane ' + (activeTab === "overview" ? "active" : "") + '" data-pane="overview">' +
+        '<div class="kpi-row">' +
+          kpi(geneObjects.length, "Genes in domain") +
+          kpi(pathCount, "Potential concerns") +
+          kpi(protectCount, "Protective factors") +
+          kpi(uncertainCount, "Uncertain") +
+          kpi(phasedPct + "%", "Het. variants phased") +
+          kpi(subOntologies.length, "Sub-ontologies") +
+          kpi(totalVariants, "Total variants") +
+          kpi(allPubs.length, "Publications") +
+        '</div>' +
+
+        '<div class="panel-box">' +
+          '<h3>Clinical & Biological Domain Summary</h3>' +
+          '<p>Roll-up analysis of findings categorized under <strong>' + cat.label + '</strong> (' + (cat.id || "Domain") + '). Encompasses <strong>' + geneObjects.length + ' genes</strong> with <strong>' + totalVariants + ' actionable variants</strong> identified across patient sequencing data.</p>' +
+        '</div>' +
+
+        '<div class="panel-box">' +
+          '<h3>Genes in this Branch (' + geneObjects.length + ')</h3>' +
+          '<div class="gene-chip-roster">' +
+            geneObjects.map((g) => {
+              const hasConcern = g.variants.some((v) => v.category === "concern");
+              const hasProtect = g.variants.some((v) => v.category === "protective");
+              return '<div class="gene-chip-item' + (hasConcern ? " has-concern" : (hasProtect ? " has-protect" : "")) + '" data-gene="' + g.symbol + '">' +
+                '<span>' + g.symbol + '</span>' +
+                '<span class="mono" style="font-size:10px;opacity:0.8;">(' + g.variants.length + 'v)</span>' +
+                (hasConcern ? '<span style="font-size:9px;font-weight:700;color:var(--concern);">●</span>' : '') +
+                (hasProtect ? '<span style="font-size:9px;font-weight:700;color:var(--protect);">●</span>' : '') +
+              '</div>';
+            }).join("") +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="gene-pane ' + (activeTab === "phenotypes" ? "active" : "") + '" data-pane="phenotypes">' +
+        '<div class="section-title"><span class="eyebrow">Sub-Level Ontologies & Phenotypic Branches (' + subOntologies.length + ')</span></div>' +
+        (subOntologies.length
+          ? '<div class="hpo-card-grid">' + subOntologies.map((s) =>
+              '<div class="hpo-card" style="cursor:pointer;" data-node-id="' + s.id + '">' +
+                '<div class="id" style="display:flex;justify-content:space-between;"><span>' + s.id + '</span><span class="category-level-badge" style="font-size:9px;">Level ' + (s.level || "Sub") + '</span></div>' +
+                '<div class="label" style="font-weight:700;margin-top:4px;">' + s.label + '</div>' +
+                '<div class="evidence" style="margin-top:6px;font-size:11px;color:var(--teal-dark);font-weight:600;">' + (s.genes ? s.genes.length + ' Genes: ' + s.genes.slice(0, 8).join(", ") + (s.genes.length > 8 ? "…" : "") : "") + '</div>' +
+              '</div>'
+            ).join("") + '</div>'
+          : '<div class="pub-empty">This is a terminal leaf phenotype term. View associated genes above or in the Variants tab.</div>') +
+      '</div>' +
+
+      '<div class="gene-pane ' + (activeTab === "variants" ? "active" : "") + '" data-pane="variants">' +
+        renderVariantSectionList(allVariants, cat.label) +
+      '</div>' +
+
+      '<div class="gene-pane ' + (activeTab === "studies" ? "active" : "") + '" data-pane="studies">' +
+        renderStudiesTabForVariants(allVariants) +
+      '</div>' +
+
+      '<div class="gene-pane ' + (activeTab === "publications" ? "active" : "") + '" data-pane="publications">' +
+        '<div class="pub-grid">' +
+          allPubs.map(pubCard).join("") +
+        '</div>' +
+        (!allPubs.length ? '<div class="pub-empty">No curated publications directly indexed for this category.</div>' : "") +
+      '</div>';
+
+    wireTabSwitching(wrap);
+
+    wrap.querySelectorAll(".gene-chip-item").forEach((chip) => {
+      chip.addEventListener("click", () => selectGene(chip.dataset.gene));
+    });
+
+    wrap.querySelectorAll(".hpo-card[data-node-id]").forEach((card) => {
+      card.addEventListener("click", () => {
+        const targetNodeId = card.dataset.nodeId;
+        const targetSub = subOntologies.find((s) => s.id === targetNodeId);
+        if (targetSub) {
+          state.expandedNodes.add(targetNodeId);
+          selectCategory(targetSub);
+        }
+      });
+    });
+
+    wireVariantsPane(wrap);
+  }
+
+  function wireTabSwitching(wrap) {
+    wrap.querySelectorAll("#gene-tabs button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.activeSubTab = btn.dataset.tab; // Store active subtab to prevent jump
+        wrap.querySelectorAll("#gene-tabs button").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        wrap.querySelectorAll(".gene-pane").forEach((p) => p.classList.remove("active"));
+        const targetPane = wrap.querySelector('.gene-pane[data-pane="' + btn.dataset.tab + '"]');
+        if (targetPane) targetPane.classList.add("active");
+      });
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Tiered Variants List: Grouped by Gene with NCBI/OMIM Descriptions
+  // -----------------------------------------------------------------
+  const CATEGORY_META = {
+    concern: { label: "Potential concerns", cls: "concern" },
+    protective: { label: "Protective associations", cls: "protect" },
+    uncertain: { label: "Uncertain significance", cls: "uncertain" },
+    uncategorized: { label: "Not categorized / Baseline", cls: "neutral" }
+  };
+
+  function renderVariantSectionList(variants, contextSymbol) {
+    if (!variants || !variants.length) return '<div class="pub-empty">No variants recorded under this selection.</div>';
+
+    const grouped = { concern: [], protective: [], uncertain: [], uncategorized: [] };
+    variants.forEach((v) => {
+      const cat = grouped[v.category] ? v.category : "uncategorized";
+      grouped[cat].push(v);
+    });
+
+    const summary =
+      '<div class="kpi-row" style="margin-bottom:14px;">' +
+      kpi(variants.length, "Total variants") +
+      kpi(grouped.concern.length, "Concerns") +
+      kpi(grouped.protective.length, "Protective") +
+      kpi(grouped.uncertain.length, "Uncertain") +
+      "</div>";
+
+    const sections = ["concern", "protective", "uncertain", "uncategorized"]
+      .map((cat) => {
+        const vs = grouped[cat];
+        if (!vs.length) return "";
+        const meta = CATEGORY_META[cat];
+
+        // Group variants by Gene within this category
+        const byGene = {};
+        vs.forEach((v) => {
+          const sym = v.gene || contextSymbol;
+          if (!byGene[sym]) byGene[sym] = [];
+          byGene[sym].push(v);
+        });
+
+        const geneBlocks = Object.keys(byGene).map((sym) => {
+          const g = geneBySymbol(sym) || {};
+          const geneVars = byGene[sym];
+          return (
+            '<div class="variant-gene-group">' +
+              '<div class="variant-gene-header">' +
+                '<div>' +
+                  '<div>' +
+                    '<span class="variant-gene-title">' + sym + '</span>' +
+                    '<span class="variant-gene-fullname">' + (g.name || '') + '</span>' +
+                    '<span class="count-chip" style="margin-left:8px;">' + geneVars.length + ' variant' + (geneVars.length === 1 ? '' : 's') + '</span>' +
+                  '</div>' +
+                  '<div class="variant-gene-desc">' + (g.summary || 'Essential clinical genomic locus.') + '</div>' +
+                '</div>' +
+                '<div style="flex-shrink:0;display:flex;gap:6px;">' +
+                  '<a class="ref-link" href="' + (g.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;">UCSC ↗</a>' +
+                  '<a class="ref-link" href="' + (g.links ? g.links.ncbiGene : 'https://www.ncbi.nlm.nih.gov/gene/?term=' + sym) + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;">NCBI ↗</a>' +
+                '</div>' +
+              '</div>' +
+              '<div class="data-table-wrap">' +
+                '<table class="variant-table">' +
+                  '<thead><tr>' +
+                    '<th>Variant ID</th><th>Genotype</th><th>Zygosity</th><th>Phase</th><th>MAF</th><th>Consequence</th><th>ClinVar</th><th>REVEL</th>' +
+                    scoreColumnsHead() +
+                  '</tr></thead>' +
+                  '<tbody>' +
+                    geneVars.map((v) => variantRow(sym, v)).join("") +
+                  '</tbody>' +
+                '</table>' +
+              '</div>' +
+            '</div>'
+          );
+        }).join("");
+
+        return (
+          '<div class="variant-section" style="margin-bottom:24px;">' +
+            '<div class="variant-section__head ' + meta.cls + '"><span>' + vs.length + " " + meta.label.toUpperCase() + '</span><span class="caret">\u25BE</span></div>' +
+            geneBlocks +
+          '</div>'
+        );
+      })
+      .join("");
+
+    return summary + sections;
+  }
+
+  function scoreColumnsHead() {
+    return "<th>CADD</th><th>SpliceAI</th><th>AlphaMis.</th><th>QUAL</th><th>Reads (alt/total)</th>";
+  }
+
+  function scoreColumnsCells(v) {
+    const caddFmt = v.cadd !== null && v.cadd !== undefined ? Number(v.cadd).toFixed(1) : "—";
+    const caddHot = v.cadd && v.cadd >= 20;
+    const caddBar = v.cadd !== null && v.cadd !== undefined ? Math.min(100, Math.round((v.cadd / 40) * 100)) : 0;
+
+    const spliceFmt = v.spliceai !== null && v.spliceai !== undefined ? Number(v.spliceai).toFixed(2) : "—";
+    const spliceHot = v.spliceai && v.spliceai >= 0.5;
+    const spliceBar = v.spliceai !== null && v.spliceai !== undefined ? Math.min(100, Math.round(v.spliceai * 100)) : 0;
+
+    const amFmt = v.alphamissense !== null && v.alphamissense !== undefined ? Number(v.alphamissense).toFixed(3) : "—";
+    const amHot = v.alphamissense && v.alphamissense >= 0.564;
+    const amBar = v.alphamissense !== null && v.alphamissense !== undefined ? Math.min(100, Math.round(v.alphamissense * 100)) : 0;
+
+    const qualFmt = v.qual !== null && v.qual !== undefined ? Number(v.qual).toFixed(1) : "—";
+    const readsFmt = v.reads && v.reads.total ? v.reads.matching + "/" + v.reads.total : "—";
+    const readsPct = v.reads && v.reads.total ? Math.round((v.reads.matching / v.reads.total) * 100) + "%" : "";
+
+    return (
+      '<td><div class="score-cell"><div class="score-bar-track"><div class="score-bar-fill' + (caddHot ? " hot" : "") + '" style="width:' + caddBar + '%"></div></div><span class="mono">' + caddFmt + "</span></div></td>" +
+      '<td><div class="score-cell"><div class="score-bar-track"><div class="score-bar-fill' + (spliceHot ? " hot" : "") + '" style="width:' + spliceBar + '%"></div></div><span class="mono">' + spliceFmt + "</span></div></td>" +
+      '<td><div class="score-cell"><div class="score-bar-track"><div class="score-bar-fill' + (amHot ? " hot" : "") + '" style="width:' + amBar + '%"></div></div><span class="mono">' + amFmt + "</span></div></td>" +
+      '<td class="mono">' + qualFmt + "</td>" +
+      '<td><div class="score-cell"><span class="reads-frac">' + readsFmt + '</span><span class="reads-pct">' + readsPct + "</span></div></td>"
+    );
+  }
+
+  // -----------------------------------------------------------------
+  // Non-Redundant Comprehensive Variant Detail Drawer (v5.2)
+  // -----------------------------------------------------------------
+  function variantRow(geneSymbol, v) {
+    const badgeCls = { concern: "badge--concern", protective: "badge--protect", uncertain: "badge--uncertain", uncategorized: "badge--neutral" };
+    const rowKey = (geneSymbol || v.gene) + ":" + v.id;
+    const isExpanded = state.expandedVariantRows.has(rowKey);
+
+    const isRsId = typeof v.id === "string" && v.id.toLowerCase().startsWith("rs");
+    const idHtml = isRsId
+      ? '<a href="https://www.ncbi.nlm.nih.gov/snp/' + v.id + '" target="_blank" rel="noopener" class="variant-rs-link" title="Open in NCBI dbSNP (' + v.id + ') ↗">' + v.id + '</a>'
+      : '<span class="variant-coord-id">' + v.id + '</span>';
+
+    const mainRow =
+      '<tr data-gene="' + (geneSymbol || v.gene) + '" data-vid="' + v.id + '" class="' + (isExpanded ? "expanded" : "") + '">' +
+      '<td class="mono" style="font-weight:700;white-space:nowrap;">' +
+        '<span class="variant-toggle-btn" data-toggle="' + rowKey + '" title="Click to ' + (isExpanded ? "collapse" : "expand") + ' variant details">' + (isExpanded ? "\u25BE" : "\u25B8") + '</span>' +
+        idHtml +
+      "</td>" +
+      '<td class="mono">' + v.genotype + "</td>" +
+      "<td>" + v.zygosity + "</td>" +
+      "<td>" + phaseTag(v.phase) + "</td>" +
+      "<td>" + (typeof v.maf === 'number' ? v.maf.toFixed(4) : v.maf) + "</td>" +
+      "<td>" + v.consequence.map((c) => '<span class="chip">' + c + "</span>").join("") + "</td>" +
+      "<td><span class=\"badge " + (badgeCls[v.category] || "badge--neutral") + "\">" + v.clinvar + "</span></td>" +
+      "<td>" + (v.revel === null || v.revel === undefined ? '<span class="na-cell">\u2014</span>' : v.revel) + "</td>" +
+      scoreColumnsCells(v) +
+      "</tr>";
+
+    if (!isExpanded) return mainRow;
+
+    const g = geneBySymbol(geneSymbol || v.gene) || {};
+    const pathologies = g.associatedPathology || [];
+
+    // SpliceAI Delta Breakdown
+    const sDetails = v.spliceaiDetails || {};
+    const agStr = sDetails.ag !== undefined && sDetails.ag !== null ? Number(sDetails.ag).toFixed(2) : "0.00";
+    const alStr = sDetails.al !== undefined && sDetails.al !== null ? Number(sDetails.al).toFixed(2) : "0.00";
+    const dgStr = sDetails.dg !== undefined && sDetails.dg !== null ? Number(sDetails.dg).toFixed(2) : "0.00";
+    const dlStr = sDetails.dl !== undefined && sDetails.dl !== null ? Number(sDetails.dl).toFixed(2) : "0.00";
+
+    // Build specific literature, preprints & study links for this variant
+    const geneNameStr = geneSymbol || v.gene || "";
+    const litvarUrl = isRsId
+      ? `https://www.ncbi.nlm.nih.gov/research/litvar2/docsum?variant=litvar@${encodeURIComponent(v.id)}%23%23&query=${encodeURIComponent(v.id)}`
+      : `https://www.ncbi.nlm.nih.gov/research/litvar2/docsum?query=${encodeURIComponent(v.id)}`;
+    const biorxivUrl = `https://www.biorxiv.org/search/${encodeURIComponent(geneNameStr + " " + v.id)}`;
+    const europePmcUrl = `https://europepmc.org/search?query=${encodeURIComponent(geneNameStr + " " + v.id)}`;
+    const gwasVarUrl = `https://www.ebi.ac.uk/gwas/variants/${encodeURIComponent(v.id)}`;
+
+    const detailRow =
+      '<tr class="variant-detail-row"><td colspan="13">' +
+      '<div class="variant-drawer-grid">' +
+        // Box 1: Inheritance & Pathology Traits (Dominant / Recessive)
+        '<div class="variant-drawer-box">' +
+          '<h4>Inheritance & Pathology</h4>' +
+          (pathologies.length
+            ? pathologies.map((p) => {
+                const badges = (p.inheritance || []).map((inh) => {
+                  const cls = inh.includes("Dominant") ? "badge--ad" : (inh.includes("Recessive") ? "badge--ar" : "badge--complex");
+                  return '<span class="' + cls + '">' + inh + '</span>';
+                }).join(" ");
+                return '<div style="margin-bottom:6px;">' +
+                  '<div style="font-weight:600;font-size:11.5px;">' + p.name + '</div>' +
+                  '<div style="margin-top:2px;display:flex;gap:4px;align-items:center;">' + badges + (p.omim ? '<span class="mono" style="font-size:10.5px;color:var(--slate);">OMIM #' + p.omim + '</span>' : '') + '</div>' +
+                '</div>';
+              }).join("")
+            : '<div style="font-size:11.5px;color:var(--slate);">Complex / multifactorial quantitative trait modifier.</div>') +
+        '</div>' +
+
+        // Box 2: Transcript & Molecular HGVS
+        '<div class="variant-drawer-box">' +
+          '<h4>Transcript & Nomenclature</h4>' +
+          '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Transcript ID:</span><span class="drawer-metric-val">' + (v.transcript || 'Canonical') + '</span></div>' +
+          (v.cchange ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">cDNA (HGVS):</span><span class="drawer-metric-val">' + v.cchange + '</span></div>' : '') +
+          (v.achange ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Protein (HGVS):</span><span class="drawer-metric-val">' + v.achange + '</span></div>' : '') +
+          (v.vaf !== undefined && v.vaf !== null ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Allele Fraction (VAF):</span><span class="drawer-metric-val">' + Number(v.vaf).toFixed(2) + '</span></div>' : '') +
+          (v.vcfGt ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">VCF Phased GT:</span><span class="drawer-metric-val mono">' + v.vcfGt + ' (' + v.phase + ')</span></div>' : '') +
+        '</div>' +
+
+        // Box 3: SpliceAI 4-Way Delta & ACMG Evidence
+        '<div class="variant-drawer-box">' +
+          '<h4>SpliceAI & ACMG Evidence</h4>' +
+          '<div class="drawer-metric-row"><span class="drawer-metric-lbl">SpliceAI Delta:</span><span class="drawer-metric-val">AG:' + agStr + ' AL:' + alStr + ' DG:' + dgStr + ' DL:' + dlStr + '</span></div>' +
+          '<div class="drawer-metric-row"><span class="drawer-metric-lbl">Review Status:</span><span class="drawer-metric-val">' + (v.clinvarRev || 'criteria provided') + '</span></div>' +
+          (v.acmgPm5 ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">ACMG PM5:</span><span class="drawer-metric-val">Known pathogenic missense at codon</span></div>' : '') +
+          (v.acmgPs1 ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">ACMG PS1:</span><span class="drawer-metric-val">Identical amino acid change known</span></div>' : '') +
+          (v.clinvarId ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">ClinVar ID:</span><span class="drawer-metric-val"><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/' + v.clinvarId + '/" target="_blank" rel="noopener">VCV#' + v.clinvarId + ' ↗</a></span></div>' : '') +
+        '</div>' +
+
+        // Box 4: Genome Browser, Preprints, Literature & Studies
+        '<div class="variant-drawer-box">' +
+          '<h4>Literature, Preprints & Studies</h4>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">' +
+            '<a class="ref-link" href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;padding:3px 8px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal-dark);border-radius:3px;">UCSC Browser ↗</a>' +
+            '<a class="ref-link" href="' + litvarUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">LitVar2 Papers ↗</a>' +
+            '<a class="ref-link" href="' + biorxivUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">bioRxiv Preprints ↗</a>' +
+            '<a class="ref-link" href="' + europePmcUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">Europe PMC ↗</a>' +
+            (isRsId ? '<a class="ref-link" href="' + gwasVarUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">GWAS Catalog ↗</a>' : '') +
+          '</div>' +
+          (v.studies && v.studies.length
+            ? v.studies.map((s) =>
+                '<div style="margin-top:4px;border-top:1px dashed var(--line);padding-top:4px;">' +
+                  '<div style="font-weight:700;font-size:11px;color:var(--teal-dark);">' +
+                    (s.url ? '<a href="' + s.url + '" target="_blank" rel="noopener" style="color:var(--teal-dark);text-decoration:underline;">' + s.title + ' ↗</a>' : s.title) +
+                  '</div>' +
+                  '<div style="font-size:10.5px;color:var(--slate);margin-top:1px;">' + s.finding + '</div>' +
+                  (s.pmid ? '<div style="margin-top:2px;"><a href="https://pubmed.ncbi.nlm.nih.gov/' + s.pmid + '/" target="_blank" rel="noopener" class="variant-pub-link">PubMed PMID: ' + s.pmid + ' ↗</a></div>' : '') +
+                '</div>'
+              ).join("")
+            : '<div style="font-size:11px;color:var(--slate);">No specific GWAS study associations flagged. Search <a href="' + litvarUrl + '" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:underline;">LitVar2</a> or <a href="' + biorxivUrl + '" target="_blank" rel="noopener" style="color:var(--teal);text-decoration:underline;">bioRxiv</a> for emerging findings.</div>') +
+        '</div>' +
+      '</div>' +
+      '</td></tr>';
+
+    return mainRow + detailRow;
+  }
+
+  function renderStudiesTabForVariants(variants) {
+    const studiesList = [];
+    variants.forEach((v) => {
+      (v.studies || []).forEach((s) => {
+        studiesList.push({ variant: v, study: s });
+      });
+    });
+
+    if (!studiesList.length) {
+      return '<div class="pub-empty">No individual GWAS study records linked to the variants in this selection.</div>';
+    }
+
+    return '<div class="studies-list">' +
+      studiesList.map(({ variant: v, study: s }) =>
+        '<div class="study-card">' +
+          '<div class="study-card__head">' +
+            '<span class="study-card__variant" data-gene="' + (v.gene || '') + '" data-vid="' + v.id + '">' +
+              (s.url ? '<a href="' + s.url + '" target="_blank" rel="noopener" style="color:var(--teal-dark);text-decoration:underline;">' + s.title + ' ↗</a>' : s.title) +
+            '</span>' +
+            '<span class="study-card__condition">' + s.condition + '</span>' +
+          '</div>' +
+          '<div class="study-card__finding" style="font-weight:600;margin-top:3px;">' + s.finding + '</div>' +
+          '<div style="font-size:12px;color:var(--slate);margin:4px 0;">' + s.description + '</div>' +
+          '<div class="study-card__foot">' +
+            '<span>' + s.source + '</span>' +
+            '<span>' + s.genotypeRelevance + (s.pValue && s.pValue !== 'N/A' ? ' · p=' + s.pValue : '') + '</span>' +
+            (s.pmid ? '<a href="https://pubmed.ncbi.nlm.nih.gov/' + s.pmid + '/" target="_blank" rel="noopener" style="color:var(--teal);font-weight:700;margin-left:auto;">PMID: ' + s.pmid + ' ↗</a>' : '') +
+          '</div>' +
+        '</div>'
+      ).join("") +
+      '</div>';
+  }
+
+  function wireVariantsPane(wrap) {
+    // 1. Toggle on click of the character/symbol to the left of rs
+    wrap.querySelectorAll(".variant-toggle-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const rowKey = btn.dataset.toggle;
+        if (state.expandedVariantRows.has(rowKey)) state.expandedVariantRows.delete(rowKey);
+        else state.expandedVariantRows.add(rowKey);
+        renderInspectionPanel();
+      });
+    });
+
+    // 2. Also allow clicking the first td cell (outside links) to toggle
+    wrap.querySelectorAll(".variant-table tbody tr[data-vid]").forEach((tr) => {
+      const firstTd = tr.querySelector("td:first-child");
+      if (firstTd) {
+        firstTd.addEventListener("click", (e) => {
+          if (e.target.tagName.toLowerCase() === 'a') return; // Don't intercept actual links
+          const rowKey = tr.dataset.gene + ":" + tr.dataset.vid;
+          if (state.expandedVariantRows.has(rowKey)) state.expandedVariantRows.delete(rowKey);
+          else state.expandedVariantRows.add(rowKey);
+          renderInspectionPanel();
+        });
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Genome Browser Interactive Modal (SVG Exon & Lollipop Visualizer)
+  // -----------------------------------------------------------------
+  function openGenomeModal(symbol, variants) {
+    const modal = byId("genome-modal");
+    const mount = byId("genome-browser-mount");
+    const locusEl = byId("genome-modal-locus");
+    const detailEl = byId("genome-browser-variant-detail");
+
+    const gene = geneBySymbol(symbol) || {};
+    byId("genome-modal-title").textContent = "Genome Locus & Exon Track — " + symbol;
+    locusEl.innerHTML = '<span>' + (gene.chromosome || (variants[0] ? variants[0].coordinate : "chrX")) + '</span> · <a href="' + (gene.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="color:var(--teal);font-weight:700;margin-left:8px;">Open in UCSC Genome Browser ↗</a>';
+    detailEl.innerHTML = '<div class="variant-info-box">Click on any lollipop marker below to inspect variant amino acid consequence and call quality.</div>';
+
+    const width = 720, height = 180, padX = 40;
+    const svgns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgns, "svg");
+    svg.setAttribute("class", "genome-browser-svg");
+    svg.setAttribute("width", width);
+    svg.setAttribute("height", height);
+    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+
+    const axisY = 120;
+    const axisLine = document.createElementNS(svgns, "line");
+    axisLine.setAttribute("x1", padX); axisLine.setAttribute("y1", axisY);
+    axisLine.setAttribute("x2", width - padX); axisLine.setAttribute("y2", axisY);
+    axisLine.setAttribute("stroke", "var(--line-strong)");
+    axisLine.setAttribute("stroke-width", "2");
+    svg.appendChild(axisLine);
+
+    const exons = [
+      { start: 0.05, end: 0.18 },
+      { start: 0.26, end: 0.42 },
+      { start: 0.50, end: 0.68 },
+      { start: 0.76, end: 0.92 }
+    ];
+    exons.forEach((ex, i) => {
+      const exX = padX + ex.start * (width - 2 * padX);
+      const exW = (ex.end - ex.start) * (width - 2 * padX);
+      const rect = document.createElementNS(svgns, "rect");
+      rect.setAttribute("x", exX); rect.setAttribute("y", axisY - 10);
+      rect.setAttribute("width", exW); rect.setAttribute("height", 20);
+      rect.setAttribute("fill", "var(--teal-dim)");
+      rect.setAttribute("stroke", "var(--teal)");
+      rect.setAttribute("rx", "3");
+      svg.appendChild(rect);
+
+      const label = document.createElementNS(svgns, "text");
+      label.setAttribute("x", exX + exW / 2); label.setAttribute("y", axisY + 4);
+      label.setAttribute("text-anchor", "middle");
+      label.setAttribute("font-size", "10px"); label.setAttribute("fill", "var(--teal-dark)");
+      label.textContent = "Exon " + (i + 1);
+      svg.appendChild(label);
+    });
+
+    const varList = Array.isArray(variants) ? variants : [variants];
+    const lollipopGroup = document.createElementNS(svgns, "g");
+    lollipopGroup.setAttribute("class", "lollipops-group");
+
+    varList.forEach((v, i) => {
+      const relPos = varList.length === 1 ? 0.48 : (0.1 + (i / Math.max(1, varList.length - 1)) * 0.8);
+      const posX = padX + relPos * (width - 2 * padX);
+      const stickY = 40 + (i % 2) * 20;
+
+      const stick = document.createElementNS(svgns, "line");
+      stick.setAttribute("x1", posX); stick.setAttribute("y1", stickY);
+      stick.setAttribute("x2", posX); stick.setAttribute("y2", axisY - 10);
+      stick.setAttribute("stroke", "var(--slate-light)");
+      stick.setAttribute("stroke-width", "1.5");
+      stick.setAttribute("stroke-dasharray", "2,2");
+      lollipopGroup.appendChild(stick);
+
+      const colorMap = { concern: "var(--concern)", protective: "var(--protect)", uncertain: "var(--uncertain)", uncategorized: "var(--teal)" };
+      const circle = document.createElementNS(svgns, "circle");
+      circle.setAttribute("cx", posX); circle.setAttribute("cy", stickY);
+      circle.setAttribute("r", 6);
+      circle.setAttribute("fill", colorMap[v.category] || "var(--teal)");
+      circle.setAttribute("stroke", "#fff");
+      circle.setAttribute("stroke-width", "1.5");
+
+      circle.addEventListener("click", () => {
+        detailEl.innerHTML =
+          '<div class="variant-info-box">' +
+            '<div style="font-weight:700;color:var(--teal-dark);font-size:13px;">' + v.id + ' (' + v.genotype + ') · ' + v.coordinate + '</div>' +
+            '<div style="font-size:12px;margin-top:3px;"><strong>ClinVar:</strong> ' + v.clinvar + ' | <strong>CADD:</strong> ' + (v.cadd || "N/A") + ' | <strong>Zygosity:</strong> ' + v.zygosity + ' (' + v.phase + ')</div>' +
+            '<div style="font-size:11.5px;color:var(--slate);margin-top:2px;">Consequences: ' + v.consequence.join(", ") + '</div>' +
+            '<div style="margin-top:6px;"><a href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;color:var(--teal);">View variant in UCSC Genome Browser ↗</a></div>' +
+          '</div>';
+      });
+
+      lollipopGroup.appendChild(circle);
+    });
+
+    svg.appendChild(lollipopGroup);
+    mount.innerHTML = "";
+    mount.appendChild(svg);
+
+    modal.classList.add("open");
+  }
+
+  // -----------------------------------------------------------------
+  // Global Tables: Genes, Variants, Analysis, Reports
+  // -----------------------------------------------------------------
+  let genesSortKey = "symbol";
+  let genesSortDir = 1;
+
+  function renderGenesTable() {
+    const searchEl = byId("genes-search");
+    const q = searchEl ? searchEl.value.trim().toLowerCase() : "";
+    let rows = GENES.map((g) => {
+      const heteroCount = g.variants.filter((v) => v.zygosity === "Heterozygous").length;
+      const phasedHetCount = g.variants.filter((v) => v.zygosity === "Heterozygous" && (v.phase === "Maternal" || v.phase === "Paternal")).length;
+      const phasedPct = heteroCount ? Math.round((phasedHetCount / heteroCount) * 100) : 0;
+      return {
+        symbol: g.symbol,
+        organSystem: g.organSystem,
+        variantsDetected: g.variantsDetected,
+        pathogenic: g.variants.filter((v) => v.category === "concern").length,
+        protective: g.variants.filter((v) => v.category === "protective").length,
+        phasedPct: phasedPct,
+        hpoTermCount: g.hpoTermCount,
+        goTermCount: g.goTermCount
+      };
+    }).filter((r) => !q || r.symbol.toLowerCase().includes(q) || r.organSystem.toLowerCase().includes(q));
+
+    rows.sort((a, b) => {
+      const av = a[genesSortKey], bv = b[genesSortKey];
+      if (typeof av === "string") return av.localeCompare(bv) * genesSortDir;
+      return (av - bv) * genesSortDir;
+    });
+
+    const tbody = byId("genes-table").querySelector("tbody");
+    tbody.innerHTML = rows.map((r) =>
+      '<tr data-symbol="' + r.symbol + '" style="cursor:pointer;">' +
+      '<td class="mono" style="font-weight:700;color:var(--teal-dark);">' + r.symbol + "</td>" +
+      "<td>" + r.organSystem + "</td>" +
+      "<td>" + r.variantsDetected + "</td>" +
+      "<td>" + (r.pathogenic ? '<span class="badge badge--concern">' + r.pathogenic + "</span>" : (r.protective ? '<span class="badge badge--protect">' + r.protective + ' prot.</span>' : "0")) + "</td>" +
+      '<td><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:' + r.phasedPct + '%"></div></div>' + r.phasedPct + "%</div></td>" +
+      "<td>" + r.hpoTermCount + "</td>" +
+      "<td>" + r.goTermCount + "</td>" +
+      "</tr>"
+    ).join("");
+
+    tbody.querySelectorAll("tr").forEach((tr) => {
+      tr.addEventListener("click", () => {
+        const sym = tr.dataset.symbol;
+        document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("active"));
+        document.querySelector('.tabs button[data-view="ontology"]').classList.add("active");
+        document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+        byId("view-ontology").classList.add("active");
+        selectGene(sym);
+      });
+    });
+  }
+
+  function allVariantsFlat() {
+    return GENES.flatMap((g) => g.variants.map((v) => Object.assign({}, v, { gene: g.symbol })));
+  }
+
+  function renderVariantsTable() {
+    const geneF = byId("filter-gene").value;
+    const clinvarF = byId("filter-clinvar").value;
+    const phaseF = byId("filter-phase").value;
+    const zygF = byId("filter-zygosity").value;
+
+    const geneSelect = byId("filter-gene");
+    if (geneSelect && geneSelect.children.length <= 1) {
+      GENES.forEach((g) => {
+        const opt = document.createElement("option");
+        opt.value = g.symbol;
+        opt.textContent = g.symbol;
+        geneSelect.appendChild(opt);
+      });
+    }
+
+    const rows = allVariantsFlat().filter((v) =>
+      (!geneF || v.gene === geneF) &&
+      (!clinvarF || v.clinvar.toLowerCase().includes(clinvarF.toLowerCase())) &&
+      (!phaseF || v.phase === phaseF) &&
+      (!zygF || v.zygosity === zygF)
+    );
+
+    const badgeCls = { concern: "badge--concern", protective: "badge--protect", uncertain: "badge--uncertain", uncategorized: "badge--neutral" };
+
+    const tbody = byId("variants-table").querySelector("tbody");
+    tbody.innerHTML = rows.map((v) => {
+      const isRsId = typeof v.id === "string" && v.id.toLowerCase().startsWith("rs");
+      const idHtml = isRsId
+        ? '<a href="https://www.ncbi.nlm.nih.gov/snp/' + v.id + '" target="_blank" rel="noopener" class="variant-rs-link" title="Open in NCBI dbSNP (' + v.id + ') ↗">' + v.id + '</a>'
+        : '<span class="variant-coord-id">' + v.id + '</span>';
+
+      return (
+        '<tr data-gene="' + v.gene + '" data-vid="' + v.id + '" style="cursor:pointer;">' +
+        '<td class="mono" style="font-weight:700;">' + idHtml + '</td>' +
+        '<td class="mono">' + v.gene + "</td>" +
+        "<td><span class=\"badge " + (badgeCls[v.category] || "badge--neutral") + "\">" + v.clinvar + "</span></td>" +
+        "<td>" + (v.revel === null || v.revel === undefined ? '<span class="na-cell">\u2014</span>' : v.revel) + "</td>" +
+        scoreColumnsCells(v) +
+        '<td class="mono">' + v.coordinate + "</td>" +
+        "<td>" + v.zygosity + "</td>" +
+        "<td>" + phaseTag(v.phase) + "</td>" +
+        "<td>" + (typeof v.maf === 'number' ? v.maf.toFixed(4) : v.maf) + "</td>" +
+        "<td>" + v.consequence.map((c) => '<span class="chip">' + c + "</span>").join("") + "</td>" +
+        "</tr>"
+      );
+    }).join("");
+
+    tbody.querySelectorAll("tr").forEach((tr) => {
+      tr.addEventListener("click", (e) => {
+        if (e.target.tagName.toLowerCase() === 'a') return;
+        const sym = tr.dataset.gene;
+        document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("active"));
+        document.querySelector('.tabs button[data-view="ontology"]').classList.add("active");
+        document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+        byId("view-ontology").classList.add("active");
+        selectGene(sym);
+      });
+    });
+  }
+
+  function renderAnalysisView() {
+    const allVars = allVariantsFlat();
+    const totalPath = allVars.filter((v) => v.category === "concern").length;
+    const totalProt = allVars.filter((v) => v.category === "protective").length;
+    const totalHetero = allVars.filter((v) => v.zygosity === "Heterozygous").length;
+    const totalPhased = allVars.filter((v) => v.zygosity === "Heterozygous" && (v.phase === "Maternal" || v.phase === "Paternal")).length;
+    const phasedPct = totalHetero ? Math.round((totalPhased / totalHetero) * 100) : 0;
+
+    byId("analysis-kpis").innerHTML =
+      kpi(allVars.length.toLocaleString(), "Actionable Variants") +
+      kpi(totalPath, "Concerns / Pathogenic") +
+      kpi(totalProt, "Protective Variants") +
+      kpi(phasedPct + "%", "Heterozygous phased") +
+      kpi(GENES.length, "Clinical Genes");
+
+    const riskGrid = byId("organ-risk-grid");
+    if (riskGrid && typeof ORGAN_RISK_MATRIX !== "undefined") {
+      riskGrid.innerHTML = ORGAN_RISK_MATRIX.map((m) =>
+        '<div class="risk-matrix-card">' +
+          '<div class="risk-matrix-card__head">' +
+            '<div class="risk-matrix-card__title"><span>' + m.icon + '</span><span>' + m.system + '</span></div>' +
+            '<span class="risk-matrix-card__tier ' + m.riskTier + '">' + m.riskTier + ' RISK</span>' +
+          '</div>' +
+          '<div class="risk-matrix-card__body">' +
+            '<div><strong>Primary Pathway:</strong> ' + m.pathway + '</div>' +
+            '<div style="margin-top:3px;"><strong>Polygenic Percentile:</strong> ' + m.prsPercentile + 'th percentile</div>' +
+            (m.concernGenes && m.concernGenes.length
+              ? '<div class="risk-matrix-card__genes">' +
+                m.concernGenes.map((g) => '<span class="risk-matrix-card__gene">' + g + '</span>').join("") +
+                '</div>'
+              : '') +
+          '</div>' +
+        '</div>'
+      ).join("");
+    }
+
+    byId("prs-grid").innerHTML = PRS.map((p) =>
+      '<div class="prs-card"><div class="prs-card__head"><span class="trait">' + p.trait + '</span><span class="badge badge--' +
+      (p.category === "HIGH" ? "concern" : p.category === "PROTECTIVE" ? "protect" : "uncertain") + '">' + p.category + '</span></div>' +
+      '<div class="prs-track"><div class="prs-fill ' + p.category + '" style="width:' + p.percentile + '%"></div></div>' +
+      '<div class="prs-foot"><span>' + p.percentile + "th percentile · " + p.organSystem + '</span><a href="#">' + p.pgsId + '</a></div>' +
+      "</div>"
+    ).join("");
+
+    byId("pgx-body").innerHTML = PGX.map((p) =>
+      "<tr><td class=\"mono\" style=\"font-weight:700;\">" + p.gene + '</td><td class="mono">' + p.diplotype + "</td><td>" + p.phenotype +
+      "</td><td>" + p.drug + '</td><td><span class="action-tier ' + p.actionTier + '">' + p.actionTier + "</span></td><td>" + p.recommendation + "</td></tr>"
+    ).join("");
+  }
+
+  function renderReportsView() {
+    byId("report-meta").textContent = REPORT.sampleLabel + " · Generated " + REPORT.generated;
+    byId("report-narrative").innerHTML = "<p>" + REPORT.narrative + "</p>";
+    byId("report-gene-body").innerHTML = REPORT.geneBreakdown.map((r) =>
+      "<tr><td class=\"mono\" style=\"font-weight:700;color:var(--teal-dark);\">" + r.symbol + "</td><td>" + r.variantsDetected +
+      "</td><td>" + (r.pathogenicOrLP ? '<span class="badge badge--concern">' + r.pathogenicOrLP + "</span>" : "0") +
+      "</td><td>" + (r.protective ? '<span class="badge badge--protect">' + r.protective + "</span>" : "0") +
+      "</td><td>" + (r.uncertain ? '<span class="badge badge--uncertain">' + r.uncertain + "</span>" : "0") + "</td></tr>"
+    ).join("");
+
+    byId("download-json-btn").addEventListener("click", () => {
+      const payload = { jobMeta: JOB_META, report: REPORT, genes: GENES, prs: PRS, pgx: PGX };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "genomic-report.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Helper Formatters
+  // -----------------------------------------------------------------
+  function kpi(value, label) {
+    return '<div class="kpi"><div class="val">' + esc(value) + '</div><div class="lbl">' + esc(label) + '</div></div>';
+  }
+
+  function phaseTag(phase) {
+    if (!phase || phase === "Unknown") return '<span class="badge badge--phase-unknown">Unknown</span>';
+    if (phase === "Maternal") return '<span class="badge badge--phase-mat">Maternal</span>';
+    if (phase === "Paternal") return '<span class="badge badge--phase-pat">Paternal</span>';
+    if (phase === "Unphased") return '<span class="badge badge--neutral">Unphased</span>';
+    return '<span class="badge badge--neutral">' + phase + '</span>';
+  }
+
+  function pubCard(p) {
+    return (
+      '<div class="pub-card">' +
+      '<div class="pub-card__title">' + p.title + '</div>' +
+      '<div class="pub-card__authors">' + (p.authors || "Consortium") + ' · <span class="mono">' + (p.journal || "PubMed") + ' (' + (p.year || "2023") + ')</span></div>' +
+      (p.relevance ? '<div class="pub-card__relevance" style="font-size:12px;color:var(--ink);margin:4px 0;">' + p.relevance + '</div>' : '') +
+      '<a class="pub-card__link" href="' + (p.url || 'https://pubmed.ncbi.nlm.nih.gov/' + p.pmid + '/') + '" target="_blank" rel="noopener">PMID ' + p.pmid + ' ↗</a>' +
+      '</div>'
+    );
+  }
+
+  const modalClose = byId("genome-modal-close");
+  if (modalClose) {
+    modalClose.addEventListener("click", () => {
+      byId("genome-modal").classList.remove("open");
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Bootstrapping
+  // -----------------------------------------------------------------
+  document.addEventListener("DOMContentLoaded", () => {
+    initTabs();
+    initOntologySwitch();
+
+    ["filter-gene", "filter-clinvar", "filter-phase", "filter-zygosity"].forEach((id) => {
+      const el = byId(id);
+      if (el) el.addEventListener("change", renderVariantsTable);
+    });
+
+    const geneSearch = byId("genes-search");
+    if (geneSearch) geneSearch.addEventListener("input", renderGenesTable);
+
+    // Initial render
+    renderLeftPanel();
+
+    const filtered = filteredOntology();
+    if (filtered.length > 0) {
+      selectCategory(filtered[0]);
+    }
+  });
+
+})();
+
+</script>
+</body>
+</html>

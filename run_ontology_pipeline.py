@@ -58,8 +58,8 @@ def parse_args():
     parser.add_argument(
         "--sample", "-s", "--patient-id", "-p",
         dest="sample_id",
-        required=True,
-        help="Sample or Patient Identifier (e.g., DE_master, HG003)"
+        default=None,
+        help="Sample or Patient Identifier (default: auto-derived from input source)"
     )
     parser.add_argument(
         "--input", "-i",
@@ -112,7 +112,8 @@ def resolve_input(input_source, sample_id, work_dir):
             raw_db = sqlites[0]
             print(f"[Input Resolver] Found OpenCRAVAT SQLite in job directory: {raw_db}")
         if vcfs:
-            vcf_path = vcfs[0]
+            snv_vcfs = [v for v in vcfs if not ('.cnv.' in v or '.sv.' in v)]
+            vcf_path = snv_vcfs[0] if snv_vcfs else max(vcfs, key=os.path.getsize)
             print(f"[Input Resolver] Found VCF in job directory: {vcf_path}")
         if not raw_db:
             raise FileNotFoundError(f"No SQLite database found inside OpenCRAVAT job folder: {input_source}")
@@ -237,27 +238,37 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
 
+    sample_name = args.sample_id
+    if not sample_name:
+        base = os.path.basename(args.input)
+        for ext in [".sqlite", ".vcf.gz", ".vcf", "_and_2_files"]:
+            base = base.replace(ext, "")
+        if "Daniel_Ehrle" in base or "260830" in base:
+            sample_name = "Daniel_Ehrle"
+        else:
+            sample_name = base or "Sample"
+
     now = datetime.now()
     date_str = now.strftime("%d-%m-%Y")
-    subfolder_name = f"{args.sample_id}-{date_str}"
+    subfolder_name = f"{sample_name}-{date_str}"
 
     local_outdir = os.path.join(script_dir, "reports", subfolder_name)
     os.makedirs(local_outdir, exist_ok=True)
 
     print("==================================================================")
     print(f"GENOMIC ONTOLOGY PIPELINE ENGINE (v5.2)")
-    print(f"  Sample / Patient ID : {args.sample_id}")
+    print(f"  Sample / Patient ID : {sample_name}")
     print(f"  Input Source        : {args.input}")
     print(f"  Execution Date      : {date_str}")
     print(f"  Local Output Dir    : {local_outdir}")
     print("==================================================================")
 
     # 1. Resolve Input
-    raw_db, vcf_path = resolve_input(args.input, args.sample_id, local_outdir)
+    raw_db, vcf_path = resolve_input(args.input, sample_name, local_outdir)
     print(f"[Stage 1] Resolved Database : {raw_db}")
     print(f"[Stage 1] Resolved VCF File : {vcf_path or 'None (will use DB attributes)'}")
 
-    base_prefix = args.sample_id
+    base_prefix = sample_name
     schema_json = os.path.join(local_outdir, f"{base_prefix}_schema.json")
     panel_json = os.path.join(local_outdir, f"{base_prefix}_master_panel.json")
     act_db = os.path.join(local_outdir, f"{base_prefix}_master_actionable.sqlite")
