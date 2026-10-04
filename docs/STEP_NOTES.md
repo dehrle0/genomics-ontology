@@ -196,3 +196,22 @@ zygosity per variant) plus a creative new domain — autoimmunity — that exerc
   measurement traits like "platelet count").
 - Weight the autoimmune tiering by GWAS effect size / p-value, not just the
   monogenic signals.
+
+---
+
+## I5 — Unified Orchestrator v5.2, Phased VCF Integration & AlphaGenome Atlas Triage
+
+**Capabilities Added:**
+- `run_ontology_pipeline.py`: Comprehensive 7-stage Python pipeline orchestrator replacing fragmented bash scripts.
+- **Whole-Genome Pedigree Phasing (Approach 4D)**: Ingests phased SNV/Indel/SV/CNV/STR VCFs, integrating physical phase-set blocks and parental origin anchors (`SE Anchor` for Daniel Ehrle, `MI Anchor` for Melinda Ehrle).
+- **DeepMind AlphaGenome Atlas Candidate Triage**:
+  - Automatically isolates discordant loci (`CLINVAR_CONFLICT`, `PREDICTOR_DISCORDANCE`).
+  - Added Rule 5 in `lib/ontology_filter.py` rescuing ultra-rare ($AF < 10^{-4}$ or novel) non-coding variants under extreme evolutionary conservation (`LINSIGHT >= 0.80` or `CADD Phred >= 20.0`) under `AG_ULTRA_CONSERVED_NONCODING`.
+  - Automatically exports dedicated `*_alphagenome_candidates.tsv` matrices with pre-formatted 1-click DeepMind Atlas exploration URLs (`https://deepmind.google.com/science/alphagenome/atlas?q=...&m=variant`).
+- **Standalone HTML5 Single-File Visual Explorer**: Embeds full JSON datasets, styles, and SVG D3 graphs into a self-contained portable viewer (~9–10 MB) runnable offline on any browser.
+- **Dual-Target Cloud Delivery**: Automatic local mirror sync to Google Drive plus background cloud sync via `rclone`.
+
+**Validation Results:**
+- **Daniel Ehrle (DE)**: 1,017 actionable variants (Tier 1: 42, Tier 2: 355, Tier 3: 620). 882 phased variants (246 Maternal SE Anchor, 200 Paternal). 136 AlphaGenome candidates (49 ClinVar Conflict, 15 Predictor Discordance, 72 Ultra-Conserved Non-Coding rescues including *DPF3* intronic insertion `chr14:72804185:->AC`, $LINSIGHT = 0.8609$).
+- **Melinda Ehrle (ME)**: 1,265 actionable variants (Tier 1: 43, Tier 2: 475, Tier 3: 747). 1,081 phased variants (27 Maternal MI Anchor, 28 Paternal). 163 AlphaGenome candidates (66 ClinVar Conflict, 19 Predictor Discordance, 78 Ultra-Conserved Non-Coding rescues including *SCN3A*, *ZFPM2*, *PRKD1*, *ZEB2*, *RUNX1*, *CACNA1D*).
+

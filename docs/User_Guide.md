@@ -20,7 +20,28 @@ pip install pyyaml openpyxl pydantic linkml-runtime requests
 
 ---
 
-## 2. Running OpenCRAVAT (OC) Annotation
+## 2. Running the Unified Pipeline (v5.2)
+
+### Standard Unified Execution (`run_ontology_pipeline.py`)
+
+The v5.2 pipeline provides an end-to-end Python orchestrator that handles OpenCRAVAT SQLite ingestion, multi-omic phased VCF integration, DeepMind AlphaGenome candidate prioritization, standalone single-file HTML5 rendering, and automated Google Drive synchronization:
+
+```bash
+# Daniel Ehrle (Trio-phased with Maternal SE Anchor):
+python3 run_ontology_pipeline.py \
+  --sample Daniel_Ehrle \
+  --input reports/Daniel_Ehrle-02-10-2026/Daniel_Ehrle.sqlite \
+  --phased-vcf /data/Genomes/DE/Approach4D_Output/DE_grch38_wgs_phased.pass.vcf.gz,/data/Genomes/DE/Approach4D_Output/DE_grch38_sv_phased.vcf.gz,/data/Genomes/DE/Approach4D_Output/DE_grch38_cnv_phased.vcf.gz,/data/Genomes/DE/Approach4D_Output/DE_grch38_str.vcf.gz
+
+# Melinda Ehrle (Trio-phased with Maternal MI Anchor):
+python3 run_ontology_pipeline.py \
+  --sample Melinda_Ehrle \
+  --input reports/Melinda_Ehrle-03-10-2026/Melinda_Ehrle.sqlite \
+  --phased-vcf /data/Genomes/ME/Approach4D_Output/ME_grch38_wgs_phased.pass.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_sv_phased.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_cnv_phased.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_str.vcf.gz
+```
+
+### 2.1 Running OpenCRAVAT (OC) Annotation (Pre-computation)
+
 
 To generate the rich multi-annotator SQLite database from raw VCF files, run OpenCRAVAT with the full suite of clinical and functional annotators.
 

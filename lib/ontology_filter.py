@@ -320,6 +320,42 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
     elif svtype in ("BND", "INV", "TRANSLOCATION", "INVERSION"):
         geno.append("SV_BREAKPOINT")
 
+    # ---------------- AlphaGenome Triage & Rescue (Option C) ----------------
+    is_ultra_rare = (gnomad is None or gnomad <= 0.0001) and (aou is None or aou <= 0.0001)
+    is_target_gene = (hugo in panel) or bool(hpo_hits) or bool(go_hits) or domain_pheno
+
+    alphagenome_candidate = False
+    alphagenome_subreason = None
+    if not over_ceiling:
+        # 1. ClinVar Conflicting Pathogenicity
+        if cvc == "CONFLICT":
+            alphagenome_candidate = True
+            alphagenome_subreason = "CLINVAR_CONFLICT"
+        # 2. Ultra-Rare with In Silico Predictor Discordance
+        elif is_ultra_rare and len(pred_hits) > 0 and not consensus and cvc != "PLP":
+            alphagenome_candidate = True
+            alphagenome_subreason = "PREDICTOR_DISCORDANCE"
+        # 3. Ultra-Rare Borderline Splice in HPO-associated gene
+        elif is_ultra_rare and bool(hpo_hits) and spliceai_max is not None and (0.10 <= spliceai_max < p["spliceai_min"]):
+            alphagenome_candidate = True
+            alphagenome_subreason = "BORDERLINE_SPLICE_HPO"
+        # 4. Ultra-Rare Non-Coding Regulatory in HPO-associated gene
+        elif is_ultra_rare and bool(hpo_hits) and len(noncoding_hits) >= 1 and not is_coding_altering:
+            alphagenome_candidate = True
+            alphagenome_subreason = "NONCODING_RESCUE_HPO"
+        # 5. Ultra-Rare with Extreme Evolutionary Conservation (LINSIGHT >= 0.80 or CADD >= 20.0)
+        elif is_ultra_rare and not is_coding_altering:
+            lin = _num(row.get("linsight"))
+            cadd = _num(row.get("cadd_phred"))
+            if (lin is not None and lin >= 0.80) or (cadd is not None and cadd >= 20.0):
+                alphagenome_candidate = True
+                alphagenome_subreason = "ULTRA_CONSERVED_NONCODING"
+
+    if alphagenome_candidate:
+        geno.append("RESCUE_ALPHAGENOME_TARGET")
+        if alphagenome_subreason:
+            geno.append(f"AG_{alphagenome_subreason}")
+
     # ---------------- Actionability gate ----------------
     clinvar_plp = (cvc == "PLP")
     clinvar_vus = cvc in ("VUS", "CONFLICT")
@@ -344,6 +380,8 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
         keep = True
     elif noncoding_hits and is_rare_t2 and len(noncoding_hits) >= 2:
         keep = True
+    elif alphagenome_candidate:
+        keep = True
 
     if not keep:
         return False, "Filtered", [], {}
@@ -362,6 +400,8 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
     elif strong_missense:
         tier = "Tier1"
     elif clinvar_vus:
+        tier = "Tier2"
+    elif alphagenome_candidate:
         tier = "Tier2"
     elif (pred_hits and (is_rare_t2 or is_rare_t1)) or "SPLICEAI_MOD" in geno or ("SV_DUP" in geno):
         tier = "Tier2"
@@ -437,6 +477,9 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
         "gwas_or_beta": row.get("gwas_or_beta"),
         "gwas_pmid": row.get("gwas_pmid"),
         "gwas_risk_allele": row.get("gwas_risk_allele"),
+        "alphagenome_url": f"https://deepmind.google.com/science/alphagenome/atlas?q={('chr' + str(row.get('chrom')) if not str(row.get('chrom', '')).startswith('chr') else str(row.get('chrom')))}:{row.get('pos')}:{row.get('ref')}%3E{row.get('alt')}&m=variant",
+        "is_alphagenome_candidate": alphagenome_candidate,
+        "alphagenome_subreason": alphagenome_subreason,
     }
     return True, tier, reasons, evidence
 

@@ -30,9 +30,9 @@ from datetime import datetime
 
 OC_ANNOTATORS = [
     "hpo", "go", "clinvar", "clingen", "omim", "ncbigene", "revel",
-    "alphamissense", "bayesdel", "metarnn", "esm1b", "varity", "spliceai",
+    "alphamissense", "bayesdel", "metarnn", "esm1b", "varity_r", "spliceai",
     "cadd", "linsight", "ncer", "regulomedb", "ccre_screen", "gtex",
-    "dbsnp", "vcfinfo", "gwas_catalog", "pharmgkb", "civic", "interpro"
+    "dbsnp", "gnomad4", "allofus250k", "gwas_catalog", "pharmgkb", "civic", "interpro"
 ]
 
 def find_rclone():
@@ -77,6 +77,12 @@ def parse_args():
         help="Domain configuration YAML (default: config/ontology_domains.yaml)"
     )
     parser.add_argument(
+        "--vcf", "--vcfs", "--phased-vcf",
+        dest="phased_vcf",
+        default=None,
+        help="Optional phased VCF(s) (comma-separated if multiple, e.g. SNVs, SVs, CNVs) to supply phased haplotypes and genotypes."
+    )
+    parser.add_argument(
         "--no-pdf",
         action="store_true",
         help="Skip PDF generation"
@@ -88,13 +94,13 @@ def parse_args():
     )
     return parser.parse_args()
 
-def resolve_input(input_source, sample_id, work_dir):
+def resolve_input(input_source, sample_id, work_dir, phased_vcf=None):
     """
     Resolves input argument to SQLite database path and VCF path.
     Handles .vcf, .vcf.gz, .sqlite, or OpenCRAVAT Job ID.
     """
     raw_db = None
-    vcf_path = None
+    vcf_path = phased_vcf
 
     if not os.path.exists(input_source):
         job_dir_candidate = f"/data/opencravat/jobs/default/{input_source}"
@@ -111,7 +117,7 @@ def resolve_input(input_source, sample_id, work_dir):
         if sqlites:
             raw_db = sqlites[0]
             print(f"[Input Resolver] Found OpenCRAVAT SQLite in job directory: {raw_db}")
-        if vcfs:
+        if vcfs and not vcf_path:
             snv_vcfs = [v for v in vcfs if not ('.cnv.' in v or '.sv.' in v)]
             vcf_path = snv_vcfs[0] if snv_vcfs else max(vcfs, key=os.path.getsize)
             print(f"[Input Resolver] Found VCF in job directory: {vcf_path}")
@@ -120,11 +126,12 @@ def resolve_input(input_source, sample_id, work_dir):
 
     elif input_source.endswith(".sqlite"):
         raw_db = input_source
-        candidate_vcf = input_source.replace(".sqlite", "")
-        if os.path.exists(candidate_vcf):
-            vcf_path = candidate_vcf
-        elif os.path.exists(input_source.replace(".vcf.gz.sqlite", ".vcf.gz")):
-            vcf_path = input_source.replace(".vcf.gz.sqlite", ".vcf.gz")
+        if not vcf_path:
+            candidate_vcf = input_source.replace(".sqlite", "")
+            if os.path.exists(candidate_vcf):
+                vcf_path = candidate_vcf
+            elif os.path.exists(input_source.replace(".vcf.gz.sqlite", ".vcf.gz")):
+                vcf_path = input_source.replace(".vcf.gz.sqlite", ".vcf.gz")
 
     elif input_source.endswith((".vcf", ".vcf.gz", ".g.vcf", ".g.vcf.gz")):
         vcf_path = input_source
@@ -233,6 +240,124 @@ def deliver_to_google_drive(src_files, local_gdrive_dir, subfolder_name):
             except Exception as e:
                 print(f"  [rclone Cloud Sync Note] {remote} error: {e}")
 
+def update_actionable_with_phased_vcfs(act_json_path, act_db_path, vcf_paths):
+    if not vcf_paths:
+        return
+    vcf_list = [v.strip() for v in vcf_paths.split(",") if v.strip()]
+    if not vcf_list:
+        return
+        
+    with open(act_json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        
+    records = data.get("records", [])
+    record_coords = {}
+    for r in records:
+        c, p = r.get("chrom"), r.get("pos")
+        if c and p:
+            record_coords[(str(c), int(p))] = r
+
+    matched_count = 0
+    phased_maternal = 0
+    phased_paternal = 0
+    import gzip
+
+    for vp in vcf_list:
+        if not os.path.exists(vp):
+            continue
+        opener = gzip.open(vp, "rt") if vp.endswith(".gz") else open(vp, "r", encoding="utf-8", errors="ignore")
+        with opener as f:
+            for line in f:
+                if line.startswith("#"):
+                    continue
+                idx1 = line.find("\t")
+                if idx1 == -1: continue
+                c = line[:idx1]
+                idx2 = line.find("\t", idx1 + 1)
+                if idx2 == -1: continue
+                try:
+                    p = int(line[idx1+1:idx2])
+                except ValueError:
+                    continue
+                if (c, p) in record_coords:
+                    parts = line.rstrip('\r\n').split("\t")
+                    if len(parts) > 9:
+                        r = record_coords[(c, p)]
+                        fmt_keys = parts[8].split(":")
+                        sample_vals = parts[9].split(":")
+                        fmt_dict = dict(zip(fmt_keys, sample_vals))
+                        
+                        gt = fmt_dict.get("GT", "").strip()
+                        ps = fmt_dict.get("PS", "").strip()
+                        dp = fmt_dict.get("DP", "")
+                        ad = fmt_dict.get("AD", "")
+                        vaf = fmt_dict.get("VAF", "")
+                        qual = parts[5] if parts[5] != "." else ""
+
+                        r["vcf_gt"] = gt
+                        if ps and ps != ".":
+                            r["hap_block"] = ps
+
+                        ev = r.get("evidence", {}) or {}
+                        
+                        phase_origin = None
+                        if gt == "0|1":
+                            phase_origin = "Maternal"
+                            anchor_label = " (SE Anchor)" if ("Daniel" in str(data.get("patient", "")) or "DE" in str(data.get("patient", ""))) else " (MI Anchor)"
+                            phasing_str = f"Phased: Maternal{anchor_label}{f' (PS #{ps})' if ps and ps != '.' else ''}"
+                            phased_maternal += 1
+                        elif gt in ("1|0", "1/0"):
+                            phase_origin = "Paternal"
+                            phasing_str = f"Phased: Paternal{f' (PS #{ps})' if ps and ps != '.' else ''}"
+                            phased_paternal += 1
+                        elif gt in ("1/1", "1|1"):
+                            phase_origin = "Homozygous"
+                            phasing_str = "Homozygous Alternate"
+                            r["zygosity"] = "hom"
+                            ev["zygosity"] = "Homozygous"
+                        elif gt == "0/1":
+                            phase_origin = "Unphased"
+                            phasing_str = "Unphased (Short-Read WGS)"
+                            r["zygosity"] = "het"
+                            ev["zygosity"] = "Heterozygous"
+                        else:
+                            phase_origin = "Unknown"
+                            phasing_str = f"Call: {gt}"
+
+                        ev["phase_origin"] = phase_origin
+                        ev["phasing"] = phasing_str
+                        if ps and ps != ".":
+                            ev["hap_block"] = ps
+
+                        if dp:
+                            r["tot_reads"] = dp
+                            ev["tot_reads"] = dp
+                        if ad:
+                            ad_parts = ad.split(",")
+                            alt_r = ad_parts[1] if len(ad_parts) > 1 else ad_parts[0]
+                            r["alt_reads"] = alt_r
+                            ev["alt_reads"] = alt_r
+                        if vaf:
+                            try:
+                                r["vaf"] = str(float(vaf))
+                                ev["vaf"] = float(vaf)
+                            except ValueError:
+                                pass
+                        if qual:
+                            r["phred"] = qual
+                            ev["qual"] = qual
+                            
+                        r["evidence"] = ev
+                        matched_count += 1
+
+    with open(act_json_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+    print(f"\n[Phased VCF Integrator] Successfully integrated phased genotypes from VCF(s):")
+    print(f"  Total matched actionable variants : {matched_count}")
+    print(f"  Maternally anchored alleles (0|1) : {phased_maternal}")
+    print(f"  Paternally anchored alleles (1|0) : {phased_paternal}")
+
 def main():
     args = parse_args()
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -264,7 +389,7 @@ def main():
     print("==================================================================")
 
     # 1. Resolve Input
-    raw_db, vcf_path = resolve_input(args.input, sample_name, local_outdir)
+    raw_db, vcf_path = resolve_input(args.input, sample_name, local_outdir, args.phased_vcf)
     print(f"[Stage 1] Resolved Database : {raw_db}")
     print(f"[Stage 1] Resolved VCF File : {vcf_path or 'None (will use DB attributes)'}")
 
@@ -314,8 +439,11 @@ def main():
         "--config", args.config,
         "--out-sqlite", act_db,
         "--out-json", act_json,
-        "--patient", args.sample_id
+        "--patient", sample_name
     ], check=True)
+
+    if vcf_path:
+        update_actionable_with_phased_vcfs(act_json, act_db, vcf_path)
 
     # 5. Enrich Gene Descriptions & Clinical Synopses
     print("\n[Stage 5/7] Enriching gene annotations & literature references...")
@@ -372,6 +500,43 @@ def main():
             os.path.basename(act_json)
         ], cwd=local_outdir, stdout=devnull, stderr=devnull)
 
+    # 7.1 AlphaGenome Candidates TSV Export
+    ag_candidates_tsv = os.path.join(local_outdir, f"{base_prefix}_alphagenome_candidates.tsv")
+    try:
+        with open(act_json) as f_in:
+            data_j = json.load(f_in)
+        ag_recs = [r for r in data_j.get("records", []) if "RESCUE_ALPHAGENOME_TARGET" in (r.get("reason_codes") or []) or (r.get("evidence", {}) or {}).get("is_alphagenome_candidate")]
+        if ag_recs:
+            cols = ["hugo", "chrom", "pos", "ref", "alt", "so", "achange", "zygosity", "tier", "clinvar_sig", "gnomad4_af", "allofus_af", "revel", "am_path", "cadd_phred", "spliceai_max", "alphagenome_subreason", "alphagenome_url"]
+            with open(ag_candidates_tsv, "w") as f_out:
+                f_out.write("\t".join(cols) + "\n")
+                for r in ag_recs:
+                    ev = r.get("evidence", {}) or {}
+                    row = [
+                        r.get("hugo", "") or "",
+                        str(r.get("chrom", "") or ""),
+                        str(r.get("pos", "") or ""),
+                        str(r.get("ref", "") or ""),
+                        str(r.get("alt", "") or ""),
+                        str(r.get("so", "") or ""),
+                        str(r.get("achange", "") or ""),
+                        str(ev.get("zygosity", "") or ""),
+                        str(r.get("tier", "") or ""),
+                        str(r.get("clinvar_sig", "") or ""),
+                        str(ev.get("gnomad4_af", "") or ""),
+                        str(ev.get("allofus_af", "") or ""),
+                        str(r.get("revel", "") or ""),
+                        str(r.get("am_path", "") or ""),
+                        str(r.get("cadd_phred", "") or ""),
+                        str(ev.get("spliceai_max", "") or ""),
+                        str(ev.get("alphagenome_subreason", "") or ""),
+                        str(ev.get("alphagenome_url", "") or "")
+                    ]
+                    f_out.write("\t".join(row) + "\n")
+            print(f"[AlphaGenome Export] Prioritized {len(ag_recs)} candidates -> {ag_candidates_tsv}")
+    except Exception as e:
+        print(f"[AlphaGenome Export Warning] {e}")
+
     deliverables = [
         visual_explorer_html,
         master_hub_html,
@@ -381,6 +546,8 @@ def main():
         pdf_report,
         zip_bundle
     ]
+    if os.path.exists(ag_candidates_tsv):
+        deliverables.append(ag_candidates_tsv)
 
     if not args.local_only:
         print(f"\n[Google Drive Delivery] Uploading deliverables to Google Drive...")
@@ -395,6 +562,8 @@ def main():
     print(f"  5. Clinical Summary TXT                    : {txt_report}")
     print(f"  6. Printable PDF Report                    : {pdf_report}")
     print(f"  7. Offline iOS Bundle                      : {zip_bundle}")
+    if os.path.exists(ag_candidates_tsv):
+        print(f"  8. AlphaGenome Candidates Matrix TSV       : {ag_candidates_tsv}")
     if not args.local_only:
         print(f"  👉 Google Drive Cloud Remote               : drive:Ontology/{subfolder_name}/")
         print(f"  👉 Google Drive Local Directory            : {args.gdrive_dir}/{subfolder_name}/")

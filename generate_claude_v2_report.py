@@ -21,17 +21,29 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
         if c and p:
             record_coords[(str(c), int(p))] = r
 
-    # Stream VCF to extract exact phased GTs (0|1 = Maternal, 1|0 = Paternal, 1|1 = Homozygous)
+    # Stream VCF(s) to extract exact phased GTs (0|1 = Maternal, 1|0 = Paternal, 1|1 = Homozygous)
     vcf_gt_map = {}
-    if os.path.exists(vcf_path):
-        with gzip.open(vcf_path, 'rt') as f:
-            for line in f:
-                if line.startswith('#'): continue
-                parts = line.split('\t')
-                c, p = parts[0], int(parts[1])
-                if (c, p) in record_coords or True: # cache coordinates encountered
-                    gt = parts[9].split(':')[0]
-                    vcf_gt_map[(c, p)] = gt
+    vcf_list = [v.strip() for v in vcf_path.split(',') if v.strip()] if vcf_path else []
+    for vp in vcf_list:
+        if os.path.exists(vp):
+            opener = gzip.open(vp, 'rt') if vp.endswith('.gz') else open(vp, 'r', encoding='utf-8', errors='ignore')
+            with opener as f:
+                for line in f:
+                    if line.startswith('#'): continue
+                    idx1 = line.find('\t')
+                    if idx1 == -1: continue
+                    c = line[:idx1]
+                    idx2 = line.find('\t', idx1 + 1)
+                    if idx2 == -1: continue
+                    try:
+                        p = int(line[idx1+1:idx2])
+                    except ValueError:
+                        continue
+                    if (c, p) in record_coords:
+                        parts = line.split('\t')
+                        if len(parts) > 9:
+                            gt = parts[9].split(':')[0]
+                            vcf_gt_map[(c, p)] = gt
 
     # Pull protective variants from raw SQLite
     prot_records_from_db = []
@@ -324,6 +336,9 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
             "acmgPm5": r.get('clinvar_acmg_pm5'),
             "acmgPs1": r.get('clinvar_acmg_ps1'),
             "ucscUrl": ucsc_url,
+            "alphagenomeUrl": (r.get('evidence', {}) or {}).get('alphagenome_url') or f"https://deepmind.google.com/science/alphagenome/atlas?q={(chrom if chrom.startswith('chr') else 'chr' + chrom)}:{pos}:{r.get('ref')}%3E{r.get('alt')}&m=variant",
+            "isAlphaGenomeTarget": "RESCUE_ALPHAGENOME_TARGET" in (r.get('reason_codes') or []) or (r.get('evidence', {}) or {}).get('is_alphagenome_candidate', False),
+            "alphagenomeSubreason": (r.get('evidence', {}) or {}).get('alphagenome_subreason') or "",
             "lastEvaluated": "2026-08-27",
             "studies": studies
         }

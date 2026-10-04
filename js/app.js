@@ -896,11 +896,13 @@
           (v.clinvarId ? '<div class="drawer-metric-row"><span class="drawer-metric-lbl">ClinVar ID:</span><span class="drawer-metric-val"><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/' + v.clinvarId + '/" target="_blank" rel="noopener">VCV#' + v.clinvarId + ' ↗</a></span></div>' : '') +
         '</div>' +
 
-        // Box 4: Genome Browser, Preprints, Literature & Studies
+        // Box 4: Genome Browser, AlphaGenome & Literature
         '<div class="variant-drawer-box">' +
-          '<h4>Literature, Preprints & Studies</h4>' +
+          '<h4>Genome Browser, AlphaGenome & Literature</h4>' +
           '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">' +
             '<a class="ref-link" href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;padding:3px 8px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal-dark);border-radius:3px;">UCSC Browser ↗</a>' +
+            '<a class="ref-link" href="' + (v.alphagenomeUrl || ('https://deepmind.google.com/science/alphagenome/atlas?q=' + (v.chrom && v.chrom.startsWith('chr') ? v.chrom : 'chr' + v.chrom) + ':' + v.pos + ':' + v.ref + '%3E' + v.alt + '&m=variant')) + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;display:inline-block;padding:3px 8px;background:#e0f2fe;border:1px solid #0284c7;color:#0369a1;border-radius:3px;">AlphaGenome Atlas ↗</a>' +
+            (v.isAlphaGenomeTarget ? '<span style="font-size:10px;font-weight:800;background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:3px;border:1px solid #93c5fd;align-self:center;">🧬 Sequence Target</span>' : '') +
             '<a class="ref-link" href="' + litvarUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">LitVar2 Papers ↗</a>' +
             '<a class="ref-link" href="' + biorxivUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">bioRxiv Preprints ↗</a>' +
             '<a class="ref-link" href="' + europePmcUrl + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;border:1px solid var(--line);">Europe PMC ↗</a>' +
@@ -1069,8 +1071,11 @@
           '<div class="variant-info-box">' +
             '<div style="font-weight:700;color:var(--teal-dark);font-size:13px;">' + v.id + ' (' + v.genotype + ') · ' + v.coordinate + '</div>' +
             '<div style="font-size:12px;margin-top:3px;"><strong>ClinVar:</strong> ' + v.clinvar + ' | <strong>CADD:</strong> ' + (v.cadd || "N/A") + ' | <strong>Zygosity:</strong> ' + v.zygosity + ' (' + v.phase + ')</div>' +
-            '<div style="font-size:11.5px;color:var(--slate);margin-top:2px;">Consequences: ' + v.consequence.join(", ") + '</div>' +
-            '<div style="margin-top:6px;"><a href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;color:var(--teal);">View variant in UCSC Genome Browser ↗</a></div>' +
+            '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px;">' +
+              '<a href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;color:var(--teal);">UCSC Browser ↗</a> · ' +
+              '<a href="' + (v.alphagenomeUrl || ('https://deepmind.google.com/science/alphagenome/atlas?q=' + (v.chrom && v.chrom.startsWith('chr') ? v.chrom : 'chr' + v.chrom) + ':' + v.pos + ':' + v.ref + '%3E' + v.alt + '&m=variant')) + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;color:#0284c7;">AlphaGenome Atlas ↗</a>' +
+              (v.isAlphaGenomeTarget ? ' <span style="background:#e0f2fe;color:#0369a1;font-weight:800;padding:2px 6px;border-radius:4px;font-size:10px;border:1px solid #7dd3fc;">🧬 Sequence Target</span>' : '') +
+            '</div>' +
           '</div>';
       });
 

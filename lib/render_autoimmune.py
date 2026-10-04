@@ -264,12 +264,17 @@ def _card(r):
                  ) if rsid and str(rsid).startswith("rs") else (html.escape(str(rsid)) if rsid else "-")
     hpo_ctx = ", ".join(ev.get("hpo_context", []) or []) or "-"
     go_ctx = ", ".join(ev.get("go_context", []) or []) or "-"
+    is_ag = "RESCUE_ALPHAGENOME_TARGET" in (r.get("reason_codes") or [])
+    ag_badge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-300" title="Candidate for DeepMind AlphaGenome sequence resolution">🧬 AlphaGenome Target</span>' if is_ag else ""
+    ag_url = ev.get("alphagenome_url")
+    ag_link = f'<a href="{ag_url}" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:none;">Atlas &#8599;</a>' if ag_url else "-"
     return f"""
     <div class="card" data-gene="{gene}" data-reasons="{html.escape(' '.join(r.get('reason_codes', [])))}">
       <div class="card-head">
         <span class="gene">{gene}</span>
         {rr._zyg_badge(zyg)}
         {_phase_badge(ev)}
+        {ag_badge}
         <span class="loc">{html.escape(str(r.get('chrom','')))}:{html.escape(str(r.get('pos','')))}
           {html.escape(rr._fmt_allele(r.get('ref')))}&gt;{html.escape(rr._fmt_allele(r.get('alt')))}</span>
         <span class="so">{html.escape(so)}</span>
@@ -292,7 +297,7 @@ def _card(r):
         <div><label>RegulomeDB Rank</label>{html.escape(str(r.get('regulomedb_ra') or '-'))}</div>
         <div><label>ENCODE cCRE Element</label>{html.escape(str(r.get('ccre_group') or '-'))}</div>
         <div><label>BayesDel Score</label>{html.escape(str(r.get('bayesdel') or '-'))}</div>
-        <div><label>ESM1b Protein LM</label>{html.escape(str(r.get('esm1b') or '-'))}</div>
+        <div><label>AlphaGenome Atlas</label>{ag_link}</div>
         <div><label>Panel support</label>{html.escape(str(ev.get('panel_support') or '-'))}/2</div>
       </div>
       {_study_rows(r)}
@@ -359,6 +364,10 @@ def _gene_card(hugo, variants):
         rsid_html = (f'<a href="https://www.ncbi.nlm.nih.gov/snp/{html.escape(str(rsid))}" '
                      f'target="_blank" style="color:#2563eb; text-decoration:none; font-family:monospace;">{html.escape(str(rsid))}</a>'
                      ) if rsid and str(rsid).startswith("rs") else (html.escape(str(rsid)) if rsid else "-")
+        is_ag = "RESCUE_ALPHAGENOME_TARGET" in (r.get("reason_codes") or [])
+        ag_badge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-300" title="Candidate for DeepMind AlphaGenome sequence resolution">🧬 AlphaGenome Target</span>' if is_ag else ""
+        ag_url = ev.get("alphagenome_url")
+        ag_link = f'<a href="{ag_url}" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:none;">Atlas &#8599;</a>' if ag_url else "-"
                      
         var_blocks.append(f"""
         <div class="variant-item" style="margin-top:14px; padding:14px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0;">
@@ -366,6 +375,7 @@ def _gene_card(hugo, variants):
             <span class="font-bold text-slate-700" style="font-size:12px; text-transform:uppercase;">Variant #{idx}</span>
             {rr._zyg_badge(zyg)}
             {_phase_badge(ev)}
+            {ag_badge}
             <span class="loc">{html.escape(str(r.get('chrom','')))}:{html.escape(str(r.get('pos','')))}
               {html.escape(rr._fmt_allele(r.get('ref')))}&gt;{html.escape(rr._fmt_allele(r.get('alt')))}</span>
             <span class="so">{html.escape(so)}</span>
@@ -388,8 +398,7 @@ def _gene_card(hugo, variants):
             <div><label>RegulomeDB Rank</label>{html.escape(str(r.get('regulomedb_ra') or '-'))}</div>
             <div><label>ENCODE cCRE Element</label>{html.escape(str(r.get('ccre_group') or '-'))}</div>
             <div><label>BayesDel Score</label>{html.escape(str(r.get('bayesdel') or '-'))}</div>
-            <div><label>ESM1b Protein LM</label>{html.escape(str(r.get('esm1b') or '-'))}</div>
-            <div><label>VARITY Score</label>{html.escape(str(r.get('varity') or '-'))}</div>
+            <div><label>AlphaGenome Atlas</label>{ag_link}</div>
             <div><label>Panel support</label>{html.escape(str(ev.get('panel_support') or '-'))}/2</div>
           </div>
           {_study_rows(r)}

@@ -82,7 +82,7 @@ def write_tsv(records, path):
             "cchange", "transcript", "gnomad4_af", "allofus_af", "clinvar_sig",
             "clinvar_id", "revel", "am_path", "cadd_phred", "spliceai_max",
             "pharmgkb__chemicals", "civic__clinical_significance", "interpro__domain",
-            "reason_codes"]
+            "alphagenome_url", "reason_codes"]
     with open(path, "w") as f:
         f.write("\t".join(cols) + "\n")
         for r in records:
@@ -97,6 +97,8 @@ def write_tsv(records, path):
                     v = ev.get("phasing")
                 elif c == "vaf":
                     v = ev.get("vaf")
+                elif c == "alphagenome_url":
+                    v = ev.get("alphagenome_url")
                 elif c == "gene_description":
                     v = (r.get("gene_info") or {}).get("description")
                 elif c == "reason_codes":
@@ -160,6 +162,8 @@ def _reason_badges(reasons):
         cls = "bg-blue-100 text-blue-800 border-blue-200"
         if rc.startswith("HPO_") or rc.startswith("GO_") or rc.startswith("CLIN") or rc in ("OMIM_DISEASE", "ARRVARS_KNOWN", "PHARMGKB_DRUG", "DENOVO_EVIDENCE"):
             cls = "bg-green-100 text-green-800 border-green-200"
+        if rc.startswith("RESCUE_ALPHAGENOME") or rc.startswith("AG_"):
+            cls = "bg-sky-100 text-sky-800 border-sky-300 font-semibold"
         if rc in ("PVS1_HAPLOINSUFFICIENT", "PP3_CONSENSUS", "SPLICEAI_HIGH", "PM2_RARE"):
             cls = "bg-red-100 text-red-800 border-red-200 font-semibold"
         if rc in ("COMMON_AF_FLAG", "RISK_ALLELE_COMMON"):
