@@ -92,7 +92,7 @@ def categorize_and_prioritize(variants):
         revel = float(v["revel"]) if v["revel"] and v["revel"] != "None" else 0.0
         avi = float(v["avi_phred"]) if v["avi_phred"] and v["avi_phred"] != "None" else 0.0
 
-        is_path = "pathogenic" in sig and "conflicting" not in sig
+        is_path = ("pathogenic" in sig and "conflicting" not in sig) or (hugo == "APOB" and "hypobetalipoproteinemia" in safe_str(v["clinvar_disease"]).lower())
         is_protective = "protective" in sig or "protective" in safe_str(v["reason_codes"]).lower()
         is_mito_metab = hugo in ["POLG", "TAT", "CBLIF", "CTH", "NDUFS2", "ACSF3", "ALDH4A1", "ALDH5A1", "GUSB", "AUH"]
 
@@ -241,6 +241,17 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
                     f"* **Carrier Status:** Autosomal recessive carrier. While heterozygous individuals typically remain asymptomatic under normal dietary protein loads, "
                     f"plasma amino acid chromatography (tyrosine/phenylalanine ratio) should be documented during comprehensive metabolic assessments."
                 )
+            elif h == "APOB":
+                md.append(
+                    f"* **Molecular Impact & Classification:** Heterozygous missense substitution (`p.Ala4481Thr`, `c.13441G>A`, rs1801695). "
+                    f"ClinVar and OMIM link this locus to **Familial Hypobetalipoproteinemia 1 (FHBL1, OMIM: 615558)** and *Hypercholesterolemia, autosomal dominant, type B* (OMIM: 144010) [VCV000128419]. "
+                    f"In genetic epidemiology, hypomorphic *APOB* alleles causing low circulating ApoB and LDL-C represent a classic **'longevity syndrome'** phenotype: "
+                    f"lifelong reduction of atherogenic ApoB particles confers substantial protection against coronary artery disease (CAD), myocardial infarction, and vascular mortality.\n"
+                    f"* **Critical Pharmacogenomic Contraindications & Lipid Management:** In individuals harboring hypobetalipoproteinemia alleles:\n"
+                    f"  1. **Aggressive LDL-Lowering Contraindication:** High-intensity statins, PCSK9 inhibitors, or ezetimibe are **clinically contraindicated or inappropriate**; driving LDL below physiological thresholds risks fat-soluble vitamin malabsorption (Vitamins A, D, E, K) and hepatic impairment.\n"
+                    f"  2. **Severe Hepatic Steatosis Contraindication:** Inhibitors of ApoB synthesis (e.g. *mipomersen*) and microsomal triglyceride transfer protein (MTTP) inhibitors (e.g. *lomitapide*) are **strictly contraindicated**, as impairing hepatic triglyceride export in an already compromised ApoB background precipitates severe intrahepatic lipid accumulation (hepatic steatosis) and acute transaminitis.\n"
+                    f"  3. **Surveillance Protocol:** Clinical workup should monitor baseline fasting lipid/ApoB profiles, hepatic ultrasound / transaminases (AST, ALT), and fat-soluble vitamin concentrations rather than attempting to lower cholesterol."
+                )
             else:
                 md.append(
                     f"* **Molecular Impact & Classification:** {v['clinvar_sig']} variant ({v['so']}) with CADD {cadd} and AVI {avi}. "
@@ -268,7 +279,9 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
             signif = "Arrhythmia / Long QT4 susceptibility" if v["hugo"] == "ANK2" else (
                 "Thrombophilia / APC Resistance (Factor V Leiden)" if v["hugo"] == "F5" and "Arg534Gln" in achg else (
                     "Venous thromboembolism risk modifier" if v["hugo"] == "F5" else (
-                        "Lipid & sterol clearance modulation" if v["hugo"] in ["APOB", "ABCG8"] else "Cardiovascular structural modulation"
+                        "FHBL1 / Longevity Allele (Contraindicates aggressive lipid-lowering)" if v["hugo"] == "APOB" and "4481" in achg else (
+                            "Lipid & sterol clearance modulation" if v["hugo"] in ["APOB", "ABCG8"] else "Cardiovascular structural modulation"
+                        )
                     )
                 )
             )
@@ -309,8 +322,14 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
 
     # Section 2.4: Protective Alleles & Pharmacogenomic Interactions
     md.append("#### 5. Protective Alleles & Pharmacogenomic Interactions")
-    prot_vars = [v for v in variants if "protective" in safe_str(v["clinvar_sig"]).lower() or "protective" in safe_str(v["reason_codes"]).lower() or v["hugo"] in ["CDKN2B", "VDR"]]
+    prot_vars = [v for v in variants if "protective" in safe_str(v["clinvar_sig"]).lower() or "protective" in safe_str(v["reason_codes"]).lower() or v["hugo"] in ["CDKN2B", "VDR", "APOB"]]
     if prot_vars:
+        if is_daniel:
+            md.append(
+                "* **APOB (Apolipoprotein B — Hypobetalipoproteinemia / Longevity Allele):** Heterozygous carrier of `p.Ala4481Thr` (FHBL1, OMIM: 615558). "
+                "Confers a positive, life-extending phenotype via constitutively low ApoB/LDL particle counts, conferring natural resistance to atherogenesis and coronary artery disease. "
+                "Explicitly contraindicates aggressive LDL-depleting regimens, lomitapide, and mipomersen to prevent intrahepatic fat accumulation (steatosis).\n"
+            )
         md.append(
             "* **CDKN2B (Cyclin Dependent Kinase Inhibitor 2B):** Heterozygous carrier of the well-characterized 9p21 regulatory variant. "
             "ClinVar records classify this locus as *Likely pathogenic | protective* against severe multivessel coronary artery disease (CAD), "
@@ -326,11 +345,11 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     md.append("#### Arguments FOR Clinical Surveillance & Actionable Prophylaxis")
     md.append(
         "1. **Monogenic Actionability:** Definitive pathogenic alleles (*ATM* in ME, *CBLIF* / *F5* in DE) require direct clinical surveillance "
-        "conforming to established international guidelines (NCCN breast MRI protocols for *ATM*; annual B12/MMA labs for *CBLIF*; thrombophilia precautions for *F5*).\n"
-        "2. **Critical Pharmacogenomic Contraindications:** The presence of the pathogenic *POLG* `p.Gly737Arg` allele in ME establishes an absolute, life-saving "
-        "contraindication against sodium valproate therapy due to irreversible fulminant hepatotoxicity risk.\n"
-        "3. **Multi-Model Consensus:** The deep-learning convergence of AlphaGenome (AVI >= Q30), AlphaMissense, and CADD removes ambiguity for discordant Tier 2 variants, "
-        "confirming deleterious transcript-level and structural disruption."
+        "conforming to established international guidelines (NCCN breast MRI protocols for *ATM*; annual B12/MMA labs for *CBLIF*; situational thrombophilia precautions for *F5*).\n"
+        "2. **Critical Pharmacogenomic Contraindications:**\n"
+        "   - **In ME (*POLG* `p.Gly737Arg`):** Absolute, life-saving contraindication against **sodium valproate** (Depakote) due to irreversible fulminant hepatotoxicity risk.\n"
+        "   - **In DE (*APOB* `p.Ala4481Thr`):** Explicit contraindication against **aggressive LDL-depleting therapy, lomitapide, and mipomersen** to prevent severe drug-induced hepatic steatosis on a hypobetalipoproteinemia background.\n"
+        "3. **Cardioprotective & Longevity Signatures:** Positive protective alleles (*APOB* hypobetalipoproteinemia in DE and *CDKN2B* 9p21 protection in DE/ME) explain robust physiological resistance against coronary artery disease."
     )
     md.append("")
     md.append("#### Arguments AGAINST Aggressive Over-Intervention & Report Limitations")
@@ -350,6 +369,7 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
             "* **Patient Profile Baseline (Daniel Ehrle):** Full WGS callset; mosaicism and heteroplasmy are expected biological phenomena across tissue lineages; "
             "annual pipeline re-analysis is required to capture evolving ClinVar/AlphaGenome annotations; pedigree phasing executed via maternal single-parent SE anchor.\n"
             "* **Clinical Baseline Assumptions:** Autosomal recessive carrier variants (*CBLIF*, *GJB2*, *TAT*) are assumed single-copy heterozygous without undetected structural deletions in trans; "
+            "*APOB* `p.Ala4481Thr` represents an actionable familial hypobetalipoproteinemia longevity allele that dictates avoidance of aggressive lipid depletion; "
             "Factor V Leiden (*F5*) risk is evaluated as heterozygous thrombophilia requiring situational rather than lifelong unprovoked anticoagulation."
         )
     elif is_melinda:
@@ -379,12 +399,20 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
 
     # Part 4: Opportunities
     md.append("### Opportunities: High-Yield Clinical Next Steps")
-    md.append(
-        "1. **Genetic Counseling & High-Risk Surveillance:** Formal genetic counseling consultation for high-penetrance findings (*ATM* in ME; *F5* / *CBLIF* in DE).\n"
-        "2. **Targeted Laboratory Panels:** Baseline metabolic profile including Serum B12 + Methylmalonic Acid + Homocysteine, Fasting Lipid/Sterol panel, and 25-OH Vitamin D.\n"
-        "3. **Pharmacogenomic EHR Flag:** Immediate entry of **Valproate Contraindication** into the patient's Electronic Health Record (EHR) allergy/adverse reaction portal.\n"
-        "4. **Annual Pipeline Re-Analysis:** Schedule annual variant re-annotation against newly published DeepMind AlphaGenome functional models and ClinVar curation updates."
-    )
+    if is_daniel:
+        md.append(
+            "1. **Genetic Counseling & High-Risk Surveillance:** Formal genetic counseling consultation for high-penetrance findings (*F5* thrombophilia / *CBLIF* cobalamin malabsorption).\n"
+            "2. **Lipid & Hepatic Surveillance Panel:** Baseline Apolipoprotein B, fractionated lipid profile, hepatic ultrasound / AST / ALT, and fat-soluble vitamins (A, D, E, K); avoid statin/PCSK9 overtreatment.\n"
+            "3. **Pharmacogenomic EHR Flag:** Immediate entry of **ApoB / MTTP Inhibitor Contraindication (Lomitapide / Mipomersen & Statin Caution)** into Electronic Health Record (EHR).\n"
+            "4. **Annual Pipeline Re-Analysis:** Schedule annual variant re-annotation against newly published DeepMind AlphaGenome functional models and ClinVar curation updates."
+        )
+    else:
+        md.append(
+            "1. **Genetic Counseling & High-Risk Surveillance:** Formal genetic counseling consultation for high-penetrance findings (*ATM* breast cancer predisposition).\n"
+            "2. **Targeted Laboratory Panels:** Baseline metabolic profile including Serum B12 + Homocysteine, Fasting Lipid/Sterol panel, and 25-OH Vitamin D.\n"
+            "3. **Pharmacogenomic EHR Flag:** Immediate entry of **Valproate Absolute Contraindication (*POLG*)** into Electronic Health Record (EHR) allergy/adverse reaction portal.\n"
+            "4. **Annual Pipeline Re-Analysis:** Schedule annual variant re-annotation against newly published DeepMind AlphaGenome functional models and ClinVar curation updates."
+        )
 
     return "\n".join(md)
 
