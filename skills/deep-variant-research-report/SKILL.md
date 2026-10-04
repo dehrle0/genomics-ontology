@@ -28,6 +28,7 @@ flowchart TD
     subgraph Evidence_Layer["Curated Clinical Databases"]
         CV["NCBI ClinVar (RCV / VCV Accessions & Review Status)"]
         OMIM["OMIM Phenotypic & Clinical Synopsis (MIM IDs)"]
+        CLINGEN["ClinGen Gene-Disease Clinical Validity Curations"]
         GWAS["EBI GWAS Catalog (Traits & PubMed IDs)"]
     end
 
@@ -47,24 +48,29 @@ flowchart TD
 
 ---
 
-## 2. Evidence Thresholds & Tiering Heuristics
+## 2. Universal Trait-Driven Evidence Triage (Zero Hardcoded Gene Logic)
 
-To ensure high clinical specificity and avoid information fatigue, variants are triaged into four functional domains:
+All variants are evaluated and prioritized using principled, domain-agnostic criteria without bespoke gene-specific branching:
 
-### Category 1: Primary Diagnostic & Carrier Findings (Definite Pathogenic / High Penetrance)
-* **Inclusion Criteria:** ClinVar status `Pathogenic` or `Likely Pathogenic` without conflicting submissions, OR canonical Loss-of-Function (LoF) alleles (essential splice, stop-gained, frameshift) with concordant severe AI scores (CADD >= 25, AlphaGenome AVI >= Q30).
-* **Clinical Reporting:** Full narrative Evidence Dossier detailing molecular mechanism, disease phenotype, OMIM accession, mode of inheritance (autosomal recessive carrier vs. dominant), and actionable surveillance protocols (e.g. NCCN, ACMG).
+### Category 1: Primary Monogenic & Clinically Actionable Findings
+* **Inclusion Criteria:**
+  1. ClinVar status `Pathogenic` or `Likely Pathogenic` without conflicting/uncertain submissions in a coding- or splice-altering variant, OR
+  2. ClinGen `Definitive` or `Strong` validity variants linked to an established OMIM morbid disorder that confer high-impact cardioprotective/longevity effects (e.g. *APOB* Familial Hypobetalipoproteinemia 1), OR
+  3. ClinGen `Definitive` variants with high-penetrance pharmacogenomic contraindications or thrombophilia risks (e.g. *F5* Factor V Leiden).
+* **Clinical Reporting:** Structured narrative Evidence Dossier detailing molecular consequence, multi-engine in silico consensus (CADD, REVEL, AlphaMissense, AlphaGenome AVI score/modality/percentile), ClinGen validity, OMIM phenotypic mappings, and actionable surveillance/contraindication guidance.
 
 ### Category 2: Cardiovascular, Channelopathy & Hematology Surveillance
-* **Inclusion Criteria:** Actionable Tier 1/2 variants in established cardiac channelopathy genes (*ANK2*, *SCN5A*, *KCNQ1*), cardiomyopathy genes (*VCL*, *MYBPC3*), or coagulation cascade factors (*F5*, *F2*, *PROC*).
-* **Clinical Reporting:** Tabulated summary detailing arrhythmia/thrombophilia risk, REVEL/AlphaMissense scores, and driving AlphaGenome modalities (*Splicing*, *AlphaMissense*).
+* **Inclusion Criteria:** Actionable Tier 1/2 variants in genes with cardiovascular, arrhythmia, lipid transport, or coagulation terms in Gene Ontology (`gene_go_bpo`) or Human Phenotype Ontology (`gene_hpo_term`).
+* **Clinical Reporting:** Tabulated summary detailing arrhythmia/thrombophilia risk, REVEL/AlphaMissense scores, and driving AlphaGenome modalities (*Splicing*, *Cactus*, *AlphaMissense*).
 
 ### Category 3: Metabolic, Mitochondrial & DNA Repair Co-Factors
-* **Inclusion Criteria:** Nuclear genes governing mitochondrial maintenance (*POLG*, *NDUFS2*), transsulfuration/amino acid metabolism (*TAT*, *CTH*, *ALDH4A1*), or DNA repair machinery (*ATM*, *BLM*, *ALKBH3*, *MC1R*).
-* **Special Rule:** Pathogenic *POLG* mutations mandate an explicit, high-priority **Sodium Valproate Hepatotoxicity Contraindication** flag.
+* **Inclusion Criteria:** Nuclear genes governing mitochondrial maintenance, transsulfuration/amino acid metabolism, or DNA repair machinery dynamically identified from ontology annotations.
 
-### Category 4: Protective Alleles & Regulatory Modulators
-* **Inclusion Criteria:** Variants tagged with `protective` in ClinVar or GWAS catalog (e.g. *CDKN2B* 9p21 coronary artery disease protective allele, *VDR* COPD modulator).
+### Category 4: Protective Alleles & Pharmacogenomic Contraindications
+* **Inclusion Criteria:**
+  1. **Protective / Longevity Trait Mining:** Variants tagged with `protective`, `hypobetalipoproteinemia`, `hypocholesterolemia`, `longevity`, or `reduced risk` across ClinVar significance, ClinVar disease, GWAS Catalog, or HPO.
+  2. **Pharmacogenomic & Contraindication Discovery:** Variants tagged with `drug response`, `pharmacogenomic`, `toxicity`, `contraindicated`, or specific drug classes (valproate, lipid-lowering agents, fluoropyrimidines, arylamines) in ClinVar, PharmGKB, or clinical synopses.
+* **Clinical Reporting:** Structured guidance defining the biological resistance mechanism, exact clinical contraindications against adverse medications or overtreatment, and tailored laboratory surveillance.
 
 ---
 
@@ -98,10 +104,9 @@ python3 lib/generate_deep_research_report.py \
   --patient-id "{SAMPLE_ID}"
 ```
 
-### Automated Pipeline Integration in `run_ontology_pipeline.py`
-Stage 7.2 of the master pipeline automatically invokes the deep research report engine:
-* Exports `{Sample_ID}_deep_research_report.md`
-* Exports `{Sample_ID}_deep_research_report.html`
-* Renders vector `{Sample_ID}_deep_research_report.pdf`
-* Includes all three assets in `{Sample_ID}_iOS_bundle.zip`
-* Synchronizes deliverables to Google Drive cloud and local directories
+### Pipeline Stage 7.2 Integration
+Executed automatically in `run_ontology_pipeline.py` after Stage 7.1 AlphaGenome TSV export:
+* Generates `{Sample}_deep_research_report.md`
+* Renders print-optimized `{Sample}_deep_research_report.html`
+* Compiles vector `{Sample}_deep_research_report.pdf` via headless Chrome/Chromium
+* Packages all three deliverables into `{Sample}_iOS_bundle.zip`

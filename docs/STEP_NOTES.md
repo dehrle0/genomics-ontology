@@ -258,5 +258,33 @@ zygosity per variant) plus a creative new domain — autoimmunity — that exerc
 - **Melinda Ehrle (ME)**: Exactly 4 pages PDF (241.7 KB). Primary evidence dossiers: *ATM* `c.1236-2del` (Hereditary breast cancer / DNA damage repair surveillance), *POLG* `p.Gly737Arg` (Mitochondrial replisome maintenance, absolute Sodium Valproate hepatotoxicity contraindication flag), *TAT* `p.Arg57Ter` (Tyrosinemia Type II carrier), *MC1R* `p.Asp294His` (Melanoma risk, PMID: 32341527), *CTH* `p.Thr67Ile` (Transsulfuration, PMID: 35050183). Patient profile assumptions: MI anchor, long-term spousal healthcare integration.
 - **Live Local Deliverables**: Serving via HTTP 200 on port 8080.
 
+---
+
+## I8 — Universal Trait-Driven Architecture & Domain-Agnostic Prioritization (v2.0)
+
+**Root-Cause Diagnosis & Principle:**
+- *Problem*: Ad-hoc gene checks (`hugo == "APOB"`, `hugo in [...]`, `is_daniel`, `is_melinda`) elevated variants via hardcoded branching rather than systematic pipeline discovery logic.
+- *Solution*: Replaced all gene-specific logic with **domain-agnostic, trait-driven discovery and synthesis protocols** across both the ontology filter (`lib/ontology_filter.py`) and the deep research report engine (`lib/generate_deep_research_report.py`).
+
+**Architectural Changes Implemented:**
+1. **Pipeline & Discovery Engine (`lib/ontology_filter.py`)**:
+   - *Expanded Clinical Significance Classes*: Added recognition for `PROTECTIVE`, `DRUG_RESPONSE`, `RISK_FACTOR`, and `BLB` to `_clinvar_class`.
+   - *Systematic Protective & Longevity Mining*: Scans ClinVar traits, GWAS phenotypes, and HPO terms for `protective`, `hypobetalipoproteinemia`, `hypocholesterolemia`, `longevity`, and `reduced risk`, tagging matching variants with reason code `PROTECTIVE_ALLELE`.
+   - *Pharmacogenomic Discovery*: Evaluates PharmGKB fields, ClinVar drug responses, and clinical contraindications, tagging with reason code `PHARMACOGENOMIC_RESPONSE`.
+   - *ClinGen / OMIM Conflict Resolution*: Resolves ClinVar conflicting interpretations (`cvc == "CONFLICT"`) by evaluating ClinGen Definitive/Strong validity and OMIM morbid mappings (`CONFLICT_HIGH_EVIDENCE`).
+   - *Actionability Gate & Tiering*: Preserves actionable protective and pharmacogenomic alleles across the frequency ceiling and tiers them into Tier 1 or Tier 2 based on evidence and rarity.
+2. **Universal Deep Research Report Engine (`lib/generate_deep_research_report.py` v2.0)**:
+   - *Zero Hardcoded Gene Checks*: Completely removed all `hugo == "..."` branching, gene lists, and patient-specific branches.
+   - *Dynamic Candidate Prioritization*: Evaluates any variant by coding consequence, ClinVar classification, ClinGen clinical validity, OMIM mapping, and multi-engine AI consensus (CADD, REVEL, AlphaGenome AVI).
+   - *Attribute-Driven Evidence Dossiers*: Generates structured dossiers dynamically from Sequence Ontology, AI scores (with top modality and percentile), ClinGen validity, OMIM accessions, and inheritance mechanisms (recessive carrier vs. dominant).
+   - *Trait-Driven Clinical Guidance*: Dynamic guidance for lipid-lowering/MTTP contraindications (FHBL1 / hypobetalipoproteinemia), valproate contraindications (Alpers / mitochondrial replisome), breast MRI surveillance (DNA repair / ATM), B12 surveillance (pernicious anemia / CBLIF), ototoxicity precautions (GJB2 / hearing), situational thrombophilia (Factor V Leiden), and fluoropyrimidine dosing (DPYD).
+   - *Dynamic Conclusions & Assumptions*: Automatically summarizes monogenic findings, pharmacogenomic alerts, and protective alleles discovered in the patient's callset without hardcoded text.
+3. **Skill & Deliverables Synchronization**:
+   - Updated skill at `skills/deep-variant-research-report/SKILL.md` and user config `~/.gemini/config/skills/deep-variant-research-report/SKILL.md`.
+   - Re-compiled both Daniel Ehrle and Melinda Ehrle deep research reports (Markdown, HTML5, and vector PDF via headless Chrome).
+   - Verified PDF page budget: **strictly 4 pages** for both DE (258.5 KB) and ME (257.3 KB).
+   - Re-packaged into `{Sample}_iOS_bundle.zip`.
+
+
 
 

@@ -110,8 +110,16 @@ def _clinvar_class(sig):
         return "PLP"
     if "likely pathogenic" in s:
         return "PLP"
-    if "uncertain" in s:
+    if "uncertain" in s or "vus" in s:
         return "VUS"
+    if "protective" in s:
+        return "PROTECTIVE"
+    if "drug response" in s or "drug_response" in s or "pharmacogenomic" in s:
+        return "DRUG_RESPONSE"
+    if "risk factor" in s or "risk_factor" in s or "association" in s:
+        return "RISK_FACTOR"
+    if "benign" in s:
+        return "BLB"
     return None
 
 
@@ -189,12 +197,46 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
         pheno.append("CLINVAR_VUS")
     elif cvc == "CONFLICT":
         pheno.append("CLINVAR_CONFLICT")
+    elif cvc == "PROTECTIVE":
+        pheno.append("CLINVAR_PROTECTIVE")
+    elif cvc == "DRUG_RESPONSE":
+        pheno.append("CLINVAR_DRUG_RESPONSE")
+    elif cvc == "RISK_FACTOR":
+        pheno.append("CLINVAR_RISK_FACTOR")
+
+    # Protective / Longevity allele discovery (systematic across ClinVar, GWAS, HPO)
+    raw_sig = (row.get("clinvar_sig") or "").lower()
+    raw_dis = (row.get("clinvar_disease") or "").lower()
+    raw_gwas = (row.get("gwas_disease") or "").lower()
+    all_trait_corpus = f"{raw_sig} {raw_dis} {raw_gwas}"
+
+    is_protective = (cvc == "PROTECTIVE") or any(kw in all_trait_corpus for kw in [
+        "protective", "hypobetalipoproteinemia", "hypocholesterolemia",
+        "longevity", "reduced risk", "resistance to"
+    ])
+    if is_protective:
+        pheno.append("PROTECTIVE_ALLELE")
+
+    # Pharmacogenomic / Drug response discovery
+    pharm_chem = (row.get("pharmgkb__chemicals") or "").strip()
+    pharm_pheno = (row.get("pharmgkb__phenotypes") or "").strip()
+    is_pgx = bool(pharm_chem) or bool(pharm_pheno) or (cvc == "DRUG_RESPONSE") or any(kw in all_trait_corpus for kw in [
+        "drug response", "drug_response", "pharmacogenomic", "contraindicated", "toxicity",
+        "slow acetylator", "malignant hyperthermia"
+    ])
+    if is_pgx:
+        pheno.append("PHARMACOGENOMIC_RESPONSE")
 
     clingen = row.get("clingen_class")
-    if clingen and str(clingen).lower() not in ("no known disease relationship", "", "none"):
+    has_clingen = bool(clingen and str(clingen).lower() not in ("no known disease relationship", "", "none"))
+    if has_clingen:
         pheno.append("CLINGEN_VALIDITY")
-    if row.get("omim_id"):
+    has_omim = bool(row.get("omim_id"))
+    if has_omim:
         pheno.append("OMIM_DISEASE")
+
+    if cvc == "CONFLICT" and (has_clingen or has_omim):
+        pheno.append("CONFLICT_HIGH_EVIDENCE")
 
     hpo_kws = (cfg.get("hpo") or {}).get("term_keywords") or []
     hpo_hits = _ontology_reasons(row.get("gene_hpo_term"), hpo_kws)
@@ -365,6 +407,9 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
     keep = False
     if clinvar_plp:
         keep = True
+    elif is_protective or is_pgx:
+        # Actionable protective or pharmacogenomic response allele
+        keep = True
     elif domain_bypass:
         # e.g. an established GWAS risk allele: keep even though it is common.
         keep = True
@@ -399,6 +444,10 @@ def evaluate_variant(row, cfg, panel, haploinsufficient, runtime):
         tier = "Tier1"
     elif strong_missense:
         tier = "Tier1"
+    elif is_protective and (is_rare_t1 or has_clingen or has_omim):
+        tier = "Tier1" if is_rare_t1 else "Tier2"
+    elif is_pgx and (is_rare_t1 or has_clingen or has_omim):
+        tier = "Tier1" if is_rare_t1 else "Tier2"
     elif clinvar_vus:
         tier = "Tier2"
     elif alphagenome_candidate:
