@@ -339,6 +339,12 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
             "alphagenomeUrl": (r.get('evidence', {}) or {}).get('alphagenome_url') or f"https://deepmind.google.com/science/alphagenome/atlas?q={(chrom if chrom.startswith('chr') else 'chr' + chrom)}:{pos}:{r.get('ref')}%3E{r.get('alt')}&m=variant",
             "isAlphaGenomeTarget": "RESCUE_ALPHAGENOME_TARGET" in (r.get('reason_codes') or []) or (r.get('evidence', {}) or {}).get('is_alphagenome_candidate', False),
             "alphagenomeSubreason": (r.get('evidence', {}) or {}).get('alphagenome_subreason') or "",
+            "aviPhred": (r.get('evidence', {}) or {}).get('avi_phred'),
+            "aviPercentile": (r.get('evidence', {}) or {}).get('avi_percentile'),
+            "aviModality": (r.get('evidence', {}) or {}).get('avi_modality'),
+            "ref": r.get('ref'),
+            "alt": r.get('alt'),
+            "aviStatus": (r.get('evidence', {}) or {}).get('avi_status') or ("INDEL_NOT_SUPPORTED" if (len(str(r.get('ref','')))+len(str(r.get('alt',''))) > 2 or str(r.get('ref','')) == '-' or str(r.get('alt','')) == '-') else None),
             "lastEvaluated": "2026-08-27",
             "studies": studies
         }

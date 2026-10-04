@@ -215,3 +215,20 @@ zygosity per variant) plus a creative new domain — autoimmunity — that exerc
 - **Daniel Ehrle (DE)**: 1,017 actionable variants (Tier 1: 42, Tier 2: 355, Tier 3: 620). 882 phased variants (246 Maternal SE Anchor, 200 Paternal). 136 AlphaGenome candidates (49 ClinVar Conflict, 15 Predictor Discordance, 72 Ultra-Conserved Non-Coding rescues including *DPF3* intronic insertion `chr14:72804185:->AC`, $LINSIGHT = 0.8609$).
 - **Melinda Ehrle (ME)**: 1,265 actionable variants (Tier 1: 43, Tier 2: 475, Tier 3: 747). 1,081 phased variants (27 Maternal MI Anchor, 28 Paternal). 163 AlphaGenome candidates (66 ClinVar Conflict, 19 Predictor Discordance, 78 Ultra-Conserved Non-Coding rescues including *SCN3A*, *ZFPM2*, *PRKD1*, *ZEB2*, *RUNX1*, *CACNA1D*).
 
+---
+
+## I6 — Comprehensive AlphaGenome Variant Impact (AVI) Expansion Across All Tier 1 & Tier 2 Variants
+
+**Capabilities Added:**
+- `lib/enrich_alphagenome.py`: Expanded candidate querying from triage-only variants to 100% of Tier 1 and Tier 2 variants.
+- **Intelligent Chunking & Resilient Batching**: Automatically chunks variant queries into batches of 100 with progress tracking.
+- **Master Persistent Cache (`data/alphagenome_cache.json`)**: Ingested and cached 895 total variants (797 scored SNVs with AVI Phred, quantile, and driving modality; 98 handled indels).
+- **Dual-Tiered Presentation & Indel Disclaimers**:
+  - *Active Triage Targets*: Display high-contrast alert badges with specific triage focus annotations in headers and drawer.
+  - *Standard Tier 1 & Tier 2 SNVs*: Display clean, compact clinical metric lines (`AlphaGenome AVI: Q27.8 (Top 0.16% · AlphaMissense)` + `Atlas ↗` link) without crowding card headers.
+  - *Indels & Structural Variants*: Explicitly render `Indel (Atlas SNV Index N/A)` with tooltip explaining precomputed 9B SNV index coverage, preventing false-negative confusion.
+
+**Validation Results:**
+- **Daniel Ehrle (DE)**: 397 / 397 Tier 1 + Tier 2 variants annotated (100.0% coverage: 349 Scored SNVs, 48 Handled Indels). Top score: *ALKBH3* `chr11:43884007 C>T` (Q41.3, Top 0.01%, Protein Termination).
+- **Melinda Ehrle (ME)**: 518 / 518 Tier 1 + Tier 2 variants annotated (100.0% coverage: 462 Scored SNVs, 56 Handled Indels). Top score: *VWA3B* `chr2:98162976 G>T` (Q50.8, Top 0.00%, Protein Termination).
+

@@ -81,6 +81,7 @@ def write_tsv(records, path):
             "chrom", "pos", "ref", "alt", "so", "achange",
             "cchange", "transcript", "gnomad4_af", "allofus_af", "clinvar_sig",
             "clinvar_id", "revel", "am_path", "cadd_phred", "spliceai_max",
+            "avi_phred", "top_percentile", "top_modality",
             "pharmgkb__chemicals", "civic__clinical_significance", "interpro__domain",
             "alphagenome_url", "reason_codes"]
     with open(path, "w") as f:
@@ -91,6 +92,8 @@ def write_tsv(records, path):
             for c in cols:
                 if c == "spliceai_max":
                     v = ev.get("spliceai_max")
+                elif c in ("avi_phred", "top_percentile", "top_modality"):
+                    v = ev.get(c)
                 elif c == "zygosity":
                     v = ev.get("zygosity")
                 elif c == "phasing":

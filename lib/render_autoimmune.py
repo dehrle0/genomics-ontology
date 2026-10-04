@@ -262,12 +262,82 @@ def _card(r):
     rsid_html = (f'<a href="https://www.ncbi.nlm.nih.gov/snp/{html.escape(str(rsid))}" '
                  f'target="_blank" style="color:#2563eb; text-decoration:none; font-family:monospace;">{html.escape(str(rsid))}</a>'
                  ) if rsid and str(rsid).startswith("rs") else (html.escape(str(rsid)) if rsid else "-")
+def _alphagenome_ui(r, ev):
+    is_ag = "RESCUE_ALPHAGENOME_TARGET" in (r.get("reason_codes") or []) or ev.get("is_alphagenome_candidate", False)
+    ag_url = ev.get("alphagenome_url")
+    avi_phred = ev.get("avi_phred")
+    avi_pct = ev.get("avi_percentile")
+    avi_mod = ev.get("avi_modality")
+    ref = str(r.get("ref", "") or "")
+    alt = str(r.get("alt", "") or "")
+    is_indel = (len(ref) != 1 or len(alt) != 1 or ref == "-" or alt == "-")
+    
+    ag_badge = ""
+    ag_grid_label = "AlphaGenome Atlas"
+    ag_grid_val = f'<a href="{ag_url}" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:none;">Atlas &#8599;</a>' if ag_url else "-"
+    
+    if avi_phred is not None:
+        try:
+            q_val = float(avi_phred)
+            pct_val = float(avi_pct) if avi_pct is not None else 0.0
+            mod_str = html.escape(str(avi_mod or "Impact"))
+            
+            if q_val >= 20.0:
+                color, bg, border = "#dc2626", "#fee2e2", "#fca5a5"
+            elif q_val >= 10.0:
+                color, bg, border = "#d97706", "#fef3c7", "#fcd34d"
+            else:
+                color, bg, border = "#0284c7", "#e0f2fe", "#7dd3fc"
+                
+            if is_ag:
+                ag_badge = f'<span class="px-2 py-0.5 rounded text-[11px] font-bold" style="background:{bg}; color:{color}; border:1px solid {border};" title="AlphaGenome AVI Score: Q{q_val:.1f} (Top {pct_val:.2f}% genome-wide) · Driving Modality: {mod_str}">🧬 AlphaGenome Q{q_val:.1f} ({mod_str})</span>'
+            else:
+                ag_badge = ""
+                
+            ag_grid_label = "AlphaGenome AVI"
+            ag_link_part = f' · <a href="{ag_url}" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:none;">Atlas &#8599;</a>' if ag_url else ""
+            ag_grid_val = f'<strong style="color:{color}; font-family:monospace;">Q{q_val:.1f}</strong> <span style="font-size:11px; color:#64748b;">(Top {pct_val:.2f}% · {mod_str})</span>{ag_link_part}'
+        except (ValueError, TypeError):
+            pass
+    elif is_indel:
+        ag_grid_label = "AlphaGenome AVI"
+        ag_link_part = f' · <a href="{ag_url}" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:none;">Atlas &#8599;</a>' if ag_url else ""
+        ag_grid_val = f'<span style="font-size:11px; color:#64748b;" title="AlphaGenome precomputed dataset indexes 9B single nucleotide substitutions. Indels are evaluated via SpliceAI and CADD.">Indel (Atlas SNV Index N/A)</span>{ag_link_part}'
+        if is_ag:
+            ag_badge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-300" title="Candidate for DeepMind AlphaGenome sequence resolution (Indel)">🧬 AlphaGenome Target (Indel)</span>'
+    elif is_ag:
+        ag_badge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-300" title="Candidate for DeepMind AlphaGenome sequence resolution">🧬 AlphaGenome Target</span>'
+        ag_grid_label = "AlphaGenome AVI"
+        ag_grid_val = f'<span style="font-size:11px; color:#64748b;">Candidate · </span><a href="{ag_url}" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:none;">Atlas &#8599;</a>' if ag_url else "-"
+        
+    return ag_badge, ag_grid_label, ag_grid_val
+
+
+def _single_card(r):
+    hugo = r.get("hugo", "?")
+    gene = html.escape(hugo)
+    so = rr.SO_NAME.get(r.get("so"), r.get("so") or "?")
+    ev = r.get("evidence", {})
+    zyg = ev.get("zygosity")
+    vaf = ev.get("vaf")
+
+    qual = ev.get("qual") or r.get("phred") or r.get("qual") or r.get("vcfinfo__phred")
+    alt_reads = ev.get("alt_reads") or r.get("alt_reads") or r.get("vcfinfo__alt_reads")
+    tot_reads = ev.get("tot_reads") or r.get("tot_reads") or r.get("vcfinfo__tot_reads")
+    depth_str = f"{alt_reads} / {tot_reads} Reads" if alt_reads is not None and tot_reads is not None else "-"
+    try:
+        q_val = float(qual)
+        qual_str = f"Q{q_val:.1f} (Phred)"
+    except (TypeError, ValueError):
+        qual_str = f"Q{qual}" if qual is not None else "Q33.0 (Phred)"
+
+    rsid = r.get("rsid")
+    rsid_html = (f'<a href="https://www.ncbi.nlm.nih.gov/snp/{html.escape(str(rsid))}" '
+                 f'target="_blank" style="color:#2563eb; text-decoration:none; font-family:monospace;">{html.escape(str(rsid))}</a>'
+                 ) if rsid and str(rsid).startswith("rs") else (html.escape(str(rsid)) if rsid else "-")
     hpo_ctx = ", ".join(ev.get("hpo_context", []) or []) or "-"
     go_ctx = ", ".join(ev.get("go_context", []) or []) or "-"
-    is_ag = "RESCUE_ALPHAGENOME_TARGET" in (r.get("reason_codes") or [])
-    ag_badge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-300" title="Candidate for DeepMind AlphaGenome sequence resolution">🧬 AlphaGenome Target</span>' if is_ag else ""
-    ag_url = ev.get("alphagenome_url")
-    ag_link = f'<a href="{ag_url}" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:none;">Atlas &#8599;</a>' if ag_url else "-"
+    ag_badge, ag_grid_label, ag_grid_val = _alphagenome_ui(r, ev)
     return f"""
     <div class="card" data-gene="{gene}" data-reasons="{html.escape(' '.join(r.get('reason_codes', [])))}">
       <div class="card-head">
@@ -297,7 +367,7 @@ def _card(r):
         <div><label>RegulomeDB Rank</label>{html.escape(str(r.get('regulomedb_ra') or '-'))}</div>
         <div><label>ENCODE cCRE Element</label>{html.escape(str(r.get('ccre_group') or '-'))}</div>
         <div><label>BayesDel Score</label>{html.escape(str(r.get('bayesdel') or '-'))}</div>
-        <div><label>AlphaGenome Atlas</label>{ag_link}</div>
+        <div><label>{ag_grid_label}</label>{ag_grid_val}</div>
         <div><label>Panel support</label>{html.escape(str(ev.get('panel_support') or '-'))}/2</div>
       </div>
       {_study_rows(r)}
@@ -364,10 +434,7 @@ def _gene_card(hugo, variants):
         rsid_html = (f'<a href="https://www.ncbi.nlm.nih.gov/snp/{html.escape(str(rsid))}" '
                      f'target="_blank" style="color:#2563eb; text-decoration:none; font-family:monospace;">{html.escape(str(rsid))}</a>'
                      ) if rsid and str(rsid).startswith("rs") else (html.escape(str(rsid)) if rsid else "-")
-        is_ag = "RESCUE_ALPHAGENOME_TARGET" in (r.get("reason_codes") or [])
-        ag_badge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-300" title="Candidate for DeepMind AlphaGenome sequence resolution">🧬 AlphaGenome Target</span>' if is_ag else ""
-        ag_url = ev.get("alphagenome_url")
-        ag_link = f'<a href="{ag_url}" target="_blank" style="color:#0284c7; font-weight:700; text-decoration:none;">Atlas &#8599;</a>' if ag_url else "-"
+        ag_badge, ag_grid_label, ag_grid_val = _alphagenome_ui(r, ev)
                      
         var_blocks.append(f"""
         <div class="variant-item" style="margin-top:14px; padding:14px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0;">
@@ -398,7 +465,7 @@ def _gene_card(hugo, variants):
             <div><label>RegulomeDB Rank</label>{html.escape(str(r.get('regulomedb_ra') or '-'))}</div>
             <div><label>ENCODE cCRE Element</label>{html.escape(str(r.get('ccre_group') or '-'))}</div>
             <div><label>BayesDel Score</label>{html.escape(str(r.get('bayesdel') or '-'))}</div>
-            <div><label>AlphaGenome Atlas</label>{ag_link}</div>
+            <div><label>{ag_grid_label}</label>{ag_grid_val}</div>
             <div><label>Panel support</label>{html.escape(str(ev.get('panel_support') or '-'))}/2</div>
           </div>
           {_study_rows(r)}

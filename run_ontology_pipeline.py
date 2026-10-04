@@ -457,6 +457,21 @@ def main():
     except Exception as e:
         print(f"[Enrichment Note] Completed / Cached fallback applied: {e}")
 
+    # 5.1 Enrich with AlphaGenome AVI Scores (Persistent Caching & Quota Capping)
+    print("\n[Stage 5.1/7] Enriching prioritized candidates with AlphaGenome AVI scores...")
+    sample_ag_cache = os.path.join(local_outdir, f"{base_prefix}_alphagenome_cache.json")
+    try:
+        ag_cache_file = os.path.join(script_dir, "data", "alphagenome_cache.json")
+        subprocess.run([
+            "python3", "lib/enrich_alphagenome.py",
+            "--in-json", act_json,
+            "--cache", ag_cache_file,
+            "--sample-cache", sample_ag_cache,
+            "--max-queries", "1000"
+        ], check=True)
+    except Exception as e:
+        print(f"[AlphaGenome Enrich Note] Live query bypassed / Cache fallback applied: {e}")
+
     # 6. Render Master Hub & Standalone Visual Explorer
     print("\n[Stage 6/7] Rendering Master Hub & Standalone Single-File Visual Explorer HTML5...")
     subprocess.run([
@@ -507,7 +522,12 @@ def main():
             data_j = json.load(f_in)
         ag_recs = [r for r in data_j.get("records", []) if "RESCUE_ALPHAGENOME_TARGET" in (r.get("reason_codes") or []) or (r.get("evidence", {}) or {}).get("is_alphagenome_candidate")]
         if ag_recs:
-            cols = ["hugo", "chrom", "pos", "ref", "alt", "so", "achange", "zygosity", "tier", "clinvar_sig", "gnomad4_af", "allofus_af", "revel", "am_path", "cadd_phred", "spliceai_max", "alphagenome_subreason", "alphagenome_url"]
+            cols = [
+                "hugo", "chrom", "pos", "ref", "alt", "so", "achange", "zygosity", "tier",
+                "clinvar_sig", "gnomad4_af", "allofus_af", "revel", "am_path", "cadd_phred",
+                "spliceai_max", "avi_phred", "top_percentile", "top_modality",
+                "alphagenome_subreason", "alphagenome_url"
+            ]
             with open(ag_candidates_tsv, "w") as f_out:
                 f_out.write("\t".join(cols) + "\n")
                 for r in ag_recs:
@@ -529,6 +549,9 @@ def main():
                         str(r.get("am_path", "") or ""),
                         str(r.get("cadd_phred", "") or ""),
                         str(ev.get("spliceai_max", "") or ""),
+                        str(ev.get("avi_phred") or ""),
+                        str(ev.get("avi_percentile") or ""),
+                        str(ev.get("avi_modality") or ""),
                         str(ev.get("alphagenome_subreason", "") or ""),
                         str(ev.get("alphagenome_url", "") or "")
                     ]
@@ -548,6 +571,8 @@ def main():
     ]
     if os.path.exists(ag_candidates_tsv):
         deliverables.append(ag_candidates_tsv)
+    if os.path.exists(sample_ag_cache):
+        deliverables.append(sample_ag_cache)
 
     if not args.local_only:
         print(f"\n[Google Drive Delivery] Uploading deliverables to Google Drive...")

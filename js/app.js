@@ -899,6 +899,20 @@
         // Box 4: Genome Browser, AlphaGenome & Literature
         '<div class="variant-drawer-box">' +
           '<h4>Genome Browser, AlphaGenome & Literature</h4>' +
+          (v.aviPhred !== undefined && v.aviPhred !== null
+            ? '<div style="margin-bottom:8px;padding:8px 10px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;font-size:11.5px;">' +
+                '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;">' +
+                  '<span style="font-weight:800;color:#0369a1;">🧬 DeepMind AlphaGenome (AVI) Impact:</span>' +
+                  '<span style="font-family:monospace;font-weight:800;font-size:12px;' + (Number(v.aviPhred) >= 20 ? 'color:#dc2626;' : (Number(v.aviPhred) >= 10 ? 'color:#d97706;' : 'color:#0284c7;')) + '">Q' + Number(v.aviPhred).toFixed(1) + ' (Phred)</span>' +
+                '</div>' +
+                '<div style="font-size:11px;color:#334155;margin-top:3px;">' +
+                  'Rank: <strong>Top ' + (v.aviPercentile !== undefined && v.aviPercentile !== null ? Number(v.aviPercentile).toFixed(2) : '0.00') + '%</strong> genome-wide · Driving Modality: <span style="background:#e0f2fe;color:#0369a1;padding:1px 5px;border-radius:3px;font-weight:700;">' + (v.aviModality || 'Functional') + '</span>' +
+                '</div>' +
+                (v.isAlphaGenomeTarget && v.alphagenomeSubreason ? '<div style="font-size:10.5px;color:#0369a1;margin-top:4px;font-weight:600;">🎯 Triage Focus: ' + v.alphagenomeSubreason.replace(/_/g, ' ') + '</div>' : '') +
+              '</div>'
+            : (v.aviStatus === 'INDEL_NOT_SUPPORTED' || (v.ref && v.ref.length !== 1) || (v.alt && v.alt.length !== 1) || v.ref === '-' || v.alt === '-'
+                ? '<div style="margin-bottom:8px;padding:6px 10px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;font-size:11px;color:#64748b;">🧬 AlphaGenome AVI: <span style="font-weight:600;color:#475569;">Indel (Atlas SNV Index N/A)</span> · Evaluated via SpliceAI / CADD.</div>'
+                : (v.isAlphaGenomeTarget ? '<div style="margin-bottom:8px;padding:6px 10px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;font-size:11px;color:#64748b;">🧬 AlphaGenome sequence resolution candidate.</div>' : ''))) +
           '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">' +
             '<a class="ref-link" href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;padding:3px 8px;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal-dark);border-radius:3px;">UCSC Browser ↗</a>' +
             '<a class="ref-link" href="' + (v.alphagenomeUrl || ('https://deepmind.google.com/science/alphagenome/atlas?q=' + (v.chrom && v.chrom.startsWith('chr') ? v.chrom : 'chr' + v.chrom) + ':' + v.pos + ':' + v.ref + '%3E' + v.alt + '&m=variant')) + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;display:inline-block;padding:3px 8px;background:#e0f2fe;border:1px solid #0284c7;color:#0369a1;border-radius:3px;">AlphaGenome Atlas ↗</a>' +
@@ -1070,7 +1084,9 @@
         detailEl.innerHTML =
           '<div class="variant-info-box">' +
             '<div style="font-weight:700;color:var(--teal-dark);font-size:13px;">' + v.id + ' (' + v.genotype + ') · ' + v.coordinate + '</div>' +
-            '<div style="font-size:12px;margin-top:3px;"><strong>ClinVar:</strong> ' + v.clinvar + ' | <strong>CADD:</strong> ' + (v.cadd || "N/A") + ' | <strong>Zygosity:</strong> ' + v.zygosity + ' (' + v.phase + ')</div>' +
+            '<div style="font-size:12px;margin-top:3px;"><strong>ClinVar:</strong> ' + v.clinvar + ' | <strong>CADD:</strong> ' + (v.cadd || "N/A") + ' | <strong>Zygosity:</strong> ' + v.zygosity + ' (' + v.phase + ')' +
+            (v.aviPhred !== undefined && v.aviPhred !== null ? ' | <strong>AlphaGenome:</strong> <span style="font-weight:700;' + (Number(v.aviPhred) >= 20 ? 'color:#dc2626;' : (Number(v.aviPhred) >= 10 ? 'color:#d97706;' : 'color:#0284c7;')) + '">Q' + Number(v.aviPhred).toFixed(1) + ' (' + (v.aviModality || 'Impact') + ')</span>' : '') +
+            '</div>' +
             '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px;">' +
               '<a href="' + (v.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;color:var(--teal);">UCSC Browser ↗</a> · ' +
               '<a href="' + (v.alphagenomeUrl || ('https://deepmind.google.com/science/alphagenome/atlas?q=' + (v.chrom && v.chrom.startsWith('chr') ? v.chrom : 'chr' + v.chrom) + ':' + v.pos + ':' + v.ref + '%3E' + v.alt + '&m=variant')) + '" target="_blank" rel="noopener" style="font-size:11px;font-weight:700;color:#0284c7;">AlphaGenome Atlas ↗</a>' +
