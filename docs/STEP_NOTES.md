@@ -232,3 +232,29 @@ zygosity per variant) plus a creative new domain — autoimmunity — that exerc
 - **Daniel Ehrle (DE)**: 397 / 397 Tier 1 + Tier 2 variants annotated (100.0% coverage: 349 Scored SNVs, 48 Handled Indels). Top score: *ALKBH3* `chr11:43884007 C>T` (Q41.3, Top 0.01%, Protein Termination).
 - **Melinda Ehrle (ME)**: 518 / 518 Tier 1 + Tier 2 variants annotated (100.0% coverage: 462 Scored SNVs, 56 Handled Indels). Top score: *VWA3B* `chr2:98162976 G>T` (Q50.8, Top 0.00%, Protein Termination).
 
+---
+
+## I7 — Deep Genomic Research & Evidence Synthesis Report Engine & Skill
+
+**Capabilities Added:**
+- `lib/generate_deep_research_report.py`: Standalone synthesis engine generating publication-grade, 1-to-4 page Clinical Genomics Evidence Dossiers from Tier 1-3 actionable variants.
+- **Evidence Reconciliation Protocol**:
+  - Reconciles monogenic human disease databases (ClinVar, OMIM, GWAS Catalog) with biological foundation models (DeepMind AlphaGenome 1M-bp transformer, AlphaMissense, CADD v1.6, REVEL, SpliceAI).
+  - Categorizes variants into four high-yield domains: Primary Diagnostic/Carrier findings, Cardiovascular & Channelopathies, Metabolic & Mitochondrial Housekeeping, and Protective/PGx Alleles.
+  - Generates zero extrapolated claims; all associations are verified against curated accessions (VCV/RCV, MIM, PMIDs).
+- **Standardized VSCP-DF Output Architecture**:
+  - Sentence-1 content delivery with zero filler.
+  - Four-part structure: Orientation, Body (with Yourdon flow diagram and domain comparison tables), Conclusions (arguments FOR and AGAINST clinical surveillance), and Opportunities.
+  - Deliverables: Markdown (`*_deep_research_report.md`), print-optimized responsive HTML5 (`*_deep_research_report.html`), and vector PDF (`*_deep_research_report.pdf` via headless Chrome).
+- **Antigravity Skill Definition (`deep-variant-research-report`)**:
+  - Registered in user environment (`~/.gemini/config/skills/deep-variant-research-report/SKILL.md`) and version-controlled in repository (`skills/deep-variant-research-report/SKILL.md`).
+- **Automated Pipeline Integration**:
+  - Integrated into `run_ontology_pipeline.py` (Stage 7.2).
+  - Repackages deliverables into `{Sample_ID}_iOS_bundle.zip` and synchronizes all formats to Google Drive.
+
+**Validation Results:**
+- **Daniel Ehrle (DE)**: 4 pages PDF (187.1 KB). Key evidence dossiers: *CBLIF* `c.79+1G>A` (Juvenile pernicious anemia / B12 absorption carrier), *GJB2* `p.Met34Thr` (Age-related hearing decline / DFNB1A carrier, PMID: 35580588), *F5* `p.Arg534Gln` (Factor V Leiden activated protein C resistance), *ANK2* `p.Arg3906Trp` (Ankyrin-B arrhythmia susceptibility).
+- **Melinda Ehrle (ME)**: 4 pages PDF (191.2 KB). Key evidence dossiers: *ATM* `c.1236-2del` (Hereditary breast cancer / DNA damage repair surveillance), *POLG* `p.Gly737Arg` (Mitochondrial replisome maintenance, absolute Sodium Valproate hepatotoxicity contraindication flag), *TAT* `p.Arg57Ter` (Tyrosinemia Type II carrier), *MC1R* `p.Asp294His` (Melanoma risk, PMID: 32341527), *CTH* `p.Thr67Ile` (Transsulfuration, PMID: 35050183).
+- **Live Local Deliverables**: Serving via HTTP 200 on port 8080.
+
+

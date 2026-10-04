@@ -500,20 +500,10 @@ def main():
         visual_explorer_html
     )
 
-    # 7. Generate PDF & Zip Bundle
+    # 7. Generate Primary PDF Report
     print("\n[Stage 7/7] Generating PDF report and packaging deliverables...")
     if not args.no_pdf:
         generate_pdf_report(visual_explorer_html, pdf_report)
-
-    with open(os.devnull, 'w') as devnull:
-        subprocess.run([
-            "zip", "-q", "-r", zip_bundle,
-            os.path.basename(visual_explorer_html),
-            os.path.basename(master_hub_html),
-            os.path.basename(tsv_report),
-            os.path.basename(txt_report),
-            os.path.basename(act_json)
-        ], cwd=local_outdir, stdout=devnull, stderr=devnull)
 
     # 7.1 AlphaGenome Candidates TSV Export
     ag_candidates_tsv = os.path.join(local_outdir, f"{base_prefix}_alphagenome_candidates.tsv")
@@ -560,6 +550,44 @@ def main():
     except Exception as e:
         print(f"[AlphaGenome Export Warning] {e}")
 
+    # 7.2 Deep Genomic Research Report (1-4 Page VSCP-DF Evidence Synthesis)
+    deep_report_md = os.path.join(local_outdir, f"{base_prefix}_deep_research_report.md")
+    deep_report_html = os.path.join(local_outdir, f"{base_prefix}_deep_research_report.html")
+    deep_report_pdf = os.path.join(local_outdir, f"{base_prefix}_deep_research_report.pdf")
+    print("\n[Stage 7.2/7] Generating Deep Genomic Research & Evidence Synthesis Report (1-4 pages)...")
+    try:
+        subprocess.run([
+            "python3", "lib/generate_deep_research_report.py",
+            "--sqlite", act_db,
+            "--act-json", act_json,
+            "--ag-cache", sample_ag_cache if os.path.exists(sample_ag_cache) else ag_cache_file,
+            "--out-dir", local_outdir,
+            "--sample-name", sample_name.replace("_", " "),
+            "--patient-id", base_prefix
+        ], check=True)
+    except Exception as e:
+        print(f"[Deep Report Warning] Generation failed / skipped: {e}")
+
+    # Package Deliverables & iOS Bundle
+    zip_items = [
+        os.path.basename(visual_explorer_html),
+        os.path.basename(master_hub_html),
+        os.path.basename(tsv_report),
+        os.path.basename(txt_report),
+        os.path.basename(act_json)
+    ]
+    if os.path.exists(deep_report_html):
+        zip_items.append(os.path.basename(deep_report_html))
+    if os.path.exists(deep_report_pdf):
+        zip_items.append(os.path.basename(deep_report_pdf))
+    if os.path.exists(deep_report_md):
+        zip_items.append(os.path.basename(deep_report_md))
+    if os.path.exists(ag_candidates_tsv):
+        zip_items.append(os.path.basename(ag_candidates_tsv))
+
+    with open(os.devnull, 'w') as devnull:
+        subprocess.run(["zip", "-q", "-r", os.path.basename(zip_bundle)] + zip_items, cwd=local_outdir, stdout=devnull, stderr=devnull)
+
     deliverables = [
         visual_explorer_html,
         master_hub_html,
@@ -573,6 +601,12 @@ def main():
         deliverables.append(ag_candidates_tsv)
     if os.path.exists(sample_ag_cache):
         deliverables.append(sample_ag_cache)
+    if os.path.exists(deep_report_md):
+        deliverables.append(deep_report_md)
+    if os.path.exists(deep_report_html):
+        deliverables.append(deep_report_html)
+    if os.path.exists(deep_report_pdf):
+        deliverables.append(deep_report_pdf)
 
     if not args.local_only:
         print(f"\n[Google Drive Delivery] Uploading deliverables to Google Drive...")
