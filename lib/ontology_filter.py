@@ -58,44 +58,11 @@ PULL_KEYS = [
 ]
 
 
-def _num(x):
-    try:
-        if x is None or x == "":
-            return None
-        return float(x)
-    except (TypeError, ValueError):
-        return None
+try:
+    from lib.genomics_utils import safe_num as _num, normalize_zygosity as zygosity_label, compute_vaf
+except ImportError:
+    from genomics_utils import safe_num as _num, normalize_zygosity as zygosity_label, compute_vaf
 
-
-def zygosity_label(raw):
-    """Normalize the many zygosity spellings OpenCRAVAT/VCF tools emit into a
-    single human label. Returns None when unknown."""
-    if raw is None:
-        return None
-    s = str(raw).strip().lower()
-    if not s or s in ("-", "na", "none", "unknown", "."):
-        return None
-    if s in ("het", "heterozygous", "0/1", "1/0", "0|1", "1|0"):
-        return "Heterozygous"
-    if s in ("hom", "homozygous", "1/1", "1|1"):
-        return "Homozygous"
-    if s in ("hemi", "hemizygous", "1", "1/.", "./1"):
-        return "Hemizygous"
-    if s in ("ref", "0/0", "0|0", "homref"):
-        return "Reference"
-    return str(raw)
-
-
-def compute_vaf(vaf, alt_reads, tot_reads):
-    """Prefer an explicit VAF; otherwise derive it from allele read depths."""
-    v = _num(vaf)
-    if v is not None:
-        return v
-    a = _num(alt_reads)
-    t = _num(tot_reads)
-    if a is not None and t not in (None, 0):
-        return round(a / t, 4)
-    return None
 
 
 def _clinvar_class(sig):

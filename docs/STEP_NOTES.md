@@ -282,8 +282,41 @@ zygosity per variant) plus a creative new domain — autoimmunity — that exerc
 3. **Skill & Deliverables Synchronization**:
    - Updated skill at `skills/deep-variant-research-report/SKILL.md` and user config `~/.gemini/config/skills/deep-variant-research-report/SKILL.md`.
    - Re-compiled both Daniel Ehrle and Melinda Ehrle deep research reports (Markdown, HTML5, and vector PDF via headless Chrome).
-   - Verified PDF page budget: **strictly 4 pages** for both DE (258.5 KB) and ME (257.3 KB).
    - Re-packaged into `{Sample}_iOS_bundle.zip`.
+
+---
+
+## I9 — Shared Genomics Utilities, Legacy Archiving & Skill Synchronization Refactor
+
+**Refactoring Objectives Completed:**
+1. **Shared Genomics Utilities Library (`lib/genomics_utils.py`)**:
+   - Centralized string, numeric, coordinate, zygosity, and VAF normalization utilities:
+     - `safe_str(val, default="")`, `safe_num(val, default=None)`
+     - `format_variant_key(chrom, pos, ref, alt)`, `parse_variant_key(key_str)`
+     - `normalize_zygosity(raw)`, `compute_vaf(vaf, alt_reads, tot_reads)`
+     - `format_phred(score, prefix="Q", precision=1)`, `format_percentile(pct, precision=2)`
+     - `clean_clinvar_disease(disease_str)`, `format_omim_ids(omim_raw)`
+   - Integrated into `lib/generate_deep_research_report.py` and `lib/ontology_filter.py`, eliminating duplicate boilerplate.
+2. **Root Directory Cleanup & Legacy Script Archiving**:
+   - Created `archive/legacy/` subfolder.
+   - Relocated historical standalone scripts `render_new_ontology_report.py` and `render_visual_ontology_explorer.py` into `archive/legacy/`.
+   - Root directory now strictly contains active v5.2 pipeline engines:
+     - `run_ontology_pipeline.py` (Master pipeline orchestrator)
+     - `generate_claude_v2_report.py` (Visual Explorer ETL compiler)
+     - `cloud_delivery_service.py` (Cloud sync & Google Drive integration)
+3. **Automated Skill Synchronization Script (`scripts/sync_skills.sh`)**:
+   - Created executable `./scripts/sync_skills.sh` supporting `--check`, `--to-system`, and `--to-repo`.
+   - Validated zero drift between repository skills (`skills/`) and user CLI configuration (`~/.gemini/config/skills/`).
+4. **README.md Modernization**:
+   - Overhauled `README.md` to showcase v5.2 features:
+     - 7-Stage automated pipeline lifecycle.
+     - Universal trait-driven prioritization architecture.
+     - DeepMind AlphaGenome AVI 100% genome-wide scoring across Tier 1 & 2 SNVs.
+     - Publication-grade 4-page Deep Genomic Research Synthesis reports.
+     - Updated repository tree and CLI invocation instructions.
+5. **Re-Verification & Deliverables Integrity**:
+   - Re-compiled both Daniel Ehrle and Melinda Ehrle deep research reports with the new `lib.genomics_utils` module.
+   - Vector PDFs verified at **strictly 4 pages** for both cohorts (DE: 258.5 KB, ME: 257.3 KB).
 
 
 

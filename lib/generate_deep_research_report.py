@@ -40,8 +40,16 @@ def parse_args():
     parser.add_argument("--patient-id", default=None, help="Patient ID prefix (e.g. Daniel_Ehrle)")
     return parser.parse_args()
 
-def safe_str(val, default=""):
-    return str(val) if val is not None else default
+try:
+    from lib.genomics_utils import (
+        safe_str, safe_num, format_variant_key, format_phred,
+        format_percentile, clean_clinvar_disease, format_omim_ids
+    )
+except ImportError:
+    from genomics_utils import (
+        safe_str, safe_num, format_variant_key, format_phred,
+        format_percentile, clean_clinvar_disease, format_omim_ids
+    )
 
 def query_variant_data(sqlite_path, act_json_path, ag_cache_path):
     conn = sqlite3.connect(sqlite_path)
@@ -70,7 +78,7 @@ def query_variant_data(sqlite_path, act_json_path, ag_cache_path):
     variants = []
     for r in rows:
         d = dict(r)
-        var_key = f"{d['chrom']}:{d['pos']}:{d['ref']}>{d['alt']}"
+        var_key = format_variant_key(d['chrom'], d['pos'], d['ref'], d['alt'])
         ag = ag_cache.get(var_key, {})
         d["avi_phred"] = ag.get("avi_phred")
         d["avi_percentile"] = ag.get("top_percentile")
