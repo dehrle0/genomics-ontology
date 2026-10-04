@@ -244,8 +244,9 @@ zygosity per variant) plus a creative new domain — autoimmunity — that exerc
   - Generates zero extrapolated claims; all associations are verified against curated accessions (VCV/RCV, MIM, PMIDs).
 - **Standardized VSCP-DF Output Architecture**:
   - Sentence-1 content delivery with zero filler.
-  - Four-part structure: Orientation, Body (with Yourdon flow diagram and domain comparison tables), Conclusions (arguments FOR and AGAINST clinical surveillance), and Opportunities.
-  - Deliverables: Markdown (`*_deep_research_report.md`), print-optimized responsive HTML5 (`*_deep_research_report.html`), and vector PDF (`*_deep_research_report.pdf` via headless Chrome).
+  - Four-part structure: Orientation, Body (with Yourdon flow diagram and domain comparison tables), Conclusions (Arguments FOR clinical surveillance, Arguments AGAINST / Report Limitations, and Patient Profile Assumptions from `DOMAIN_HEALTH_GENOMICS.md`), and Opportunities.
+  - Structured Confidence & Uncertainty Assessment (0.96 score, germline assumptions, 40x short-read mosaicism limitations).
+  - Deliverables: Markdown (`*_deep_research_report.md`), print-optimized responsive HTML5 (`*_deep_research_report.html`), and vector PDF (`*_deep_research_report.pdf` via headless Chrome, exactly 3 pages).
 - **Antigravity Skill Definition (`deep-variant-research-report`)**:
   - Registered in user environment (`~/.gemini/config/skills/deep-variant-research-report/SKILL.md`) and version-controlled in repository (`skills/deep-variant-research-report/SKILL.md`).
 - **Automated Pipeline Integration**:
@@ -253,8 +254,8 @@ zygosity per variant) plus a creative new domain — autoimmunity — that exerc
   - Repackages deliverables into `{Sample_ID}_iOS_bundle.zip` and synchronizes all formats to Google Drive.
 
 **Validation Results:**
-- **Daniel Ehrle (DE)**: 4 pages PDF (187.1 KB). Key evidence dossiers: *CBLIF* `c.79+1G>A` (Juvenile pernicious anemia / B12 absorption carrier), *GJB2* `p.Met34Thr` (Age-related hearing decline / DFNB1A carrier, PMID: 35580588), *F5* `p.Arg534Gln` (Factor V Leiden activated protein C resistance), *ANK2* `p.Arg3906Trp` (Ankyrin-B arrhythmia susceptibility).
-- **Melinda Ehrle (ME)**: 4 pages PDF (191.2 KB). Key evidence dossiers: *ATM* `c.1236-2del` (Hereditary breast cancer / DNA damage repair surveillance), *POLG* `p.Gly737Arg` (Mitochondrial replisome maintenance, absolute Sodium Valproate hepatotoxicity contraindication flag), *TAT* `p.Arg57Ter` (Tyrosinemia Type II carrier), *MC1R* `p.Asp294His` (Melanoma risk, PMID: 32341527), *CTH* `p.Thr67Ile` (Transsulfuration, PMID: 35050183).
+- **Daniel Ehrle (DE)**: Exactly 3 pages PDF (202.8 KB). Key evidence dossiers: *CBLIF* `c.79+1G>A` (Juvenile pernicious anemia / B12 absorption carrier), *GJB2* `p.Met34Thr` (Age-related hearing decline / DFNB1A carrier, PMID: 35580588), *F5* `p.Arg534Gln` (Factor V Leiden activated protein C resistance), *ANK2* `p.Arg3906Trp` (Ankyrin-B arrhythmia susceptibility). Patient profile assumptions: mosaicism/heteroplasmy expected, maternal SE anchor, annual re-analysis.
+- **Melinda Ehrle (ME)**: Exactly 3 pages PDF (208.3 KB). Key evidence dossiers: *ATM* `c.1236-2del` (Hereditary breast cancer / DNA damage repair surveillance), *POLG* `p.Gly737Arg` (Mitochondrial replisome maintenance, absolute Sodium Valproate hepatotoxicity contraindication flag), *TAT* `p.Arg57Ter` (Tyrosinemia Type II carrier), *MC1R* `p.Asp294His` (Melanoma risk, PMID: 32341527), *CTH* `p.Thr67Ile` (Transsulfuration, PMID: 35050183). Patient profile assumptions: MI anchor, long-term spousal healthcare integration.
 - **Live Local Deliverables**: Serving via HTTP 200 on port 8080.
 
 

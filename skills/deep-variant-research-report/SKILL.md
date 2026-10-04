@@ -68,7 +68,7 @@ To ensure high clinical specificity and avoid information fatigue, variants are 
 
 ---
 
-## 3. Mandatory VSCP-DF Structure & Page Budget Constraints
+## 3. Mandatory VSCP-DF Structure, Limitations & Page Budget Constraints
 
 The synthesis report must strictly observe the **Visual-Structural Cognitive Profile & Decision Framework (VSCP-DF)**:
 1. **Length Constraint:** Exactly **1 to 4 printed pages** (rendered via `@media print` CSS in HTML and verified in vector PDF).
@@ -76,9 +76,12 @@ The synthesis report must strictly observe the **Visual-Structural Cognitive Pro
 3. **Four-Part Document Structure:**
    * `### Orientation: What We Are Covering` (Scope, sample ID, total variant counts by tier, reference build GRCh38).
    * `### Body` (Yourdon-style information flow diagram, prioritized comparison tables, narrative evidence dossiers for primary findings).
-   * `### Conclusions: Diagnostic & Clinical Decision Calculus` (Rigorous arguments FOR and AGAINST clinical surveillance/interventions, carrier status interpretation).
-   * `### Opportunities: High-Yield Clinical Next Steps` (Actionable laboratory tests, EHR contraindication alerts, surveillance imaging).
-4. **Confidence & Uncertainty Assessment:** Numerical score (0.00–1.00) accompanied by key assumptions and sequencing technology limitations (short-read 40x WGS boundaries).
+   * `### Conclusions: Diagnostic & Clinical Decision Calculus`:
+     * `#### Arguments FOR Clinical Surveillance & Actionable Prophylaxis` (Actionable monogenic findings, critical pharmacogenomics, multi-model consensus).
+     * `#### Arguments AGAINST Aggressive Over-Intervention & Report Limitations` (Autosomal recessive carrier asymptomacy, VUS non-actionability, paralogy/pseudogene representational artifacts, 40x short-read WGS detection limits).
+     * `#### Patient Profile & Methodological Assumptions` (Documenting patient-specific directives: mosaicism/heteroplasmy expectations, annual re-analysis, pedigree phasing anchors, pan-genome GBZ mapping, and gVCF boundaries).
+   * `### Opportunities: High-Yield Clinical Next Steps` (Actionable laboratory tests, EHR contraindication alerts, surveillance imaging, annual re-analysis cadence).
+4. **Structured Confidence & Uncertainty Assessment:** Numerical score (0.00–1.00) accompanied by key assumptions and sequencing technology limitations (short-read 40x WGS boundaries).
 
 ---
 

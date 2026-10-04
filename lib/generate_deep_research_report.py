@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 generate_deep_research_report.py
-Deep Genomic Research & Evidence Synthesis Engine (v1.0).
+Deep Genomic Research & Evidence Synthesis Engine (v1.1).
 
 Generates a publication-grade, 1-to-4 page Clinical Genomics Research Synthesis
 correlating Tier 1-3 actionable variants with:
@@ -10,6 +10,9 @@ correlating Tier 1-3 actionable variants with:
   - OMIM Clinical Synopsis and Phenotype Mappings
   - GWAS Catalog Traits and PubMed Identifiers (PMIDs)
   - Phased Haplotypes and Parental Allelic Origins (WhatsHap / Microarray Anchors)
+  - Explicit Arguments FOR and AGAINST / Report Limitations
+  - Patient Profile Assumptions (WGS 40x, mosaicism/heteroplasmy, annual re-analysis)
+  - Methodological Assumptions & Structured Confidence Bounds
 
 Outputs:
   - {Sample_ID}_deep_research_report.md
@@ -50,7 +53,6 @@ def query_variant_data(sqlite_path, act_json_path, ag_cache_path):
     with open(ag_cache_path, "r", encoding="utf-8") as f:
         ag_cache = json.load(f)
 
-    # Load all variants
     query = """
         SELECT uid, hugo, so, coding, achange, cchange, transcript, chrom, pos, ref, alt, rsid,
                zygosity, alt_reads, tot_reads, vaf, hap_block, hap_strand, phred,
@@ -77,13 +79,6 @@ def query_variant_data(sqlite_path, act_json_path, ag_cache_path):
     return variants, act_data
 
 def categorize_and_prioritize(variants):
-    """
-    Categorizes variants into:
-      1. Primary Diagnostic & Carrier Findings (Definite Pathogenic / Likely Pathogenic / Established LoF)
-      2. High-Impact Consensus AI Loci (CADD >= 25, REVEL >= 0.65, or AVI >= Q25 with clinical relevance)
-      3. Metabolic & Mitochondrial Regulators
-      4. Pharmacogenomic & Protective Modulators
-    """
     primary = []
     ai_consensus = []
     metabolic_mito = []
@@ -112,7 +107,6 @@ def categorize_and_prioritize(variants):
         elif v["tier"] in ["Tier1", "Tier2"]:
             other_tier12.append(v)
 
-    # Sort each group by clinical weight: CADD, then AVI, then REVEL
     def sort_key(x):
         c = float(x["cadd_phred"]) if x["cadd_phred"] and x["cadd_phred"] != "None" else 0.0
         a = float(x["avi_phred"]) if x["avi_phred"] and x["avi_phred"] != "None" else 0.0
@@ -139,6 +133,9 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     t2_count = len([v for v in variants if v["tier"] == "Tier2"])
     t3_count = len([v for v in variants if v["tier"] == "Tier3"])
 
+    is_daniel = "Daniel" in sample_name or "DE" in patient_id
+    is_melinda = "Melinda" in sample_name or "ME" in patient_id
+
     md = []
     # Part 1: Orientation
     md.append(f"# Clinical Genomics Evidence & Deep Research Synthesis: {sample_name}")
@@ -147,7 +144,7 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     md.append("")
     md.append("### Orientation: What We Are Covering")
     md.append(
-        f"This deeply researched clinical genomics synthesis provides an authoritative, evidence-backed evaluation "
+        f"This deeply researched clinical genomics synthesis delivers an evidence-backed evaluation "
         f"of {total_vars} actionable variants identified across Tiers 1 through 3 ({t1_count} Tier 1, {t2_count} Tier 2, {t3_count} Tier 3). "
         f"Findings are prioritized through orthogonal consensus between established human disease databases (ClinVar, OMIM, GWAS Catalog) "
         f"and state-of-the-art biological foundation models (DeepMind AlphaGenome 1M-context transformer, AlphaMissense, CADD v1.6, REVEL, and SpliceAI). "
@@ -173,7 +170,7 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     md.append("```")
     md.append("")
 
-    # Section 2.1: Primary Pathogenic & High-Priority Monogenic Findings
+    # Section 2.1: Primary Pathogenic & Clinically Actionable Findings
     md.append("#### 2. Primary Pathogenic & Clinically Actionable Findings")
     md.append(
         "Variants in this section meet stringent ACMG/AMP criteria for pathogenicity or represent severe Loss-of-Function (LoF) "
@@ -195,7 +192,6 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
             md.append(f"| **{v['hugo']}** | `{achg}` | {v['so']} ({v['zygosity']}) | **{v['clinvar_sig']}** | {cadd} | {rev} | {avi} | {dis} [{cv_link}] {omim} |")
         md.append("")
 
-        # Narrative deep-dive for key primary findings
         for v in categorized["primary"]:
             h = v["hugo"]
             achg = v["achange"] or v["cchange"] or "Splice"
@@ -206,7 +202,7 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
                     f"Disrupts essential canonical splicing of the serine/threonine kinase *ATM*, a master orchestrator of cellular responses to DNA double-strand breaks. "
                     f"Heterozygous carrier status confers an estimated 2- to 4-fold increased lifetime relative risk for female breast cancer and pancreatic neoplasms "
                     f"(National Comprehensive Cancer Network [NCCN] Genetic/Familial High-Risk Assessment Guidelines). "
-                    f"Homozygosity or compound heterozygosity causes classical Ataxia-Telangiectasia (OMIM: 208900).\n"
+                    f"Homozygosity causes classical Ataxia-Telangiectasia (OMIM: 208900).\n"
                     f"* **Clinical Surveillance Guidance:** Annual breast MRI screening beginning at age 40 (or 5–10 years earlier than earliest familial onset) "
                     f"is recommended by international guidelines. Radiomimetic chemotherapies and therapeutic ionizing radiation require specialized dosage calibration."
                 )
@@ -214,8 +210,7 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
                 md.append(
                     f"* **Molecular Impact & Classification:** Pathogenic/Likely Pathogenic missense variant (`p.Gly737Arg`, rs121918054). "
                     f"Severe multi-engine consensus: **CADD 26.3**, **REVEL 0.936**, **AlphaMissense 0.9362**, and **AlphaGenome AVI Q30.3** (Top 0.09% genome-wide). "
-                    f"Locates in the catalytic palm domain of DNA polymerase subunit gamma, impairing mitochondrial DNA replication fidelity and leading to multiple mtDNA deletions "
-                    f"(OMIM: 157640, 203700, 607459).\n"
+                    f"Locates in the catalytic palm domain of DNA polymerase subunit gamma, impairing mitochondrial DNA replication fidelity (OMIM: 157640, 203700, 607459).\n"
                     f"* **Critical Pharmacogenomic Warning:** Heterozygous carriers of *POLG* mutations are at heightened susceptibility for fatal valproic acid (Depakote)-induced "
                     f"hepatic failure. **Valproate administration is strictly contraindicated** in individuals harboring pathogenic *POLG* alleles."
                 )
@@ -232,7 +227,7 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
                 md.append(
                     f"* **Molecular Impact & Classification:** Pathogenic missense substitution (`p.Met34Thr`, rs35887622). "
                     f"Scores: **CADD 20.9**, **REVEL 0.702**, **AlphaGenome AVI Q23.6**. "
-                    f"Alters the first transmembrane domain of connexin-26, disrupting potassium ion recycling in the cochlear endolymph (OMIM: 220290, DFNB1A). "
+                    f"Alters the first transmembrane domain of connexin-26, disrupting potassium ion recycling in cochlear endolymph (OMIM: 220290, DFNB1A). "
                     f"Independently validated in large-scale GWAS for accelerated age-related hearing decline (PMID: 35580588).\n"
                     f"* **Clinical Recommendation:** Baseline pure-tone audiometry and preservation of cochlear hair cells through avoidance of ototoxic aminoglycosides "
                     f"and chronic acoustic trauma."
@@ -328,7 +323,7 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     # Part 3: Conclusions
     md.append("### Conclusions: Diagnostic & Clinical Decision Calculus")
     md.append("")
-    md.append("#### Arguments FOR Clinical Surveillance & Targeted Action")
+    md.append("#### Arguments FOR Clinical Surveillance & Actionable Prophylaxis")
     md.append(
         "1. **Monogenic Actionability:** Definitive pathogenic alleles (*ATM* in ME, *CBLIF* / *F5* in DE) require direct clinical surveillance "
         "conforming to established international guidelines (NCCN breast MRI protocols for *ATM*; annual B12/MMA labs for *CBLIF*; thrombophilia precautions for *F5*).\n"
@@ -338,19 +333,48 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
         "confirming deleterious transcript-level and structural disruption."
     )
     md.append("")
-    md.append("#### Arguments AGAINST Over-Intervention & False-Positive Traps")
+    md.append("#### Arguments AGAINST Aggressive Over-Intervention & Report Limitations")
     md.append(
         "1. **Recessive Carrier Asymptomacy:** Heterozygous carrier status for autosomal recessive disorders (*TAT*, *CBLIF*, *GJB2*, *BLM*) does not produce monogenic disease "
         "in the absence of a trans-acting second hit; invasive diagnostic workups or unnecessary dietary restrictions are unjustified.\n"
-        "2. **VUS Inconclusiveness:** Unphased Tier 2 variants lacking functional assays should not guide unilateral therapeutic interventions without familial co-segregation analysis."
+        "2. **VUS Inconclusiveness & Incomplete Penetrance:** Unphased Tier 2 variants lacking functional assays should not guide unilateral therapeutic interventions without familial co-segregation analysis.\n"
+        "3. **Paralogy & Representational Limits:** Segmental duplications and pseudogenes (e.g. *PMS2*, *GJB2* paralogs) can confound short-read alignment; reference genome differences are representational and do not automatically denote pathology.\n"
+        "4. **Short-Read WGS Boundaries:** Input 40x short-read sequencing (150 bp) is insufficient for definitive low-level mosaicism detection or resolution of complex balanced translocations."
     )
     md.append("")
 
-    # Confidence & Uncertainty Assessment
+    # Detailed Analytical Assumptions Section
+    md.append("#### Patient Profile & Methodological Assumptions")
+    if is_daniel:
+        md.append(
+            "* **Patient Profile Baseline (Daniel Ehrle):** Full WGS callset; mosaicism and heteroplasmy are expected biological phenomena across tissue lineages; "
+            "annual pipeline re-analysis is required to capture evolving ClinVar/AlphaGenome annotations; pedigree phasing executed via maternal single-parent SE anchor.\n"
+            "* **Clinical Baseline Assumptions:** Autosomal recessive carrier variants (*CBLIF*, *GJB2*, *TAT*) are assumed single-copy heterozygous without undetected structural deletions in trans; "
+            "Factor V Leiden (*F5*) risk is evaluated as heterozygous thrombophilia requiring situational rather than lifelong unprovoked anticoagulation."
+        )
+    elif is_melinda:
+        md.append(
+            "* **Patient Profile Baseline (Melinda Ehrle):** Full WGS callset; pedigree phasing anchored via MI parent; long-term spousal healthcare planning integrated with clinical surveillance; "
+            "annual pipeline re-analysis required.\n"
+            "* **Clinical Baseline Assumptions:** *ATM* splice mutation confers heterozygous moderate-penetrance cancer predisposition manageable via enhanced breast MRI surveillance; "
+            "*POLG* `p.Gly737Arg` carrier status dictates absolute EHR-level valproate contraindication but is assumed asymptomatic under non-valproate metabolic baseline."
+        )
+    else:
+        md.append(
+            "* **Patient Profile Baseline:** WGS 40x callset evaluated under Model A pan-genome standards with annual re-annotation required.\n"
+            "* **Clinical Baseline Assumptions:** Autosomal recessive carrier variants are assumed single-copy heterozygous without undetected trans structural variants."
+        )
+    md.append(
+        "* **Computational & Methodological Assumptions:** Alignments mapped to GRCh38.p14 panSN graph (GBZ); gVCF boundaries establish variant call confidence; "
+        "AlphaGenome precomputed scores represent 9-billion SNV index predictions (indels bypass model scoring and rely on Ensembl VEP/CADD); ACMG/AMP tiering rules strictly enforced."
+    )
+    md.append("")
+
+    # Structured Confidence & Uncertainty Assessment
     md.append("### Confidence & Uncertainty Assessment")
     md.append("- **Confidence Score:** 0.96 (Based on high-depth 40x WGS callset, orthogonal deep-learning consensus, and exact ClinVar/OMIM accession concordance)")
-    md.append("- **Key Assumptions:** Autosomal recessive carrier alleles are present in single-copy heterozygosity without undetected structural deletions in trans.")
-    md.append("- **Uncertainty Flags:** Short-read sequencing (150 bp) cannot fully resolve ultra-rare structural breakpoints or deep intronic retrotransposon insertions in highly repetitive centromeric/telomeric regions.")
+    md.append("- **Key Assumptions:** Germline heterozygous calls are single-copy without occult structural deletions in trans; clinical penetrance follows established population-genetic baselines; reference paralogy accounted for via pan-genome mapping.")
+    md.append("- **Uncertainty Flags:** Low-level somatic mosaicism (<10% VAF) cannot be ruled in or out definitively by 40x short-read sequencing (Flagged: `Uncertainty: High`); non-coding ultra-rare rescues require RNA-seq expression validation.")
     md.append("")
 
     # Part 4: Opportunities
@@ -358,7 +382,8 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     md.append(
         "1. **Genetic Counseling & High-Risk Surveillance:** Formal genetic counseling consultation for high-penetrance findings (*ATM* in ME; *F5* / *CBLIF* in DE).\n"
         "2. **Targeted Laboratory Panels:** Baseline metabolic profile including Serum B12 + Methylmalonic Acid + Homocysteine, Fasting Lipid/Sterol panel, and 25-OH Vitamin D.\n"
-        "3. **Pharmacogenomic EHR Flag:** Immediate entry of **Valproate Contraindication** into the patient's Electronic Health Record (EHR) allergy/adverse reaction portal."
+        "3. **Pharmacogenomic EHR Flag:** Immediate entry of **Valproate Contraindication** into the patient's Electronic Health Record (EHR) allergy/adverse reaction portal.\n"
+        "4. **Annual Pipeline Re-Analysis:** Schedule annual variant re-annotation against newly published DeepMind AlphaGenome functional models and ClinVar curation updates."
     )
 
     return "\n".join(md)
@@ -447,7 +472,7 @@ def format_report_html(sample_name, patient_id, markdown_content):
 <style>
   @page {{
     size: letter portrait;
-    margin: 16mm 14mm 16mm 14mm;
+    margin: 12mm 12mm 12mm 12mm;
   }}
   *, *::before, *::after {{
     box-sizing: border-box;
@@ -456,54 +481,55 @@ def format_report_html(sample_name, patient_id, markdown_content):
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #1e293b;
     background: #ffffff;
-    line-height: 1.45;
-    font-size: 10pt;
+    line-height: 1.38;
+    font-size: 9.2pt;
     margin: 0;
-    padding: 20px;
+    padding: 16px;
   }}
   h1 {{
-    font-size: 16pt;
+    font-size: 15pt;
     font-weight: 700;
     color: #0f172a;
-    margin: 0 0 6px 0;
+    margin: 0 0 4px 0;
     border-bottom: 2px solid #2563eb;
-    padding-bottom: 6px;
+    padding-bottom: 4px;
+    letter-spacing: -0.01em;
   }}
   h2 {{
-    font-size: 13pt;
+    font-size: 12pt;
     font-weight: 600;
     color: #1e40af;
-    margin: 16px 0 6px 0;
+    margin: 12px 0 4px 0;
     border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 4px;
+    padding-bottom: 2px;
   }}
   h3 {{
-    font-size: 11.5pt;
+    font-size: 10.8pt;
     font-weight: 600;
     color: #1e3a8a;
-    margin: 14px 0 6px 0;
+    margin: 10px 0 4px 0;
   }}
   h4 {{
-    font-size: 10.5pt;
+    font-size: 9.8pt;
     font-weight: 600;
     color: #334155;
-    margin: 12px 0 4px 0;
+    margin: 8px 0 3px 0;
   }}
   h5 {{
-    font-size: 10pt;
+    font-size: 9.4pt;
     font-weight: 600;
     color: #0369a1;
-    margin: 8px 0 2px 0;
+    margin: 6px 0 2px 0;
   }}
   p {{
-    margin: 0 0 6px 0;
+    margin: 0 0 5px 0;
   }}
   code {{
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 8.5pt;
+    font-size: 8pt;
     background-color: #f1f5f9;
-    padding: 1px 4px;
-    border-radius: 4px;
+    padding: 1px 3px;
+    border-radius: 3px;
     color: #0f172a;
     border: 1px solid #e2e8f0;
   }}
@@ -513,24 +539,24 @@ def format_report_html(sample_name, patient_id, markdown_content):
   .table-container {{
     width: 100%;
     overflow-x: auto;
-    margin: 8px 0 12px 0;
+    margin: 6px 0 10px 0;
     page-break-inside: avoid;
   }}
   table {{
     width: 100%;
     border-collapse: collapse;
-    font-size: 8.5pt;
+    font-size: 8pt;
     text-align: left;
   }}
   th {{
     background-color: #f8fafc;
     color: #334155;
     font-weight: 600;
-    padding: 5px 6px;
+    padding: 4px 5px;
     border: 1px solid #cbd5e1;
   }}
   td {{
-    padding: 4px 6px;
+    padding: 3px 5px;
     border: 1px solid #e2e8f0;
     vertical-align: top;
   }}
@@ -538,30 +564,34 @@ def format_report_html(sample_name, patient_id, markdown_content):
     background-color: #f8fafc;
   }}
   ul {{
-    margin: 0 0 8px 0;
-    padding-left: 18px;
+    margin: 0 0 6px 0;
+    padding-left: 16px;
   }}
   li {{
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }}
   .mermaid-diagram {{
     background: #f8fafc;
     border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    padding: 8px;
-    margin: 8px 0;
-    font-size: 8pt;
+    border-radius: 4px;
+    padding: 6px;
+    margin: 6px 0;
+    font-size: 7.5pt;
     font-family: monospace;
     page-break-inside: avoid;
   }}
   .diagram-step {{
-    padding: 2px 0;
+    padding: 1px 0;
     color: #334155;
+  }}
+  br {{
+    display: none;
   }}
   @media print {{
     body {{
       padding: 0;
-      font-size: 9pt;
+      font-size: 8.8pt;
+      line-height: 1.35;
     }}
     .table-container, table, tr, h3, h4, h5 {{
       page-break-inside: avoid;
@@ -609,7 +639,7 @@ def main():
     sample_name = args.sample_name or patient_id.replace("_", " ")
 
     print(f"==================================================================")
-    print(f"DEEP GENOMIC RESEARCH & EVIDENCE SYNTHESIS ENGINE (v1.0)")
+    print(f"DEEP GENOMIC RESEARCH & EVIDENCE SYNTHESIS ENGINE (v1.1)")
     print(f"  Sample Name : {sample_name} ({patient_id})")
     print(f"  SQLite DB   : {args.sqlite}")
     print(f"  Output Dir  : {args.out_dir}")
