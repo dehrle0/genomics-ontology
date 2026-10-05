@@ -23,8 +23,12 @@ import shutil
 import urllib.request
 import urllib.error
 
-LM_STUDIO_MODEL_PATH = os.path.expanduser("~/.lmstudio/models/lmstudio-community/medgemma-27b-text-it-GGUF/medgemma-27b-text-it-Q4_K_M.gguf")
-LLAMA_MODEL_PATH = os.path.expanduser("~/ai-infrastructure/models/medgemma-27b-it.gguf")
+MEDGEMMA_27B_PATH = os.path.expanduser("~/.lmstudio/models/lmstudio-community/medgemma-27b-text-it-GGUF/medgemma-27b-text-it-Q4_K_M.gguf")
+MEDGEMMA_4B_PATH = os.path.expanduser("~/.lmstudio/models/unsloth/medgemma-1.5-4b-it-GGUF/medgemma-1.5-4b-it-Q8_0.gguf")
+MMPROJ_4B_PATH = os.path.expanduser("~/.lmstudio/models/unsloth/medgemma-1.5-4b-it-GGUF/mmproj-F32.gguf")
+MEDGEMMA_4B_Q4_PATH = os.path.expanduser("~/.lmstudio/models/gguf-org/medgemma-1.5-4b-it-gguf/medgemma-1.5-4b-it-q4_0.gguf")
+MMPROJ_4B_Q4_PATH = os.path.expanduser("~/.lmstudio/models/gguf-org/medgemma-1.5-4b-it-gguf/mmproj-medgemma-1.5-4b-it-q4_0.gguf")
+
 LLAMA_SERVER_PATHS = [
     "/home/daniel-ehrle/.lmstudio/extensions/backends/llama.cpp-linux-x86_64-vulkan-avx2-2.28.2/llama-server",
     "/home/daniel-ehrle/.lmstudio/extensions/backends/llama.cpp-linux-x86_64-vulkan-avx2-2.27.1/llama-server",
@@ -37,14 +41,22 @@ def find_llama_server():
             return p
     return None
 
-def check_model_exists():
-    paths = [LM_STUDIO_MODEL_PATH, LLAMA_MODEL_PATH]
-    for p in paths:
-        if os.path.exists(p) and os.path.getsize(p) > 10 * 1024 * 1024 * 1024:
-            print(f"[Model Check] Found verified MedGemma 27B: {p} ({os.path.getsize(p)/(1024**3):.2f} GB)")
-            return p
-    print("[Model Check Warning] MedGemma 27B not found in standard paths.")
-    return None
+def check_model_exists(model_type="4b"):
+    if model_type == "4b":
+        if os.path.exists(MEDGEMMA_4B_PATH):
+            print(f"[Model Check] Found verified MedGemma 1.5 4B (Q8_0 Multimodal): {MEDGEMMA_4B_PATH} ({os.path.getsize(MEDGEMMA_4B_PATH)/(1024**3):.2f} GB)")
+            return MEDGEMMA_4B_PATH, MMPROJ_4B_PATH if os.path.exists(MMPROJ_4B_PATH) else None
+        elif os.path.exists(MEDGEMMA_4B_Q4_PATH):
+            print(f"[Model Check] Found verified MedGemma 1.5 4B (Q4_0 Multimodal): {MEDGEMMA_4B_Q4_PATH} ({os.path.getsize(MEDGEMMA_4B_Q4_PATH)/(1024**3):.2f} GB)")
+            return MEDGEMMA_4B_Q4_PATH, MMPROJ_4B_Q4_PATH if os.path.exists(MMPROJ_4B_Q4_PATH) else None
+        print("[Model Check Warning] MedGemma 1.5 4B not found in standard paths.")
+        return None, None
+    else:
+        if os.path.exists(MEDGEMMA_27B_PATH):
+            print(f"[Model Check] Found verified MedGemma 27B: {MEDGEMMA_27B_PATH} ({os.path.getsize(MEDGEMMA_27B_PATH)/(1024**3):.2f} GB)")
+            return MEDGEMMA_27B_PATH, None
+        print("[Model Check Warning] MedGemma 27B not found in standard paths.")
+        return None, None
 
 def is_server_listening(port=7002):
     try:
@@ -54,24 +66,39 @@ def is_server_listening(port=7002):
     except Exception:
         return False
 
-def start_local_server(model_path, port=7002):
+def start_local_server(model_path, mmproj_path=None, port=7002):
     server_bin = find_llama_server()
     if not server_bin:
         print("[Server Error] llama-server binary not found.")
         return None
-    print(f"[Server Launch] Starting llama-server with Vulkan/AVX2 on 127.0.0.1:{port} (16k context)...")
+    
+    cmd = [server_bin, "-m", model_path, "--port", str(port), "-c", "16384", "-ngl", "99"]
+    if mmproj_path and os.path.exists(mmproj_path):
+        cmd.extend(["--mmproj", mmproj_path])
+        print(f"[Multimodal Projector] Enabled medical image projector: {mmproj_path}")
+        
+    print(f"[Server Launch] Starting llama-server on 127.0.0.1:{port} (16k context)...")
+    log_file = open("/tmp/llama_server_medgemma.log", "w")
     proc = subprocess.Popen(
-        [server_bin, "-m", model_path, "--port", str(port), "-c", "16384", "-ngl", "99"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        cmd,
+        stdout=log_file,
+        stderr=subprocess.STDOUT,
         preexec_fn=os.setsid
     )
     for _ in range(45):
         if is_server_listening(port):
-            print(f"[Server Ready] MedGemma 27B loaded and listening on port {port} with 16,384 token context.")
+            model_tag = "MedGemma 1.5 4B (Multimodal)" if mmproj_path else "MedGemma 27B"
+            print(f"[Server Ready] {model_tag} loaded and listening on port {port} with 16,384 token context.")
             return proc
         time.sleep(1)
-    print("[Server Warning] Timeout waiting for MedGemma 27B server.")
+    print("[Server Warning] Timeout waiting for MedGemma server. Last 20 lines of log:")
+    try:
+        with open("/tmp/llama_server_medgemma.log", "r") as f:
+            lines = f.readlines()
+            for l in lines[-20:]:
+                print("  " + l.rstrip())
+    except Exception:
+        pass
     return proc
 
 def stop_local_server(proc):
@@ -166,7 +193,10 @@ def query_local_medgemma(system_prompt, user_prompt, port=7002, alias="medgemma-
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ],
-        "temperature": 0.15,
+        "temperature": 0.2,
+        "repeat_penalty": 1.15,
+        "presence_penalty": 0.2,
+        "frequency_penalty": 0.2,
         "max_tokens": max_tokens
     }
     data = json.dumps(payload).encode("utf-8")
@@ -179,6 +209,7 @@ def query_local_medgemma(system_prompt, user_prompt, port=7002, alias="medgemma-
 
 def main():
     parser = argparse.ArgumentParser(description="Airgapped MedGemma Multi-Thousand Token Runner")
+    parser.add_argument("--model", choices=["4b", "27b"], default="4b", help="Model size to load (default: 4b)")
     parser.add_argument("--input-json", required=True, help="Path to input actionable variants JSON")
     parser.add_argument("--out-md", required=True, help="Output Markdown report path")
     parser.add_argument("--session-token", default="PROBAND_01", help="Ephemeral anonymous token")
@@ -189,7 +220,7 @@ def main():
     parser.add_argument("--keep-server-alive", action="store_true", help="Do not shut down server after generation")
     args = parser.parse_args()
 
-    model_path = check_model_exists()
+    model_path, mmproj_path = check_model_exists(args.model)
     if not model_path:
         sys.exit(1)
 
@@ -205,14 +236,14 @@ def main():
 
     server_proc = None
     if not is_server_listening(args.port):
-        server_proc = start_local_server(model_path, port=args.port)
+        server_proc = start_local_server(model_path, mmproj_path=mmproj_path, port=args.port)
         if not server_proc:
             print("[Error] Failed to start local inference server.")
             sys.exit(1)
 
     try:
-        print(f"[Inference] Dispatching {args.max_tokens}-token clinical synthesis request to local MedGemma (127.0.0.1:{args.port})...")
-        synthesis = query_local_medgemma(sys_prompt, user_prompt, port=args.port, max_tokens=args.max_tokens)
+        print(f"[Inference] Dispatching {args.max_tokens}-token clinical synthesis request to local MedGemma {args.model.upper()} (127.0.0.1:{args.port})...")
+        synthesis = query_local_medgemma(sys_prompt, user_prompt, port=args.port, alias=f"medgemma-{args.model}", max_tokens=args.max_tokens)
         
         # Clean markdown code fences if wrapped by LLM
         synthesis = synthesis.strip()
