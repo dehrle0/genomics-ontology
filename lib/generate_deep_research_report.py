@@ -124,6 +124,12 @@ def categorize_and_prioritize(variants):
         has_clingen_def = "definitive" in clingen or "strong" in clingen
         is_plp = ("pathogenic" in sig and "conflicting" not in sig and "uncertain" not in sig)
 
+        gnomad_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
+        am_cls = safe_str(v.get("am_class")).lower()
+
+        # Strict ACMG Gate BA1: Population AF > 1% is standalone benign and disqualified from monogenic primary actionability
+        is_common_benign = (gnomad_af > 0.01) or (cadd < 15.0 and revel < 0.25 and "likely_benign" in am_cls)
+
         # Dynamic primary candidacy (domain-agnostic, zero hardcoded gene names)
         # 1. Definitive pathogenic monogenic finding in a disease gene (excluding common regulatory hits)
         # 2. ClinGen Definitive with actionable protective / longevity phenotype
@@ -131,15 +137,13 @@ def categorize_and_prioritize(variants):
         is_primary = False
         priority_base = 0.0
 
-        if is_plp and is_coding_or_splice and hugo not in ["CDKN2B", "VDR"]:
-            is_primary = True
-            priority_base = 100.0
-        elif has_clingen_def and is_coding_or_splice and ("hypobeta" in dis or "longevity" in dis):
-            is_primary = True
-            priority_base = 95.0
-        elif has_clingen_def and is_coding_or_splice and ("thrombophilia" in dis or "factor v" in dis or "drug response" in sig):
-            is_primary = True
-            priority_base = 90.0
+        if not is_common_benign:
+            if is_plp and is_coding_or_splice and hugo not in ["CDKN2B", "VDR"]:
+                is_primary = True
+                priority_base = 100.0
+            elif has_clingen_def and is_coding_or_splice and ("thrombophilia" in dis or "factor v" in dis or "drug response" in sig):
+                is_primary = True
+                priority_base = 90.0
 
         if is_primary:
             v["dossier_score"] = priority_base + (cadd * 0.4) + (avi * 0.4) + (revel * 15.0)
@@ -237,7 +241,10 @@ def generate_variant_dossier(v):
     lines.append(f"* **Clinical Phenotype & Disease Association:** Implicated in **{primary_dis}**{omim_text}{clingen_text}.")
 
     # 3. Actionable Guidance & Contraindications (Derived dynamically from traits and mechanisms)
-    if "hypobeta" in full_dis or "longevity" in full_dis:
+    v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
+    is_pathogenic_sig = "pathogenic" in cv_sig.lower() and "conflicting" not in cv_sig.lower() and "uncertain" not in cv_sig.lower()
+    
+    if ("hypobeta" in full_dis or "longevity" in full_dis) and is_pathogenic_sig and v_af <= 0.005:
         lines.append(
             "* **Actionable Guidance & Contraindications:** Hypomorphic *APOB* alleles confer a positive **longevity / cardioprotective phenotype** via constitutively lower circulating ApoB and LDL particles, granting natural resistance against coronary atherogenesis. "
             "**Clinical Contraindications:** Aggressive LDL depletion (high-intensity statins, PCSK9 inhibitors) is contraindicated as excessive lowering impairs fat-soluble vitamin absorption. "
@@ -447,7 +454,9 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
             dis = safe_str(v.get("clinvar_disease")).lower()
             sig = safe_str(v.get("clinvar_sig")).lower()
             full_dis = f"{dis} {safe_str(v.get('gene_go_bpo')).lower()} {safe_str(v.get('gene_hpo_term')).lower()}"
-            if "hypobeta" in dis or "longevity" in dis:
+            v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
+            is_plp_sig = "pathogenic" in sig and "conflicting" not in sig and "uncertain" not in sig
+            if ("hypobeta" in dis or "longevity" in dis) and is_plp_sig and v_af <= 0.005:
                 md.append(
                     f"* **{h} ({achg}):** Heterozygous carrier of Familial Hypobetalipoproteinemia 1 (FHBL1, OMIM: 615558). "
                     f"Confers a positive, life-extending phenotype via constitutively low circulating ApoB/LDL particle counts, granting natural resistance against coronary atherogenesis. "
@@ -507,9 +516,11 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
         full = f"{dis} {safe_str(v.get('gene_go_bpo')).lower()} {safe_str(v.get('gene_hpo_term')).lower()}"
         h = v["hugo"]
         achg = safe_str(v.get('achange') or v.get('cchange'))
+        v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
+        is_plp_sig = "pathogenic" in safe_str(v.get("clinvar_sig")).lower() and "conflicting" not in safe_str(v.get("clinvar_sig")).lower() and "uncertain" not in safe_str(v.get("clinvar_sig")).lower()
         if "valproat" in full or "progressive sclerosing" in full or "alpers" in full or ("mitochondrial dna replication" in full and "polymerase" in full):
             pgx_bullets.append(f"**In *{h}* (`{achg}`):** Absolute, life-saving contraindication against **sodium valproate** (Depakote) due to irreversible fulminant hepatotoxicity risk.")
-        elif "hypobeta" in full or "longevity" in full:
+        elif ("hypobeta" in full or "longevity" in full) and is_plp_sig and v_af <= 0.005:
             pgx_bullets.append(f"**In *{h}* (`{achg}`):** Explicit contraindication against **aggressive LDL-depleting therapy, lomitapide, and mipomersen** to prevent severe drug-induced hepatic steatosis on a hypobetalipoproteinemia background.")
         elif ("factor v" in full or "thrombophilia" in full) and ("534" in achg or "leiden" in full or "drug response" in safe_str(v.get("clinvar_sig")).lower()):
             pgx_bullets.append(f"**In *{h}* (`{achg}`):** Situational thrombophilia precautions during prolonged immobilization or surgical interventions.")
@@ -521,7 +532,7 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     if pgx_bullets:
         md.append("2. **Critical Pharmacogenomic Contraindications:**\n   - " + "\n   - ".join(list(dict.fromkeys(pgx_bullets))) + "\n")
     
-    prot_genes = sorted(list(set([f"*{v['hugo']}*" for v in variants if (safe_str(v.get('so')).upper() not in ['SYN', 'INT'] or 'spliceai_high' in safe_str(v.get('reason_codes')).lower() or 'cdkn2b' in v['hugo'].lower() or 'vdr' in v['hugo'].lower()) and ('protective' in safe_str(v.get('clinvar_sig')).lower() or 'protective_allele' in safe_str(v.get('reason_codes')).lower() or 'hypobeta' in safe_str(v.get('clinvar_disease')).lower())])))
+    prot_genes = sorted(list(set([f"*{v['hugo']}*" for v in variants if (safe_str(v.get('so')).upper() not in ['SYN', 'INT'] or 'spliceai_high' in safe_str(v.get('reason_codes')).lower() or 'cdkn2b' in v['hugo'].lower() or 'vdr' in v['hugo'].lower()) and ('protective' in safe_str(v.get('clinvar_sig')).lower() or 'protective_allele' in safe_str(v.get('reason_codes')).lower() or ('hypobeta' in safe_str(v.get('clinvar_disease')).lower() and 'pathogenic' in safe_str(v.get('clinvar_sig')).lower() and float(v.get('gnomad4_af') or 0.0) <= 0.005))])))
     prot_str = ", ".join(prot_genes) if prot_genes else "favorable metabolic alleles"
     md.append(f"3. **Cardioprotective & Longevity Signatures:** Positive protective alleles ({prot_str}) explain robust physiological resistance against coronary artery disease and atherogenesis.")
     md.append("")
@@ -574,7 +585,9 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     lab_targets = []
     for v in variants:
         dis = safe_str(v.get("clinvar_disease")).lower()
-        if "hypobeta" in dis: lab_targets.append("Apolipoprotein B & fractionated lipid panel, liver ultrasound / transaminases (AST/ALT), and fat-soluble vitamins (A, D, E, K)")
+        v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
+        is_plp = "pathogenic" in safe_str(v.get("clinvar_sig")).lower() and "conflicting" not in safe_str(v.get("clinvar_sig")).lower() and "uncertain" not in safe_str(v.get("clinvar_sig")).lower()
+        if "hypobeta" in dis and is_plp and v_af <= 0.005: lab_targets.append("Apolipoprotein B & fractionated lipid panel, liver ultrasound / transaminases (AST/ALT), and fat-soluble vitamins (A, D, E, K)")
         elif "pernicious" in dis: lab_targets.append("Serum Cobalamin (B12) & Methylmalonic Acid (MMA)")
         elif "tyrosinemia" in dis: lab_targets.append("Plasma amino acid chromatography (tyrosine/phenylalanine ratio)")
         elif "hearing" in dis or "deafness" in dis: lab_targets.append("Baseline pure-tone audiometry")
@@ -590,8 +603,10 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
         dis = safe_str(v.get("clinvar_disease")).lower()
         full = f"{dis} {safe_str(v.get('gene_go_bpo')).lower()} {safe_str(v.get('gene_hpo_term')).lower()}"
         h = v["hugo"]
+        v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
+        is_plp = "pathogenic" in safe_str(v.get("clinvar_sig")).lower() and "conflicting" not in safe_str(v.get("clinvar_sig")).lower() and "uncertain" not in safe_str(v.get("clinvar_sig")).lower()
         if "valproat" in full or "progressive sclerosing" in full or "alpers" in full or ("mitochondrial dna replication" in full and "polymerase" in full): pgx_alerts.append(f"Sodium Valproate (Depakote) Absolute Contraindication (*{h}*)")
-        elif "hypobeta" in full or "longevity" in full: pgx_alerts.append(f"Aggressive LDL-Depletion Caution & ApoB/MTTP Inhibitor Contraindication (*{h}*)")
+        elif ("hypobeta" in full or "longevity" in full) and is_plp and v_af <= 0.005: pgx_alerts.append(f"Aggressive LDL-Depletion Caution & ApoB/MTTP Inhibitor Contraindication (*{h}*)")
         elif ("factor v" in full or "thrombophilia" in full) and ("534" in safe_str(v.get("achange")) or "leiden" in full or "drug response" in safe_str(v.get("clinvar_sig")).lower()): pgx_alerts.append(f"Situational Thrombophilia / VTE Prophylaxis Precaution (*{h}*)")
         elif "fluorouracil" in full or "dihydropyrimidine" in full: pgx_alerts.append(f"Fluoropyrimidine / 5-FU Toxicity Warning (*{h}*)")
         elif "slow acetylator" in full or "acetyltransferase" in full: pgx_alerts.append(f"Slow Acetylator Dosage Calibration (*{h}*)")
