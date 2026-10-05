@@ -112,14 +112,24 @@ def categorize_and_prioritize(variants):
         revel = float(v["revel"]) if v.get("revel") and v["revel"] != "None" else 0.0
         avi = float(v["avi_phred"]) if v.get("avi_phred") and v["avi_phred"] != "None" else 0.0
 
-        is_coding_or_splice = (v.get("coding") == "Y") or any(k in so for k in ["MIS", "NON", "STG", "STL", "FSI", "FSD", "IND", "SPL"]) or ("spliceai_high" in reasons) or ("spliceai_mod" in reasons)
+        # Strict silent synonymous filter: Synonymous variants without splice disruption must NEVER be primary, protective, or pharmacogenomic
+        is_synonymous_silent = (so == "SYN") and ("spliceai_high" not in reasons) and ("spliceai_mod" not in reasons)
 
-        is_protective = "protective_allele" in reasons or "protective" in sig or any(kw in full_text for kw in [
-            "hypobetalipoproteinemia", "hypocholesterolemia", "longevity", "reduced risk", "resistance to"
-        ])
-        is_pgx = "pharmacogenomic_response" in reasons or "drug response" in sig or "drug_response" in sig or bool(v.get("pharmgkb__chemicals")) or any(kw in full_text for kw in [
-            "toxicity", "contraindicated", "slow acetylator", "malignant hyperthermia"
-        ])
+        is_coding_or_splice = (not is_synonymous_silent) and (
+            (v.get("coding") == "Y") or any(k in so for k in ["MIS", "NON", "STG", "STL", "FSI", "FSD", "IND", "SPL"]) or ("spliceai_high" in reasons) or ("spliceai_mod" in reasons)
+        )
+
+        is_protective = (not is_synonymous_silent) and (
+            "protective_allele" in reasons or "protective" in sig or (
+                any(kw in dis for kw in ["hypobetalipoproteinemia", "hypocholesterolemia", "longevity", "reduced risk", "resistance to"])
+                and is_plp and gnomad_af <= 0.005
+            )
+        )
+        is_pgx = (not is_synonymous_silent) and (
+            "pharmacogenomic_response" in reasons or "drug response" in sig or "drug_response" in sig or bool(v.get("pharmgkb__chemicals")) or any(kw in full_text for kw in [
+                "toxicity", "contraindicated", "slow acetylator", "malignant hyperthermia"
+            ])
+        )
 
         has_clingen_def = "definitive" in clingen or "strong" in clingen
         is_plp = ("pathogenic" in sig and "conflicting" not in sig and "uncertain" not in sig)
@@ -137,7 +147,7 @@ def categorize_and_prioritize(variants):
         is_primary = False
         priority_base = 0.0
 
-        if not is_common_benign:
+        if not is_common_benign and not is_synonymous_silent:
             if is_plp and is_coding_or_splice and hugo not in ["CDKN2B", "VDR"]:
                 is_primary = True
                 priority_base = 100.0
@@ -152,11 +162,19 @@ def categorize_and_prioritize(variants):
         if is_protective or is_pgx:
             protective_pgx.append(v)
 
-        is_cardio = any(t in full_text for t in [
-            "cardio", "heart", "arrhythmia", "long qt", "thromb", "lipid", "cholesterol",
-            "artery", "aortic", "vascular", "blood pressure", "coagulation", "hypobetalipoproteinemia", "atherosclerosis"
-        ])
-        if is_cardio and v.get("tier") in ["Tier1", "Tier2"]:
+        # Curated cardiovascular disease associations (not generic GO terms)
+        cardio_terms = [
+            "cardio", "heart", "arrhythmia", "long qt", "brugada", "cardiomyopathy",
+            "thromb", "lipid", "cholesterol", "artery", "aortic", "coronary",
+            "blood pressure", "hypertension", "coagulation", "atherosclerosis", "hypercholesterolemia"
+        ]
+        cardio_dis_match = any(t in f"{dis} {gwas}" for t in cardio_terms)
+        is_canonical_cardio_gene = hugo in [
+            "APOB", "LDLR", "PCSK9", "SCN5A", "KCNQ1", "KCNH2", "TTN", "MYH7", "TNNT2",
+            "F5", "PROS1", "PROC", "SERPINC1", "LRP5", "CDKN2B", "ANK2", "CACNA1C", "ABCG5", "NPC1L1"
+        ]
+        is_cardio = (cardio_dis_match or is_canonical_cardio_gene) and (v.get("tier") in ["Tier1", "Tier2"]) and (not is_synonymous_silent)
+        if is_cardio:
             cardio_coag.append(v)
 
         is_metab = any(t in full_text for t in [
@@ -164,7 +182,7 @@ def categorize_and_prioritize(variants):
             "vitamin", "cobalamin", "peroxisom", "helicase", "glycosylase", "tyrosin",
             "dna repair", "dna damage", "oxidative", "melanin", "pigmentation"
         ])
-        if is_metab and v.get("tier") in ["Tier1", "Tier2"]:
+        if is_metab and v.get("tier") in ["Tier1", "Tier2"] and not is_synonymous_silent:
             metabolic_cellular.append(v)
 
         if cadd >= 24.0 or revel >= 0.70 or avi >= 28.0:
@@ -178,9 +196,19 @@ def categorize_and_prioritize(variants):
         r = float(x["revel"]) if x.get("revel") and x["revel"] != "None" else 0.0
         return (c + (a * 0.8) + (r * 30.0))
 
+    def sort_cardio(x):
+        h = safe_str(x.get("hugo")).upper()
+        is_canon = h in ["APOB", "LDLR", "PCSK9", "SCN5A", "KCNQ1", "KCNH2", "TTN", "MYH7", "F5", "ABCG5", "NPC1L1"]
+        has_clingen_def = "definitive" in safe_str(x.get("clingen_class")).lower()
+        base = 100.0 if (is_canon or has_clingen_def) else 0.0
+        c = float(x["cadd_phred"]) if x.get("cadd_phred") and x["cadd_phred"] != "None" else 0.0
+        a = float(x["avi_phred"]) if x.get("avi_phred") and x["avi_phred"] != "None" else 0.0
+        r = float(x["revel"]) if x.get("revel") and x["revel"] != "None" else 0.0
+        return base + c + (a * 0.8) + (r * 30.0)
+
     primary_candidates.sort(key=lambda x: x.get("dossier_score", 0.0), reverse=True)
     protective_pgx.sort(key=sort_score, reverse=True)
-    cardio_coag.sort(key=sort_score, reverse=True)
+    cardio_coag.sort(key=sort_cardio, reverse=True)
     metabolic_cellular.sort(key=sort_score, reverse=True)
     ai_consensus.sort(key=sort_score, reverse=True)
 
@@ -373,7 +401,7 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
         if v["hugo"] not in seen_cardio and (v["hugo"] not in primary_genes or v.get("achange") != primary_display[0].get("achange")):
             seen_cardio.add(v["hugo"])
             cardio_unique.append(v)
-        if len(cardio_unique) >= 7:
+        if len(cardio_unique) >= 10:
             break
 
     if cardio_unique:
@@ -389,12 +417,24 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
             # Dynamic significance label
             dis = safe_str(v.get("clinvar_disease")).lower()
             gwas = safe_str(v.get("gwas_disease")).lower()
-            if "hypobeta" in dis: signif = "FHBL1 / Longevity Allele (Contraindicates lipid-lowering)"
-            elif "thromb" in dis or "factor v" in dis: signif = "Thrombophilia / APC Resistance modifier"
-            elif "arrhythmia" in dis or "long qt" in dis: signif = "Cardiac channelopathy / Arrhythmia susceptibility"
-            elif "lipid" in dis or "cholesterol" in dis: signif = "Lipid & sterol metabolic clearance"
-            elif "atherosclerosis" in dis or "coronary" in dis: signif = "Vascular integrity & coronary risk modifier"
-            else: signif = safe_str(v.get("clinvar_disease")).split("|")[0][:45] or safe_str(v.get("gwas_disease"))[:45] or "Cardiovascular modifier"
+            h = v["hugo"]
+            v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
+            is_plp_sig = "pathogenic" in safe_str(v.get("clinvar_sig")).lower() and "conflicting" not in safe_str(v.get("clinvar_sig")).lower()
+
+            if h == "APOB" and ("4481" in achg or v_af > 0.01):
+                signif = "Polygenic lipid modifier (GWAS p=3e-22, PMID 41325697); common allele (AF 3.1%)"
+            elif ("hypobeta" in dis) and is_plp_sig and v_af <= 0.005:
+                signif = "FHBL1 / Longevity Allele (Contraindicates lipid-lowering)"
+            elif "thromb" in dis or "factor v" in dis or h == "F5":
+                signif = "Thrombophilia / APC Resistance modifier"
+            elif "arrhythmia" in dis or "long qt" in dis or "brugada" in dis or h == "SCN5A":
+                signif = "Cardiac channelopathy / Arrhythmia susceptibility"
+            elif "lipid" in dis or "cholesterol" in dis or h == "APOB":
+                signif = "Lipid & sterol metabolic clearance"
+            elif "atherosclerosis" in dis or "coronary" in dis:
+                signif = "Vascular integrity & coronary risk modifier"
+            else:
+                signif = safe_str(v.get("clinvar_disease")).split("|")[0][:45] or safe_str(v.get("gwas_disease"))[:45] or "Cardiovascular modifier"
 
             md.append(f"| **{v['hugo']}** | `{achg}` | {v.get('so')} ({v.get('zygosity')}) | {sig} | {cadd} | {rev} | {avi} | {signif} |")
         md.append("")

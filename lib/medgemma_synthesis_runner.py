@@ -94,12 +94,12 @@ def query_local_medgemma(system_prompt, user_prompt, port=7002, alias="medgemma-
             {"role": "user", "content": user_prompt}
         ],
         "temperature": 0.1,
-        "max_tokens": 2048
+        "max_tokens": 768
     }
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
     
-    with urllib.request.urlopen(req, timeout=180) as resp:
+    with urllib.request.urlopen(req, timeout=900) as resp:
         res_json = json.loads(resp.read().decode("utf-8"))
         return res_json["choices"][0]["message"]["content"]
 
