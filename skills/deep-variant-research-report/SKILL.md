@@ -27,9 +27,10 @@ All agents and programs executing under this skill must adhere to the following 
    * **Automated Download:** If the model is absent, it must be downloaded via `lms get` or `curl` from Hugging Face before proceeding.
    * **Load On-Demand:** The model should be loaded into memory for the active inference session (e.g. `lms load medgemma-27b` or llama-server dynamic context allocation).
    * **Mandatory Unload Post-Use:** Immediately after synthesis completion, the model **must be unloaded** (e.g. `lms unload medgemma-27b` or stopping the inference server) to reclaim the 32GB RAM/GPU slice and prevent I/O memory contention with the WGS genomics pipeline.
-3. **Strict Zero PII / PHI Transmission & Sanitization:**
-   * Direct identifiers (patient full names, dates of birth, geographic locations, medical record numbers, system user home paths like `/home/daniel-ehrle/...`) must be completely scrubbed before model reasoning or report staging.
-   * Internal pipelines must use de-identified cohort/session tokens (e.g., `SUBJECT_PROBAND_01`) or sample aliases (`SAMPLE_DE`) without linking personal demographics.
+3. **Strict Zero PII / PHI Transmission & Zero-Knowledge Pseudonymization:**
+   * **Zero Identity Knowledge:** External models and AI assistants must remain completely blind to real patient names, sample IDs (e.g. `DE`, `ME`), and local user filesystem paths (`/home/daniel-ehrle/...`).
+   * **Ephemeral Salted Tokenization:** Sample IDs must be mapped locally on-premise to random session tokens (e.g. `SUBJECT_X17`). The de-identification mapping key must remain exclusively on your local machine and never enter AI prompts.
+   * **Public Benchmark Testing Only:** All developer pipeline testing, prompt validation, and automated testing by AI assistants must strictly execute on public reference standards (e.g. **GIAB HG002 / HG003** in `/data/Genomes/HG002/`). Agents are strictly forbidden from inspecting, querying, or reporting on private family callsets (`DE`, `ME`).
 4. **ACMG BA1 Stand-Alone Benign Gating (Anti-False Reporting Guardrail):**
    * Any variant with population allele frequency $> 1.0\%$ in gnomAD (`gnomad4_af > 0.01`) or in silico consensus of neutrality ($\text{CADD} < 15.0$, $\text{REVEL} < 0.25$, AlphaMissense `likely_benign`) is **strictly disqualified from being elevated as a Primary Finding, pathogenic driver, or protective contraindication** (e.g. preventing false reporting of *APOB* `p.Ala4481Thr` or *APOB* `p.Leu1060=`).
    * Gene-level ClinGen "Definitive" assertions cannot elevate a variant whose ClinVar classification is `Conflicting` or `VUS`.
