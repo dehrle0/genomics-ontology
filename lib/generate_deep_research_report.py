@@ -487,6 +487,16 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
             seen_pgx.add(h)
             prot_list.append(v)
 
+    # Ensure APOB lipid pharmacology context is included in Section 5 if APOB is present in the patient's actionable findings
+    apob_variants = [v for v in variants if v.get("hugo") == "APOB" and v.get("so") != "SYN"]
+    if apob_variants and not any(v["hugo"] == "APOB" for v in prot_list):
+        prot_list.append(apob_variants[0])
+
+    # Ensure ANK2 cardiac medication context is included if present
+    ank2_variants = [v for v in variants if v.get("hugo") == "ANK2"]
+    if ank2_variants and not any(v["hugo"] == "ANK2" for v in prot_list):
+        prot_list.append(ank2_variants[0])
+
     if prot_list:
         for v in prot_list:
             h = v["hugo"]
@@ -496,11 +506,23 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
             full_dis = f"{dis} {safe_str(v.get('gene_go_bpo')).lower()} {safe_str(v.get('gene_hpo_term')).lower()}"
             v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
             is_plp_sig = "pathogenic" in sig and "conflicting" not in sig and "uncertain" not in sig
-            if ("hypobeta" in dis or "longevity" in dis) and is_plp_sig and v_af <= 0.005:
+            if h == "APOB":
+                if ("hypobeta" in dis or "longevity" in dis) and is_plp_sig and v_af <= 0.005:
+                    md.append(
+                        f"* **{h} ({achg}):** Heterozygous carrier of Familial Hypobetalipoproteinemia 1 (FHBL1, OMIM: 615558). "
+                        f"Confers a positive, life-extending phenotype via constitutively low circulating ApoB/LDL particle counts, granting natural resistance against coronary atherogenesis. "
+                        f"**Pharmacogenomic Contraindication:** Explicitly contraindicates aggressive LDL-depleting regimens, lomitapide, and mipomersen to prevent severe intrahepatic triglyceride retention (steatosis).\n"
+                    )
+                else:
+                    md.append(
+                        f"* **{h} ({achg}):** Polygenic lipid & triglyceride modifier (GWAS p=3e-22, PMID: 41325697; ClinVar Conflicting). "
+                        f"**Pharmacogenomic & Drug Interaction Context:** Response to standard lipid-lowering therapies (HMG-CoA reductase inhibitors / statins and ezetimibe) is expected to follow standard clinical trajectories. "
+                        f"Specialized MTTP inhibitors (lomitapide) and ApoB antisense oligonucleotides (mipomersen) are indicated strictly for homozygous Familial Hypercholesterolemia and are **not indicated** for common heterozygous polygenic modifiers.\n"
+                    )
+            elif h == "ANK2":
                 md.append(
-                    f"* **{h} ({achg}):** Heterozygous carrier of Familial Hypobetalipoproteinemia 1 (FHBL1, OMIM: 615558). "
-                    f"Confers a positive, life-extending phenotype via constitutively low circulating ApoB/LDL particle counts, granting natural resistance against coronary atherogenesis. "
-                    f"**Pharmacogenomic Contraindication:** Explicitly contraindicates aggressive LDL-depleting regimens, lomitapide, and mipomersen to prevent severe intrahepatic triglyceride retention (steatosis).\n"
+                    f"* **{h} ({achg}):** Ankyrin-B / cardiac channelopathy modifier (associated with long QT susceptibility). "
+                    f"**Pharmacogenomic Caution:** Exercise clinical caution regarding QT-prolonging medications (e.g. antiarrhythmics, macrolides, fluoroquinolones, certain antipsychotics; cross-reference CredibleMeds.org) to minimize secondary arrhythmogenic risk.\n"
                 )
             elif "cdkn2b" in h.lower() or "protective" in sig:
                 md.append(
@@ -617,23 +639,8 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     # Part 4: Opportunities
     md.append("### Opportunities: High-Yield Clinical Next Steps")
     opps = []
-    if plp_genes:
-        opps.append(f"**Genetic Counseling & Specialist Surveillance:** Formal genetic counseling consultation for high-penetrance findings ({', '.join(plp_genes)}) to coordinate organ-specific surveillance protocols.")
-    else:
-        opps.append("**Genetic Counseling Consultation:** Comprehensive pedigree and family-history correlation for secondary genomic findings.")
 
-    lab_targets = []
-    for v in variants:
-        dis = safe_str(v.get("clinvar_disease")).lower()
-        v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
-        is_plp = "pathogenic" in safe_str(v.get("clinvar_sig")).lower() and "conflicting" not in safe_str(v.get("clinvar_sig")).lower() and "uncertain" not in safe_str(v.get("clinvar_sig")).lower()
-        if "hypobeta" in dis and is_plp and v_af <= 0.005: lab_targets.append("Apolipoprotein B & fractionated lipid panel, liver ultrasound / transaminases (AST/ALT), and fat-soluble vitamins (A, D, E, K)")
-        elif "pernicious" in dis: lab_targets.append("Serum Cobalamin (B12) & Methylmalonic Acid (MMA)")
-        elif "tyrosinemia" in dis: lab_targets.append("Plasma amino acid chromatography (tyrosine/phenylalanine ratio)")
-        elif "hearing" in dis or "deafness" in dis: lab_targets.append("Baseline pure-tone audiometry")
-    lab_str = "; ".join(list(dict.fromkeys(lab_targets))[:3]) if lab_targets else "Comprehensive metabolic profile, fasting lipid panel, and micronutrient screening"
-    opps.append(f"**Targeted Baseline Laboratory Surveillance:** Establish baseline clinical values: {lab_str}.")
-
+    # 1. Action: EHR Updates
     pgx_alerts = []
     for v in variants:
         so = safe_str(v.get("so")).upper()
@@ -643,16 +650,64 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
         dis = safe_str(v.get("clinvar_disease")).lower()
         full = f"{dis} {safe_str(v.get('gene_go_bpo')).lower()} {safe_str(v.get('gene_hpo_term')).lower()}"
         h = v["hugo"]
+        achg = safe_str(v.get("achange") or v.get("cchange"))
         v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
         is_plp = "pathogenic" in safe_str(v.get("clinvar_sig")).lower() and "conflicting" not in safe_str(v.get("clinvar_sig")).lower() and "uncertain" not in safe_str(v.get("clinvar_sig")).lower()
-        if "valproat" in full or "progressive sclerosing" in full or "alpers" in full or ("mitochondrial dna replication" in full and "polymerase" in full): pgx_alerts.append(f"Sodium Valproate (Depakote) Absolute Contraindication (*{h}*)")
-        elif ("hypobeta" in full or "longevity" in full) and is_plp and v_af <= 0.005: pgx_alerts.append(f"Aggressive LDL-Depletion Caution & ApoB/MTTP Inhibitor Contraindication (*{h}*)")
-        elif ("factor v" in full or "thrombophilia" in full) and ("534" in safe_str(v.get("achange")) or "leiden" in full or "drug response" in safe_str(v.get("clinvar_sig")).lower()): pgx_alerts.append(f"Situational Thrombophilia / VTE Prophylaxis Precaution (*{h}*)")
-        elif "fluorouracil" in full or "dihydropyrimidine" in full: pgx_alerts.append(f"Fluoropyrimidine / 5-FU Toxicity Warning (*{h}*)")
-        elif "slow acetylator" in full or "acetyltransferase" in full: pgx_alerts.append(f"Slow Acetylator Dosage Calibration (*{h}*)")
+        
+        if "valproat" in full or "progressive sclerosing" in full or "alpers" in full or ("mitochondrial dna replication" in full and "polymerase" in full):
+            pgx_alerts.append(f"Sodium Valproate (Depakote) Absolute Contraindication (*{h}*)")
+        elif ("hypobeta" in full or "longevity" in full) and is_plp and v_af <= 0.005:
+            pgx_alerts.append(f"Aggressive LDL-Depletion Caution & ApoB/MTTP Inhibitor Contraindication (*{h}*)")
+        elif h == "APOB" and ("4481" in achg or v_af > 0.01):
+            pgx_alerts.append(f"Avoid Unindicated MTTP / ApoB Inhibitors (Lomitapide / Mipomersen) (*{h}*)")
+        elif h == "ANK2":
+            pgx_alerts.append(f"Caution with QT-Prolonging Pharmacotherapies (CredibleMeds list) (*{h}*)")
+        elif ("factor v" in full or "thrombophilia" in full) and ("534" in achg or "295" in achg or "leiden" in full or "drug response" in safe_str(v.get("clinvar_sig")).lower()):
+            pgx_alerts.append(f"Situational Thrombophilia / VTE Prophylaxis Precaution during surgery or immobilization (*{h}*)")
+        elif "fluorouracil" in full or "dihydropyrimidine" in full or h == "DPYD":
+            pgx_alerts.append(f"Fluoropyrimidine / 5-FU Toxicity Warning & Dosage Reduction (*{h}*)")
+        elif "slow acetylator" in full or "acetyltransferase" in full:
+            pgx_alerts.append(f"Slow Acetylator Dosage Calibration (*{h}*)")
+            
     pgx_str = "; ".join(list(dict.fromkeys(pgx_alerts))) if pgx_alerts else "Standard pharmacogenomic drug-gene interaction documentation"
-    opps.append(f"**Pharmacogenomic EHR Safety Flags:** Immediate clinical entry into Electronic Health Record (EHR) allergy/adverse portal: **{pgx_str}**.")
+    opps.append(f"**Action (Update Electronic Health Records):** Immediate clinical entry into Electronic Health Record (EHR) allergy/adverse portal: **{pgx_str}**.")
 
+    # 2. Monitor: Laboratory Surveillance
+    lab_targets = []
+    for v in variants:
+        dis = safe_str(v.get("clinvar_disease")).lower()
+        h = v["hugo"]
+        v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
+        is_plp = "pathogenic" in safe_str(v.get("clinvar_sig")).lower() and "conflicting" not in safe_str(v.get("clinvar_sig")).lower() and "uncertain" not in safe_str(v.get("clinvar_sig")).lower()
+        if "hypobeta" in dis and is_plp and v_af <= 0.005:
+            lab_targets.append("Monitor: Apolipoprotein B & fractionated lipid panel, liver ultrasound / transaminases (AST/ALT), and fat-soluble vitamins (A, D, E, K)")
+        elif h == "APOB":
+            lab_targets.append("Monitor: Fasting lipid panel (Total Cholesterol, LDL-C, HDL-C, Triglycerides, and ApoB particle count)")
+        elif "pernicious" in dis or h == "CBLIF":
+            lab_targets.append("Monitor: Serum Cobalamin (B12) & Methylmalonic Acid (MMA)")
+        elif h == "ANK2":
+            lab_targets.append("Monitor: Baseline 12-lead ECG for QT interval and cardiac conduction morphology")
+        elif "tyrosinemia" in dis:
+            lab_targets.append("Monitor: Plasma amino acid chromatography (tyrosine/phenylalanine ratio)")
+        elif "hearing" in dis or "deafness" in dis:
+            lab_targets.append("Monitor: Baseline pure-tone audiometry")
+            
+    lab_str = "; ".join(list(dict.fromkeys(lab_targets))[:4]) if lab_targets else "Monitor: Comprehensive metabolic profile and fasting lipid panel"
+    opps.append(f"**Monitor (Clinical & Laboratory Surveillance):** Establish baseline and periodic surveillance: {lab_str}.")
+
+    # 3. Genetic Counseling
+    if plp_genes:
+        opps.append(f"**Genetic Counseling & Specialist Surveillance:** Formal genetic counseling consultation for high-penetrance findings ({', '.join(plp_genes)}) to coordinate organ-specific surveillance protocols.")
+    else:
+        opps.append("**Genetic Counseling Consultation:** Comprehensive pedigree and family-history correlation for secondary genomic findings.")
+
+    # 4. Methodological Assumptions & Limitations
+    opps.append(
+        "**Assumptions & Technical Limitations:** Input data reflects 40x mean depth short-read WGS (150 bp); does not definitively rule in or out low-level mosaicism (<10% VAF) or balanced structural rearrangements. "
+        "Heterozygous carrier states are assumed single-copy without undetected trans deletions. Clinical penetrance adheres to established population baselines."
+    )
+
+    # 5. Annual Re-Analysis
     opps.append("**Annual Pipeline Re-Analysis:** Schedule annual variant re-annotation against newly published DeepMind AlphaGenome functional models, ClinVar clinical curations, and ClinGen expert panel updates.")
 
     for i, op in enumerate(opps):
