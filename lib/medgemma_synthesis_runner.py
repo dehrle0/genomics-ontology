@@ -59,16 +59,16 @@ def start_local_server(model_path, port=7002):
     if not server_bin:
         print("[Server Error] llama-server binary not found.")
         return None
-    print(f"[Server Launch] Starting llama-server with Vulkan/AVX2 on 127.0.0.1:{port}...")
+    print(f"[Server Launch] Starting llama-server with Vulkan/AVX2 on 127.0.0.1:{port} (16k context)...")
     proc = subprocess.Popen(
-        [server_bin, "-m", model_path, "--port", str(port), "-c", "8192", "-ngl", "99"],
+        [server_bin, "-m", model_path, "--port", str(port), "-c", "16384", "-ngl", "99"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         preexec_fn=os.setsid
     )
-    for _ in range(30):
+    for _ in range(45):
         if is_server_listening(port):
-            print(f"[Server Ready] MedGemma 27B loaded and listening on port {port}.")
+            print(f"[Server Ready] MedGemma 27B loaded and listening on port {port} with 16,384 token context.")
             return proc
         time.sleep(1)
     print("[Server Warning] Timeout waiting for MedGemma 27B server.")
@@ -122,39 +122,43 @@ def sort_priority(rec):
     hugo = str(rec.get("gene") or "").upper()
     priority = 0.0
     if is_plp: priority += 100.0
-    if hugo in ["CBLIF", "F5", "APOB", "DPYD", "CDKN2B", "POLG"]: priority += 50.0
+    if hugo in ["CBLIF", "F5", "APOB", "DPYD", "ANK2", "CDKN2B", "POLG", "LRP5"]: priority += 60.0
     return priority + cadd + (avi * 0.5)
 
 def build_medgemma_prompt(clean_records, session_token):
     # Sort by priority so top actionable findings receive dossiers first
     sorted_records = sorted(clean_records, key=sort_priority, reverse=True)
-    top_records = sorted_records[:5]
+    top_records = sorted_records[:8]
 
     system_prompt = (
         "You are MedGemma, an elite clinical genomics AI assistant specializing in evidence synthesis. "
-        "Strict Operational Directives:\n"
+        "Operational Directives:\n"
         "1. Zero PII: Never invent or use patient names, dates of birth, or facilities. Refer solely to the proband as '" + session_token + "'.\n"
-        "2. Zero Extrapolation: Ground all clinical evaluations strictly in the provided variant data and peer-reviewed ACMG/ClinVar/CPIC evidence.\n"
-        "3. Output Format: Produce a deeply researched, multi-page clinical genomics evidence dossier in clean GitHub-Flavored Markdown adhering strictly to the VSCP-DF framework:\n"
-        "   - Orientation (What We Are Covering)\n"
-        "   - Body: Comprehensive Evidence Dossiers for the prioritized findings (molecular mechanism, ClinVar/OMIM disease correlation, multi-engine in silico consensus, ACMG pathogenicity calculus, actionable surveillance, and drug contraindications)\n"
-        "   - Conclusions: Diagnostic & Decision Calculus (Arguments FOR and AGAINST clinical intervention; explicit Confidence Score 0.00 to 1.00)\n"
-        "   - Opportunities: High-Yield Clinical Next Steps"
+        "2. Clinical Scope & Tone: The exhaustive raw variant call tables and in-silico predictor matrices are already archived in the accompanying Master Ontology Explorer. Your role is to deliver a readable, highly authoritative executive clinical summary focused on the high-actionable level findings.\n"
+        "3. Include sufficient molecular mechanism details and clinical reasoning to be authoritative without bogging down in repetitive technical data dumps.\n"
+        "4. Structure strictly following the VSCP-DF framework:\n"
+        "   - Orientation & Executive Summary\n"
+        "   - High-Actionable & Primary Findings (focused dossiers with authoritative depth for primary loci)\n"
+        "   - Cardiovascular, Channelopathy & Lipid Modifiers (APOB polygenic modifier, ANK2 cardiac conduction)\n"
+        "   - Critical Pharmacogenomic & Drug Interactions (DPYD 5-FU, F5 VTE, APOB MTTP/statin context, ANK2 QT caution)\n"
+        "   - Clinical Decision Calculus (Arguments FOR and AGAINST over-intervention, with explicit 0.00-1.00 Confidence Score)\n"
+        "   - Action Directives: Action (Update Electronic Health Records with...)\n"
+        "   - Monitoring Directives: Monitor (Baseline & Periodic Clinical Surveillance for...)\n"
+        "   - Methodological Assumptions & Limitations (40x WGS boundaries, mosaicism, recessive carrier status)"
     )
     
     user_prompt = (
-        f"Generate a publication-grade, deeply researched Clinical Genomics Evidence Synthesis for {session_token} based on the following verified genomic callset:\n\n"
+        f"Generate a publication-grade, authoritative Clinical Genomics Evidence Summary for {session_token} based on the following verified genomic callset:\n\n"
         f"{json.dumps(top_records, indent=2)}\n\n"
         "Requirements:\n"
-        "- Deliver complete narrative dossiers for all prioritized loci without cutting off.\n"
-        "- Disallow monogenic disease claims for common alleles (gnomAD AF > 1%) or benign in-silico variants.\n"
-        "- Provide explicit laboratory surveillance and pharmacogenomic contraindications.\n"
-        "- Ensure Conclusions (FOR/AGAINST over-intervention with Confidence Score) and Opportunities are fully written.\n"
-        "- Output clean Markdown directly without surrounding code blocks."
+        "- Focus on the high-actionable findings (e.g. CBLIF, F5, APOB, DPYD, ANK2) with clear molecular rationale.\n"
+        "- Explicitly detail drug interactions (fluoropyrimidines, QT-prolonging drugs via CredibleMeds, anticoagulation/VTE, and avoidance of unindicated MTTP/ApoB targeting).\n"
+        "- Ensure Action (EHR updates), Monitor (laboratory directives), Assumptions/Limitations, and Decision Calculus are fully articulated.\n"
+        "- Output clean GitHub-Flavored Markdown directly without wrapping in markdown code blocks."
     )
     return system_prompt, user_prompt
 
-def query_local_medgemma(system_prompt, user_prompt, port=7002, alias="medgemma-27b-it", max_tokens=4096):
+def query_local_medgemma(system_prompt, user_prompt, port=7002, alias="medgemma-27b-it", max_tokens=8192):
     url = f"http://127.0.0.1:{port}/v1/chat/completions"
     payload = {
         "model": alias,
@@ -168,7 +172,7 @@ def query_local_medgemma(system_prompt, user_prompt, port=7002, alias="medgemma-
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
     
-    timeout_secs = max(3600, int(max_tokens * 1.5))
+    timeout_secs = max(14400, int(max_tokens * 2.5))
     with urllib.request.urlopen(req, timeout=timeout_secs) as resp:
         res_json = json.loads(resp.read().decode("utf-8"))
         return res_json["choices"][0]["message"]["content"]
@@ -180,7 +184,7 @@ def main():
     parser.add_argument("--session-token", default="PROBAND_01", help="Ephemeral anonymous token")
     parser.add_argument("--patient-name", default=None, help="Optional: real patient name for local-only binding")
     parser.add_argument("--patient-id", default=None, help="Optional: real patient sample ID for local-only binding")
-    parser.add_argument("--max-tokens", type=int, default=4096, help="Maximum generation tokens (default: 4096)")
+    parser.add_argument("--max-tokens", type=int, default=8192, help="Maximum generation tokens (default: 8192, supports up to 16384)")
     parser.add_argument("--port", type=int, default=7002, help="Port of local server (default: 7002)")
     parser.add_argument("--keep-server-alive", action="store_true", help="Do not shut down server after generation")
     args = parser.parse_args()
