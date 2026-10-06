@@ -66,18 +66,18 @@ def is_server_listening(port=7002):
     except Exception:
         return False
 
-def start_local_server(model_path, mmproj_path=None, port=7002):
+def start_local_server(model_path, mmproj_path=None, port=7002, ctx_size=16384):
     server_bin = find_llama_server()
     if not server_bin:
         print("[Server Error] llama-server binary not found.")
         return None
     
-    cmd = [server_bin, "-m", model_path, "--port", str(port), "-c", "16384", "-ngl", "99"]
+    cmd = [server_bin, "-m", model_path, "--port", str(port), "-c", str(ctx_size), "-ngl", "99"]
     if mmproj_path and os.path.exists(mmproj_path):
         cmd.extend(["--mmproj", mmproj_path])
         print(f"[Multimodal Projector] Enabled medical image projector: {mmproj_path}")
         
-    print(f"[Server Launch] Starting llama-server on 127.0.0.1:{port} (16k context)...")
+    print(f"[Server Launch] Starting llama-server on 127.0.0.1:{port} ({ctx_size} context)...")
     log_file = open("/tmp/llama_server_medgemma.log", "w")
     proc = subprocess.Popen(
         cmd,
@@ -85,10 +85,10 @@ def start_local_server(model_path, mmproj_path=None, port=7002):
         stderr=subprocess.STDOUT,
         preexec_fn=os.setsid
     )
-    for _ in range(45):
+    for _ in range(90):
         if is_server_listening(port):
             model_tag = "MedGemma 1.5 4B (Multimodal)" if mmproj_path else "MedGemma 27B"
-            print(f"[Server Ready] {model_tag} loaded and listening on port {port} with 16,384 token context.")
+            print(f"[Server Ready] {model_tag} loaded and listening on port {port} with {ctx_size:,} token context.")
             return proc
         time.sleep(1)
     print("[Server Warning] Timeout waiting for MedGemma server. Last 20 lines of log:")
@@ -155,14 +155,14 @@ def sort_priority(rec):
 def build_medgemma_prompt(clean_records, session_token):
     # Sort by priority so top actionable findings receive dossiers first
     sorted_records = sorted(clean_records, key=sort_priority, reverse=True)
-    top_records = sorted_records[:8]
+    top_records = sorted_records[:10]
 
     system_prompt = (
         "You are MedGemma, an elite clinical genomics AI assistant specializing in evidence synthesis. "
         "Operational Directives:\n"
         "1. Zero PII: Never invent or use patient names, dates of birth, or facilities. Refer solely to the proband as '" + session_token + "'.\n"
         "2. Clinical Scope & Tone: The exhaustive raw variant call tables and in-silico predictor matrices are already archived in the accompanying Master Ontology Explorer. Your role is to deliver a readable, highly authoritative executive clinical summary focused on the high-actionable level findings.\n"
-        "3. Include sufficient molecular mechanism details and clinical reasoning to be authoritative without bogging down in repetitive technical data dumps.\n"
+        "3. Include sufficient molecular mechanism details and clinical reasoning to be authoritative without bogging down in repetitive technical data dumps. Do not loop or repeat identical variant phrases.\n"
         "4. Structure strictly following the VSCP-DF framework:\n"
         "   - Orientation & Executive Summary\n"
         "   - High-Actionable & Primary Findings (focused dossiers with authoritative depth for primary loci)\n"
@@ -210,6 +210,7 @@ def query_local_medgemma(system_prompt, user_prompt, port=7002, alias="medgemma-
 def main():
     parser = argparse.ArgumentParser(description="Airgapped MedGemma Multi-Thousand Token Runner")
     parser.add_argument("--model", choices=["4b", "27b"], default="4b", help="Model size to load (default: 4b)")
+    parser.add_argument("--ctx-size", type=int, default=16384, help="Context size in tokens (default: 16384, supports 24576)")
     parser.add_argument("--input-json", required=True, help="Path to input actionable variants JSON")
     parser.add_argument("--out-md", required=True, help="Output Markdown report path")
     parser.add_argument("--session-token", default="PROBAND_01", help="Ephemeral anonymous token")
@@ -236,7 +237,7 @@ def main():
 
     server_proc = None
     if not is_server_listening(args.port):
-        server_proc = start_local_server(model_path, mmproj_path=mmproj_path, port=args.port)
+        server_proc = start_local_server(model_path, mmproj_path=mmproj_path, port=args.port, ctx_size=args.ctx_size)
         if not server_proc:
             print("[Error] Failed to start local inference server.")
             sys.exit(1)
@@ -263,6 +264,24 @@ def main():
         with open(args.out_md, "w", encoding="utf-8") as f:
             f.write(synthesis)
         print(f"[Success] Written {len(synthesis.splitlines())} lines of MedGemma synthesis to: {args.out_md}")
+
+        # Automatically sync to Google Drive Ontology folder if available
+        gdrive_ontology = "/home/daniel-ehrle/Google Drive/My Drive/Ontology"
+        if os.path.exists(gdrive_ontology):
+            out_base = os.path.basename(args.out_md)
+            gdrive_dest = os.path.join(gdrive_ontology, out_base)
+            try:
+                shutil.copyfile(args.out_md, gdrive_dest)
+                print(f"[Google Drive Sync] Synced synthesis report to Google Drive: {gdrive_dest}")
+                # Also sync into dated subfolders if directory matches
+                for folder in os.listdir(gdrive_ontology):
+                    subpath = os.path.join(gdrive_ontology, folder)
+                    if os.path.isdir(subpath) and ("Daniel_Ehrle" in folder or "Melinda_Ehrle" in folder) and folder in args.out_md:
+                        sub_dest = os.path.join(subpath, out_base)
+                        shutil.copyfile(args.out_md, sub_dest)
+                        print(f"[Google Drive Sync] Synced synthesis report to dated folder: {sub_dest}")
+            except Exception as e:
+                print(f"[Google Drive Sync Warning] Could not copy to Google Drive: {e}")
     finally:
         if server_proc and not args.keep_server_alive:
             stop_local_server(server_proc)
