@@ -438,7 +438,10 @@ def main():
         patient_title = args.patient_name or "Clinical Evidence Synthesis"
         pid_title = args.patient_id or "PROBAND"
         try:
-            from lib.generate_deep_research_report import format_report_html, generate_pdf
+            try:
+                from lib.generate_deep_research_report import format_report_html, generate_pdf
+            except ImportError:
+                from generate_deep_research_report import format_report_html, generate_pdf
             html_content = format_report_html(patient_title, pid_title, synthesis)
             with open(out_html, "w", encoding="utf-8") as f:
                 f.write(html_content)
