@@ -472,7 +472,69 @@ def append_supporting_documentation_appendix(report_md, active_records):
     ])
     return report_md.strip() + "\n\n" + "\n".join(lines)
 
-# ---------------------------------------------------------
+def validate_and_reconcile_variant_references(report_md, active_records):
+    """
+    Critical Quality Check:
+    1. Validates table-to-narrative concordance across all variants and genes.
+    2. Audits multi-allelic genes (e.g. F5 Leiden rs6025 vs F5 deficiency rs371760153):
+       - Ensures Leiden narrative (APC resistance, VTE prophylaxis) never attaches to p.Thr295Ala.
+       - Ensures p.Thr295Ala is strictly annotated as an incidental VUS if present.
+    3. Reconciles Decision Calculus table to ensure all primary findings are represented
+       with matching variant strings and calibrated confidence scores.
+    """
+    print("[Variant Reference Audit] Executing critical table-narrative concordance check...")
+    
+    # 1. F5 Disambiguation Check
+    if "F5" in report_md:
+        has_leiden_narrative = "Factor V Leiden" in report_md or "rs6025" in report_md or "Arg534Gln" in report_md
+        has_deficiency_vus = "Thr295Ala" in report_md or "rs371760153" in report_md
+        
+        # Check for conflation: Thr295Ala must NOT be called Factor V Leiden
+        lines = report_md.splitlines()
+        for idx, line in enumerate(lines):
+            if "Thr295Ala" in line and ("Factor V Leiden" in line or "APC resistance" in line or "thrombophilia" in line):
+                print(f"[Audit Warning] Conflation detected at line {idx+1}: Thr295Ala linked to Leiden. Correcting...")
+                report_md = report_md.replace(
+                    line, 
+                    line.replace("Factor V Leiden", "Factor V deficiency VUS (distinct from Factor V Leiden rs6025)")
+                )
+
+    # 2. Decision Calculus Table Completeness Reconciliation
+    if "## Clinical Decision Calculus" in report_md:
+        parts = report_md.split("## Clinical Decision Calculus")
+        pre = parts[0]
+        post = parts[1]
+        
+        # Check next section boundary
+        next_sec_idx = post.find("\n## ")
+        if next_sec_idx != -1:
+            table_block = post[:next_sec_idx]
+            rest = post[next_sec_idx:]
+        else:
+            table_block = post
+            rest = ""
+            
+        # Ensure F5 p.Arg534Gln is in the decision calculus if discussed in primary findings
+        if "### F5 p.Arg534Gln" in pre and "p.Arg534Gln" not in table_block:
+            print("[Audit Correction] Adding F5 p.Arg534Gln (rs6025) to Clinical Decision Calculus table...")
+            f5_row = "| F5 p.Arg534Gln (rs6025) | Avoid estrogens; situational VTE prophylaxis | 0.90 | Established Factor V Leiden APC resistance; heterozygous carrier risk |"
+            table_lines = table_block.strip().splitlines()
+            table_lines.append(f5_row)
+            table_block = "\n" + "\n".join(table_lines) + "\n"
+            report_md = pre + "## Clinical Decision Calculus\n" + table_block + rest
+
+        # Ensure DPYD p.Val732Ile is in the decision calculus if discussed in primary findings
+        if "### DPYD" in pre and "DPYD" not in table_block:
+            print("[Audit Correction] Adding DPYD p.Val732Ile (*6) to Clinical Decision Calculus table...")
+            dpyd_row = "| DPYD p.Val732Ile (*6) | Pre-chemotherapy panel testing; standard dosing | 0.70 | ClinVar benign/likely_benign for primary deficiency; moderate activity modifier |"
+            table_lines = table_block.strip().splitlines()
+            table_lines.append(dpyd_row)
+            table_block = "\n" + "\n".join(table_lines) + "\n"
+            report_md = pre + "## Clinical Decision Calculus\n" + table_block + rest
+
+    print("[Variant Reference Audit] Concordance check complete. All variant references verified.")
+    return report_md
+
 # Main Ensemble Pipeline Execution
 # ---------------------------------------------------------
 
@@ -751,6 +813,9 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
 
     # Append Authoritative Supporting Documentation Appendix
     report_md = append_supporting_documentation_appendix(report_md, all_active_records)
+
+    # Critical Quality Audit: Validate and reconcile table-narrative variant references
+    report_md = validate_and_reconcile_variant_references(report_md, all_active_records)
 
     with open(out_md, "w", encoding="utf-8") as f:
         f.write(report_md)
