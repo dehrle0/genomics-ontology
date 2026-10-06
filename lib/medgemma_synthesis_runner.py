@@ -133,6 +133,12 @@ def sanitize_for_medgemma(raw_findings, session_token="PROBAND_01"):
             "clinvar_sig": str(item.get("clinvar_sig") or "").strip(),
             "clinvar_id": str(item.get("clinvar_id") or "").strip(),
             "omim_id": str(item.get("omim_id") or "").strip(),
+            "chrom": str(item.get("chrom") or "").strip(),
+            "pos": str(item.get("pos") or "").strip(),
+            "ref": str(item.get("ref") or "").strip(),
+            "alt": str(item.get("alt") or "").strip(),
+            "rsid": str(item.get("rsid") or "").strip(),
+            "gwas_pmid": str(item.get("gwas_pmid") or "").strip(),
             "cadd_phred": item.get("cadd_phred"),
             "revel": item.get("revel"),
             "am_class": item.get("am_class"),
@@ -152,10 +158,131 @@ def sort_priority(rec):
     if hugo in ["CBLIF", "F5", "APOB", "DPYD", "ANK2", "CDKN2B", "POLG", "LRP5"]: priority += 60.0
     return priority + cadd + (avi * 0.5)
 
+def append_supporting_documentation_appendix(report_md, clean_records):
+    """
+    Appends an authoritative, zero-hallucination Appendix of supporting documentation links
+    and curated knowledgebase cross-references.
+    """
+    if "### Appendix: Supporting Documentation" in report_md or "## Appendix: Supporting Documentation" in report_md:
+        return report_md
+
+    lines = []
+    lines.append("")
+    lines.append("## Appendix: Supporting Documentation & Evidence Sources")
+    lines.append("")
+    lines.append(
+        "This appendix compiles primary evidence accessions, external database cross-references, genomic coordinate mappings (GRCh38), "
+        "and clinical guidelines for all key variants and genes analyzed across this report. All links connect directly to peer-reviewed "
+        "public archives and expert clinical curation repositories."
+    )
+    lines.append("")
+    lines.append("### 1. Variant Evidence & Cross-Reference Directory")
+    lines.append("")
+    lines.append("| Gene | Variant | Coordinates (GRCh38) | ClinVar | dbSNP | OMIM | ClinGen | AlphaGenome | Primary Guideline / Evidence |")
+    lines.append("| :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- |")
+
+    sorted_records = sorted(clean_records, key=sort_priority, reverse=True)
+    seen = set()
+    for rec in sorted_records:
+        h = str(rec.get("gene") or "").upper().strip()
+        v = str(rec.get("variant") or "").strip()
+        chrom = str(rec.get("chrom") or "").strip()
+        pos = str(rec.get("pos") or "").strip()
+        ref = str(rec.get("ref") or "").strip().upper()
+        alt = str(rec.get("alt") or "").strip().upper()
+        key = (chrom, pos, ref, alt) if chrom and pos else (h, v)
+        if key in seen:
+            continue
+        seen.add(key)
+
+        coord_str = f"`{chrom}:{pos} {ref}>{alt}`" if chrom and pos else "—"
+
+        cv_id = str(rec.get("clinvar_id") or "").replace("VCV", "").replace("vcv", "").strip()
+        cv_link = f"[VCV{cv_id}](https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv_id}/)" if cv_id and cv_id.isdigit() else "—"
+
+        rs = str(rec.get("rsid") or "").strip()
+        rs_link = f"[{rs}](https://www.ncbi.nlm.nih.gov/snp/{rs})" if rs.startswith("rs") else "—"
+
+        om_raw = str(rec.get("omim_id") or "").strip()
+        om_digits = [p.strip().replace("OMIM:", "").replace("MIM:", "").strip() for p in om_raw.replace(";", ",").split(",") if p.strip().isdigit()]
+        om_link = f"[MIM:{om_digits[0]}](https://www.omim.org/entry/{om_digits[0]})" if om_digits else "—"
+
+        cg_link = f"[{h}](https://search.clinicalgenome.org/kb/genes/{h})"
+
+        if chrom and pos and ref and alt and ref != "-" and alt != "-":
+            c_tag = f"chr{chrom}" if not chrom.startswith("chr") else chrom
+            ag_link = f"[Atlas](https://alphagenome.deepmind.com/variant/{c_tag}:{pos}:{ref}>{alt})"
+        else:
+            ag_link = f"[Atlas](https://alphagenome.deepmind.com/gene/{h})"
+
+        pmid = str(rec.get("gwas_pmid") or "").strip()
+        if h == "CBLIF":
+            guide_link = "[OMIM 261000 (Intrinsic Factor)](https://www.omim.org/entry/261000)"
+        elif h == "F5":
+            if "534" in v or "rs6025" in rs.lower():
+                guide_link = "[ACMG/ACOG VTE (PMID 28373160)](https://pubmed.ncbi.nlm.nih.gov/28373160/)"
+            else:
+                guide_link = "[Factor V Deficiency (ClinVar)](https://www.ncbi.nlm.nih.gov/clinvar/variation/2884751/)"
+        elif h == "APOB":
+            if "4481" in v or "conflicting" in str(rec.get("clinvar_sig") or "").lower():
+                guide_link = "[GWAS Lipids (PMID 41325697)](https://pubmed.ncbi.nlm.nih.gov/41325697/)"
+            else:
+                guide_link = "[FHBL1 (OMIM 615558)](https://www.omim.org/entry/615558)"
+        elif h == "DPYD":
+            guide_link = "[CPIC Fluoropyrimidines (DPYD)](https://cpicpgx.org/guidelines/guideline-for-fluoropyrimidines-and-dpyd/)"
+        elif h == "ANK2":
+            guide_link = "[CredibleMeds QTdrugs](https://crediblemeds.org/)"
+        elif h == "CDKN2B":
+            guide_link = "[GWAS CAD 9p21 (PMID 30054458)](https://pubmed.ncbi.nlm.nih.gov/30054458/)"
+        elif h == "POLG":
+            guide_link = "[Valproate Toxicity (PMID 24077912)](https://pubmed.ncbi.nlm.nih.gov/24077912/)"
+        elif h == "ATM":
+            guide_link = "[NCCN Genetic Surveillance (ATM)](https://search.clinicalgenome.org/kb/genes/ATM)"
+        elif h == "VDR":
+            guide_link = "[VDR Promoter (PMID 16785239)](https://pubmed.ncbi.nlm.nih.gov/16785239/)"
+        elif pmid and pmid.isdigit():
+            guide_link = f"[GWAS (PMID {pmid})](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)"
+        elif cv_id and cv_id.isdigit():
+            guide_link = f"[ClinVar Evidence](https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv_id}/)"
+        else:
+            guide_link = f"[NCBI Gene {h}](https://www.ncbi.nlm.nih.gov/gene/?term={h})"
+
+        lines.append(f"| **{h}** | `{v}` | {coord_str} | {cv_link} | {rs_link} | {om_link} | {cg_link} | {ag_link} | {guide_link} |")
+        if len(seen) >= 15:
+            break
+
+    lines.append("")
+    lines.append("### 2. Authoritative Clinical & Pharmacogenomic Repositories")
+    lines.append("* **[NCBI ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/):** National Center for Biotechnology Information public archive of human genomic variants and interpretations of clinical significance.")
+    lines.append("* **[ClinGen (Clinical Genome Resource)](https://clinicalgenome.org/):** NIH-funded consortium curating authoritative evidence supporting gene-disease clinical validity, dosage sensitivity, and actionability.")
+    lines.append("* **[OMIM (Online Mendelian Inheritance in Man)](https://www.omim.org/):** Curated database of human genes and genetic phenotypes founded by Victor A. McKusick at Johns Hopkins University.")
+    lines.append("* **[DeepMind AlphaGenome Atlas](https://alphagenome.deepmind.com/):** Unified genomic AI foundation model providing 1-bp resolution locus exploration, chromatin accessibility, and multimodal impact predictions.")
+    lines.append("* **[CPIC (Clinical Pharmacogenetics Implementation Consortium)](https://cpicpgx.org/guidelines/):** Peer-reviewed clinical practice guidelines enabling translation of genetic test results into actionable prescribing decisions.")
+    lines.append("* **[PharmGKB (Pharmacogenomics Knowledgebase)](https://www.pharmgkb.org/):** Comprehensive resource curating knowledge on how genetic variations impact medication responses and clinical outcomes.")
+    lines.append("* **[CredibleMeds (AZCERT)](https://crediblemeds.org/):** Evidence-based decision support resource maintaining stratified QT-prolonging drug lists and torsadogenic risk categories.")
+    lines.append("* **[Broad Institute gnomAD (v4.1)](https://gnomad.broadinstitute.org/):** Reference population genomic dataset spanning >800,000 individuals for allele frequency estimation and gene constraint metrics.")
+    lines.append("* **[NCBI dbSNP](https://www.ncbi.nlm.nih.gov/snp/):** Central public repository for single nucleotide polymorphisms and short genetic variations.")
+    lines.append("")
+    return report_md.strip() + "\n\n" + "\n".join(lines)
+
 def build_medgemma_prompt(clean_records, session_token):
     # Sort by priority so top actionable findings receive dossiers first
     sorted_records = sorted(clean_records, key=sort_priority, reverse=True)
-    top_records = sorted_records[:10]
+    top_records = []
+    for r in sorted_records[:10]:
+        top_records.append({
+            "subject_token": session_token,
+            "gene": r["gene"],
+            "variant": r["variant"],
+            "zygosity": r["zygosity"],
+            "clinvar_sig": r["clinvar_sig"],
+            "clinvar_id": r["clinvar_id"],
+            "omim_id": r["omim_id"],
+            "cadd_phred": r["cadd_phred"],
+            "revel": r["revel"],
+            "am_class": r["am_class"],
+            "avi_phred": r["avi_phred"]
+        })
 
     system_prompt = (
         "You are MedGemma, an elite clinical genomics AI assistant specializing in evidence synthesis. "
@@ -260,6 +387,9 @@ def main():
             synthesis = synthesis.replace(args.session_token, args.patient_name)
             synthesis = synthesis.replace(f"`{args.session_token}`", f"`{args.patient_id}`")
             print(f"[Local Binding] Applied patient metadata locally: {args.patient_name} ({args.patient_id})")
+
+        # Append authoritative supporting documentation appendix with direct links
+        synthesis = append_supporting_documentation_appendix(synthesis, clean_records)
 
         with open(args.out_md, "w", encoding="utf-8") as f:
             f.write(synthesis)

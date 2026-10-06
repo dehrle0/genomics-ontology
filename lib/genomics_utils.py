@@ -118,3 +118,67 @@ def format_omim_ids(omim_raw: Any) -> str:
     if not valid:
         return ""
     return "OMIM: " + "; ".join(valid)
+
+def get_clinvar_url(clinvar_id: Any) -> Optional[str]:
+    """Generate NCBI ClinVar URL for a given variation ID."""
+    cid = safe_str(clinvar_id).replace("VCV", "").replace("vcv", "").strip()
+    if cid and cid.isdigit():
+        return f"https://www.ncbi.nlm.nih.gov/clinvar/variation/{cid}/"
+    return None
+
+def get_dbsnp_url(rsid: Any) -> Optional[str]:
+    """Generate NCBI dbSNP URL for a given rsID."""
+    r = safe_str(rsid).lower().strip()
+    if r.startswith("rs") and r[2:].isdigit():
+        return f"https://www.ncbi.nlm.nih.gov/snp/{r}"
+    return None
+
+def get_omim_url(omim_id: Any) -> Optional[str]:
+    """Generate OMIM entry URL for the primary OMIM accession."""
+    raw = safe_str(omim_id)
+    if not raw:
+        return None
+    parts = [p.strip().replace("OMIM:", "").replace("MIM:", "").strip() for p in raw.replace(";", ",").split(",")]
+    digits = [p for p in parts if p.isdigit()]
+    if digits:
+        return f"https://www.omim.org/entry/{digits[0]}"
+    return None
+
+def get_clingen_url(hugo: Any) -> Optional[str]:
+    """Generate ClinGen gene validity URL for a HUGO gene symbol."""
+    h = safe_str(hugo).strip().upper()
+    if h:
+        return f"https://search.clinicalgenome.org/kb/genes/{h}"
+    return None
+
+def get_alphagenome_url(chrom: Any, pos: Any, ref: Any, alt: Any) -> Optional[str]:
+    """Generate DeepMind AlphaGenome Atlas variant exploration URL."""
+    c = safe_str(chrom).strip()
+    if not c.startswith("chr") and c:
+        c = f"chr{c}"
+    p = safe_str(pos).strip()
+    r = safe_str(ref).strip().upper()
+    a = safe_str(alt).strip().upper()
+    if c and p and r and a and r != "-" and a != "-":
+        return f"https://alphagenome.deepmind.com/variant/{c}:{p}:{r}>{a}"
+    elif c:
+        return f"https://alphagenome.deepmind.com/locus/{c}:{p}-{p}"
+    return None
+
+def get_pubmed_url(pmid: Any) -> Optional[str]:
+    """Generate NCBI PubMed URL for a PMID."""
+    p = safe_str(pmid).replace("PMID:", "").replace("PMID", "").strip()
+    if p and p.isdigit():
+        return f"https://pubmed.ncbi.nlm.nih.gov/{p}/"
+    return None
+
+def get_gnomad_url(chrom: Any, pos: Any, ref: Any, alt: Any) -> Optional[str]:
+    """Generate Broad Institute gnomAD v4 URL for variant coordinates."""
+    c = safe_str(chrom).strip().replace("chr", "")
+    p = safe_str(pos).strip()
+    r = safe_str(ref).strip().upper()
+    a = safe_str(alt).strip().upper()
+    if c and p and r and a:
+        return f"https://gnomad.broadinstitute.org/variant/{c}-{p}-{r}-{a}?dataset=gnomad_r4"
+    return None
+

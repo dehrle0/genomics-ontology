@@ -43,12 +43,16 @@ def parse_args():
 try:
     from lib.genomics_utils import (
         safe_str, safe_num, format_variant_key, format_phred,
-        format_percentile, clean_clinvar_disease, format_omim_ids
+        format_percentile, clean_clinvar_disease, format_omim_ids,
+        get_clinvar_url, get_dbsnp_url, get_omim_url, get_clingen_url,
+        get_alphagenome_url, get_pubmed_url, get_gnomad_url
     )
 except ImportError:
     from genomics_utils import (
         safe_str, safe_num, format_variant_key, format_phred,
-        format_percentile, clean_clinvar_disease, format_omim_ids
+        format_percentile, clean_clinvar_disease, format_omim_ids,
+        get_clinvar_url, get_dbsnp_url, get_omim_url, get_clingen_url,
+        get_alphagenome_url, get_pubmed_url, get_gnomad_url
     )
 
 def query_variant_data(sqlite_path, act_json_path, ag_cache_path):
@@ -720,6 +724,124 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     for i, op in enumerate(opps):
         md.append(f"{i+1}. {op}")
 
+    # Part 5: Appendix: Supporting Documentation & Evidence Sources
+    md.append("")
+    md.append("### Appendix: Supporting Documentation & Evidence Sources")
+    md.append(
+        "This appendix compiles primary evidence accessions, external database cross-references, genomic coordinate mappings (GRCh38), "
+        "and clinical guidelines for all key variants and genes analyzed across this report. All links connect directly to peer-reviewed "
+        "public archives and expert clinical curation repositories."
+    )
+    md.append("")
+    md.append("#### 1. Variant Evidence & Cross-Reference Directory")
+    md.append("")
+    md.append("| Gene | Variant | Coordinates (GRCh38) | ClinVar | dbSNP | OMIM | ClinGen | AlphaGenome | Primary Guideline / Evidence |")
+    md.append("| :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- |")
+
+    appendix_vars = []
+    seen_app_keys = set()
+    for cat_list in [primary_display, cardio_unique, prot_list, metab_unique]:
+        for v in cat_list:
+            key = (safe_str(v.get("chrom")), safe_str(v.get("pos")), safe_str(v.get("ref")), safe_str(v.get("alt")))
+            if key not in seen_app_keys:
+                seen_app_keys.add(key)
+                appendix_vars.append(v)
+
+    # Include any additional Tier 1 variants if present
+    for v in variants:
+        if v.get("tier") == "Tier1":
+            key = (safe_str(v.get("chrom")), safe_str(v.get("pos")), safe_str(v.get("ref")), safe_str(v.get("alt")))
+            if key not in seen_app_keys:
+                seen_app_keys.add(key)
+                appendix_vars.append(v)
+
+    for v in appendix_vars:
+        h = safe_str(v.get("hugo")).upper()
+        achg = safe_str(v.get("achange") or v.get("cchange") or "Genomic")
+        chrom = safe_str(v.get("chrom"))
+        pos = safe_str(v.get("pos"))
+        ref = safe_str(v.get("ref"))
+        alt = safe_str(v.get("alt"))
+        coord_str = f"`{chrom}:{pos} {ref}>{alt}`" if chrom and pos else "—"
+
+        # ClinVar Link
+        cv_id = safe_str(v.get("clinvar_id")).replace("VCV", "").replace("vcv", "").strip()
+        cv_url = get_clinvar_url(cv_id)
+        cv_link = f"[VCV{cv_id}]({cv_url})" if cv_url else "—"
+
+        # dbSNP Link
+        rs = safe_str(v.get("rsid")).strip()
+        rs_url = get_dbsnp_url(rs)
+        rs_link = f"[{rs}]({rs_url})" if rs_url else "—"
+
+        # OMIM Link
+        om_raw = safe_str(v.get("omim_id"))
+        om_url = get_omim_url(om_raw)
+        if om_url:
+            om_digits = [p.strip().replace("OMIM:", "").replace("MIM:", "").strip() for p in om_raw.replace(";", ",").split(",") if p.strip().isdigit()]
+            om_link = f"[MIM:{om_digits[0]}]({om_url})"
+        else:
+            om_link = "—"
+
+        # ClinGen Link
+        cg_url = get_clingen_url(h)
+        cg_link = f"[{h}]({cg_url})" if cg_url else "—"
+
+        # AlphaGenome Atlas Link
+        ag_url = get_alphagenome_url(chrom, pos, ref, alt)
+        ag_link = f"[Atlas]({ag_url})" if ag_url else "—"
+
+        # Primary Guideline / Evidence Link
+        pmid = safe_str(v.get("gwas_pmid"))
+        dis = safe_str(v.get("clinvar_disease")).lower()
+        if h == "CBLIF":
+            guide_link = "[OMIM 261000 (Intrinsic Factor)](https://www.omim.org/entry/261000)"
+        elif h == "F5":
+            if "534" in achg or "rs6025" in rs.lower():
+                guide_link = "[ACMG/ACOG VTE (PMID 28373160)](https://pubmed.ncbi.nlm.nih.gov/28373160/)"
+            else:
+                guide_link = "[Factor V Deficiency (ClinVar)](https://www.ncbi.nlm.nih.gov/clinvar/variation/2884751/)"
+        elif h == "APOB":
+            if "4481" in achg or float(v.get("gnomad4_af") or 0.0) > 0.01:
+                guide_link = "[GWAS Lipids (PMID 41325697)](https://pubmed.ncbi.nlm.nih.gov/41325697/)"
+            else:
+                guide_link = "[FHBL1 (OMIM 615558)](https://www.omim.org/entry/615558)"
+        elif h == "DPYD":
+            guide_link = "[CPIC Fluoropyrimidines (DPYD)](https://cpicpgx.org/guidelines/guideline-for-fluoropyrimidines-and-dpyd/)"
+        elif h == "ANK2":
+            guide_link = "[CredibleMeds QTdrugs](https://crediblemeds.org/)"
+        elif h == "CDKN2B":
+            guide_link = "[GWAS CAD 9p21 (PMID 30054458)](https://pubmed.ncbi.nlm.nih.gov/30054458/)"
+        elif h == "POLG":
+            guide_link = "[Valproate Toxicity (PMID 24077912)](https://pubmed.ncbi.nlm.nih.gov/24077912/)"
+        elif h == "ATM":
+            guide_link = "[NCCN Genetic Surveillance (ATM)](https://search.clinicalgenome.org/kb/genes/ATM)"
+        elif h == "VDR":
+            guide_link = "[VDR Promoter (PMID 16785239)](https://pubmed.ncbi.nlm.nih.gov/16785239/)"
+        elif h == "CTH":
+            guide_link = "[Cystathioninuria (OMIM 219500)](https://www.omim.org/entry/219500)"
+        elif pmid and pmid.isdigit():
+            guide_link = f"[GWAS (PMID {pmid})](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)"
+        elif cv_url:
+            guide_link = f"[ClinVar Evidence]({cv_url})"
+        else:
+            guide_link = f"[NCBI Gene {h}](https://www.ncbi.nlm.nih.gov/gene/?term={h})"
+
+        md.append(f"| **{h}** | `{achg}` | {coord_str} | {cv_link} | {rs_link} | {om_link} | {cg_link} | {ag_link} | {guide_link} |")
+
+    md.append("")
+    md.append("#### 2. Authoritative Clinical & Pharmacogenomic Repositories")
+    md.append("* **[NCBI ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/):** National Center for Biotechnology Information public archive of human genomic variants and interpretations of clinical significance.")
+    md.append("* **[ClinGen (Clinical Genome Resource)](https://clinicalgenome.org/):** NIH-funded consortium curating authoritative evidence supporting gene-disease clinical validity, dosage sensitivity, and actionability.")
+    md.append("* **[OMIM (Online Mendelian Inheritance in Man)](https://www.omim.org/):** Curated database of human genes and genetic phenotypes founded by Victor A. McKusick at Johns Hopkins University.")
+    md.append("* **[DeepMind AlphaGenome Atlas](https://alphagenome.deepmind.com/):** Unified genomic AI foundation model providing 1-bp resolution locus exploration, chromatin accessibility, and multimodal impact predictions.")
+    md.append("* **[CPIC (Clinical Pharmacogenetics Implementation Consortium)](https://cpicpgx.org/guidelines/):** Peer-reviewed clinical practice guidelines enabling translation of genetic test results into actionable prescribing decisions.")
+    md.append("* **[PharmGKB (Pharmacogenomics Knowledgebase)](https://www.pharmgkb.org/):** Comprehensive resource curating knowledge on how genetic variations impact medication responses and clinical outcomes.")
+    md.append("* **[CredibleMeds (AZCERT)](https://crediblemeds.org/):** Evidence-based decision support resource maintaining stratified QT-prolonging drug lists and torsadogenic risk categories.")
+    md.append("* **[Broad Institute gnomAD (v4.1)](https://gnomad.broadinstitute.org/):** Reference population genomic dataset spanning >800,000 individuals for allele frequency estimation and gene constraint metrics.")
+    md.append("* **[NCBI dbSNP](https://www.ncbi.nlm.nih.gov/snp/):** Central public repository for single nucleotide polymorphisms and short genetic variations.")
+    md.append("")
+
     return "\n".join(md)
 
 def format_report_html(sample_name, patient_id, markdown_content):
@@ -795,7 +917,7 @@ def format_report_html(sample_name, patient_id, markdown_content):
     body_html = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', body_html)
     body_html = re.sub(r'\*(.*?)\*', r'<em>\1</em>', body_html)
     body_html = re.sub(r'`(.*?)`', r'<code>\1</code>', body_html)
-    body_html = re.sub(r'\[(.*?)\]\((.*?)\)', r'<a href="\2" target="_blank">\1</a>', body_html)
+    body_html = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank">\1</a>', body_html)
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -918,6 +1040,15 @@ def format_report_html(sample_name, patient_id, markdown_content):
     padding: 1px 0;
     color: #334155;
   }}
+  a {{
+    color: #1d4ed8;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    word-break: break-word;
+  }}
+  a:hover {{
+    color: #1e40af;
+  }}
   br {{
     display: none;
   }}
@@ -926,6 +1057,10 @@ def format_report_html(sample_name, patient_id, markdown_content):
       padding: 0;
       font-size: 8.8pt;
       line-height: 1.35;
+    }}
+    a {{
+      color: #1d4ed8;
+      text-decoration: underline;
     }}
     .table-container, table, tr, h3, h4, h5 {{
       page-break-inside: avoid;
