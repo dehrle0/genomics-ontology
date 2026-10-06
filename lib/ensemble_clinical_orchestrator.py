@@ -69,6 +69,7 @@ import subprocess
 import shutil
 import urllib.request
 import urllib.error
+from datetime import datetime
 from contextlib import contextmanager
 
 # Model Registry
@@ -535,17 +536,66 @@ def validate_and_reconcile_variant_references(report_md, active_records):
     print("[Variant Reference Audit] Concordance check complete. All variant references verified.")
     return report_md
 
+def purge_memory_and_archive(patient_dir, patient_name_or_token="PROBAND_01"):
+    """
+    Purges lingering model processes and KV-caches from host RAM,
+    and archives prior run deliverables into a timestamped archive folder.
+    """
+    print("\n==================================================================")
+    print("[Clean Slate Directive] Initiating memory purge and pre-execution archival...")
+    print("==================================================================")
+    
+    # 1. Kill any existing llama-server instances to flush KV caches
+    try:
+        subprocess.run(["pkill", "-9", "-f", "llama-server"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(2)
+        print("[Memory Purge] Terminated lingering llama-server processes. Host RAM & KV-cache wiped clean.")
+    except Exception as e:
+        print(f"[Memory Purge Warning] Could not pkill llama-server: {e}")
+
+    # 2. Archive prior run artifacts
+    if os.path.exists(patient_dir):
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        archive_dir = os.path.join(patient_dir, "archive", ts)
+        os.makedirs(archive_dir, exist_ok=True)
+        
+        archived_files = []
+        for fname in os.listdir(patient_dir):
+            if fname.endswith((".md", ".html", ".pdf", "_adjudicated.json")) and ("clinical_ensemble_synthesis" in fname or "deep_research_report" in fname):
+                src = os.path.join(patient_dir, fname)
+                if os.path.isfile(src):
+                    dst = os.path.join(archive_dir, fname)
+                    shutil.move(src, dst)
+                    archived_files.append(fname)
+                    
+        if archived_files:
+            print(f"[Artifact Archival] Archived {len(archived_files)} previous artifacts into: {archive_dir}")
+            for af in archived_files:
+                print(f"  -> Archived: {af}")
+        else:
+            print("[Artifact Archival] Clean directory: no prior synthesis artifacts found.")
+
+# ---------------------------------------------------------
 # Main Ensemble Pipeline Execution
 # ---------------------------------------------------------
 
 def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patient_name=None, patient_id=None):
     t_start = time.time()
+    patient_dir = os.path.dirname(os.path.abspath(out_md))
+    
+    # Clean Slate Memory Purge & Pre-Execution Archival
+    purge_memory_and_archive(patient_dir, patient_name or session_token)
+
     print("==================================================================")
     print("STARTING CLINICAL MULTI-MODEL ENSEMBLE ORCHESTRATION")
     print(f"Input:         {input_json}")
     print(f"Output MD:     {out_md}")
     print(f"Proband Token: {session_token} (Zero-PII Blind Mode)")
     print("==================================================================")
+
+    # Launch Gemma 2B Router/Supervisor resident on port 7005 as active supervisor
+    print("\n[Active Model Setup] Initializing Google Gemma 2B as active resident supervisor on port 7005...")
+    gemma_proc = start_server_instance("gemma-2b", port=7005, ctx_size=8192)
 
     with open(input_json, "r", encoding="utf-8") as f:
         raw_data = json.load(f)
@@ -566,14 +616,6 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
     print(f"\n[Stratified Partitioning Complete]")
     print(f"  -> Track 1 (Genomics) {len(top_genomics)} candidates: {[r['gene'] + ' ' + r['variant'] for r in top_genomics]}")
     print(f"  -> Track 2 (Pharma & Modifiers) {len(top_pharma)} candidates: {[r['gene'] + ' ' + r['variant'] for r in top_pharma]}")
-
-    # Launch Gemma 2B Router resident on port 7005
-    gemma_proc = None
-    if not is_server_listening(7005):
-        try:
-            gemma_proc = start_server_instance("gemma-2b", port=7005, ctx_size=8192)
-        except Exception as e:
-            print(f"[Router Warning] Could not start resident Gemma 2B server on 7005: {e}")
 
     if is_server_listening(7005):
         try:
