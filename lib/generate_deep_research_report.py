@@ -338,6 +338,34 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     md.append(f"**Genomic Reference:** GRCh38.p14 | **Sequencing Modality:** Whole-Genome Sequencing (WGS, 40x mean depth, GBZ pan-genome aligned)")
     md.append("")
     md.append("### Orientation: What We Are Covering")
+
+    # Dynamic Primary Monogenic Carrier Summary
+    plp_summary = []
+    for v in categorized["primary"][:4]:
+        h = v["hugo"]
+        chg = safe_str(v.get("achange") or v.get("cchange") or "variant")
+        plp_summary.append(f"*{h}* `{chg}`")
+
+    if plp_summary:
+        if len(plp_summary) == 1:
+            plp_text = f"**one definitive pathogenic monogenic carrier state** ({plp_summary[0]})"
+        else:
+            plp_text = f"**{len(plp_summary)} definitive pathogenic monogenic carrier states** ({', '.join(plp_summary)})"
+    else:
+        plp_text = "**zero high-penetrance monogenic pathogenic findings**"
+
+    # Dynamic Secondary Risk Modifiers
+    sec_genes = []
+    primary_genes_set = set([v["hugo"] for v in categorized["primary"][:4]])
+    for v in categorized["cardio_coag"][:6] + categorized["protective_pgx"][:6]:
+        h = v["hugo"]
+        so = safe_str(v.get("so")).upper()
+        if so in ["SYN", "INT", "UT3", "UT5"]:
+            continue
+        if h not in primary_genes_set and h not in sec_genes:
+            sec_genes.append(f"*{h}*")
+    sec_text = f", alongside secondary risk modifiers ({', '.join(sec_genes[:4])})" if sec_genes else ""
+
     md.append(
         f"This clinical genomics evidence synthesis evaluates a broad exploratory screening corpus "
         f"of {total_vars} prioritized candidate variants across 822 genes ({t1_count} Tier 1, {t2_count} Tier 2, {t3_count} Tier 3) "
@@ -346,7 +374,7 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
         f"the vast majority of the corpus comprises exploratory non-coding variants, unphased VUS, or polygenic risk signals. "
         f"Within this cohort, orthogonal consensus between established human disease databases (ClinVar, OMIM, ClinGen) "
         f"and biological foundation models (DeepMind AlphaGenome, AlphaMissense, CADD, SpliceAI) identifies "
-        f"**one definitive pathogenic monogenic carrier state** (*CBLIF* `c.79+1G>A`), alongside secondary common risk modifiers (*F5* Factor V Leiden, *APOB*) and exploratory research loci. "
+        f"{plp_text}{sec_text} and exploratory research loci. "
         f"All findings are grounded strictly in peer-reviewed literature without diagnostic extrapolation."
     )
     md.append("")
@@ -501,13 +529,13 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
             seen_pgx.add(h)
             prot_list.append(v)
 
-    # Ensure APOB lipid pharmacology context is included in Section 5 if APOB is present in the patient's actionable findings
-    apob_variants = [v for v in variants if v.get("hugo") == "APOB" and v.get("so") != "SYN"]
+    # Ensure APOB lipid pharmacology context is included in Section 5 only if coding Tier 1/2 variant is present
+    apob_variants = [v for v in variants if v.get("hugo") == "APOB" and v.get("tier") in ["Tier1", "Tier2"] and v.get("so") not in ["SYN", "INT", "UT3", "UT5"]]
     if apob_variants and not any(v["hugo"] == "APOB" for v in prot_list):
         prot_list.append(apob_variants[0])
 
-    # Ensure ANK2 cardiac medication context is included if present
-    ank2_variants = [v for v in variants if v.get("hugo") == "ANK2"]
+    # Ensure ANK2 cardiac medication context is included only if coding Tier 1/2 variant is present
+    ank2_variants = [v for v in variants if v.get("hugo") == "ANK2" and v.get("tier") in ["Tier1", "Tier2"] and v.get("so") not in ["SYN", "INT", "UT3", "UT5"]]
     if ank2_variants and not any(v["hugo"] == "ANK2" for v in prot_list):
         prot_list.append(ank2_variants[0])
 
@@ -661,8 +689,18 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     # Structured Confidence & Uncertainty Assessment
     md.append("### Confidence & Uncertainty Assessment")
     md.append("- **Analytical Callset Confidence:** 0.98 (High-depth 40x WGS callset, panSN GBZ pan-genome graph alignment)")
-    md.append("- **Monogenic Pathogenic Carrier Finding (*CBLIF*):** 0.95 (Canonical splice-donor LoF, exact ClinVar accession, AlphaGenome splicing signal)")
-    md.append("- **Secondary Modifiers & PGx Confidence (*F5*, *APOB*, *ANK2*):** 0.70 (Established functional loci, but conflicting clinical penetrance and polygenic modifier status)")
+    if primary_display:
+        primary_genes_str = ", ".join([f"*{v['hugo']}*" for v in primary_display[:3]])
+        md.append(f"- **Monogenic Pathogenic Carrier Findings ({primary_genes_str}):** 0.95 (Concordant ClinVar pathogenic/likely pathogenic, deep learning deleteriousness, and ClinGen curations)")
+    else:
+        md.append("- **Monogenic Pathogenic Finding Confidence:** N/A (Zero definitive monogenic pathogenic findings identified; negative for high-penetrance Mendelian disease)")
+
+    if sec_genes:
+        sec_genes_str = ", ".join(sec_genes[:4])
+        md.append(f"- **Secondary Modifiers & PGx Confidence ({sec_genes_str}):** 0.70 (Established functional loci, but conflicting clinical penetrance or polygenic modifier status)")
+    else:
+        md.append("- **Secondary Modifiers & PGx Confidence:** 0.70 (Polygenic and exploratory candidate modifier status)")
+
     md.append("- **Overall Clinical Synthesis Utility:** 0.75 (Personal screening & exploratory research context; explicitly distinct from an in-vitro diagnostic device)")
     md.append("- **Key Methodological Limitations:** Low-level somatic mosaicism (<10% VAF) cannot be ruled in or out by 40x short-read WGS; non-coding candidate rescues require functional RNA-seq validation.")
     md.append("")
@@ -675,32 +713,67 @@ def format_report_markdown(sample_name, patient_id, variants, categorized):
     opps.append(
         "**Clinical Confirmation Prerequisite:** Any genomic finding intended to guide medical intervention must undergo orthogonal clinical laboratory confirmation (e.g. Sanger sequencing or targeted clinical assay in a CLIA/CAP-certified facility) and formal genetic counseling prior to EHR alerting or therapy modification."
     )
-    opps.append(
-        "**Action (Targeted Clinical & Specialist Discussion):** Review confirmed findings in relevant clinical contexts: "
-        "**CBLIF:** Autosomal recessive carrier; periodic B12/MMA surveillance. "
-        "**F5 (p.Arg534Gln):** If personal/family history indicates thrombotic risk, evaluate situational VTE prophylaxis during high-risk surgery or immobilization. "
-        "**ANK2 (p.Arg3906Trp):** Clinical review of personal/family cardiac conduction history; consider baseline ECG prior to high-risk QT-prolonging pharmacotherapy. "
-        "**APOB & DPYD:** Modifiers managed under standard clinical guidelines without unindicated empiric drug avoidance."
-    )
+
+    action_items = []
+    for v in primary_display[:4]:
+        h = v["hugo"]
+        achg = safe_str(v.get("achange") or v.get("cchange"))
+        dis = safe_str(v.get("clinvar_disease")).lower()
+        if h == "CBLIF":
+            action_items.append("**CBLIF:** Autosomal recessive carrier; periodic B12/MMA surveillance.")
+        elif h == "ATM":
+            action_items.append("**ATM:** Autosomal dominant cancer susceptibility; recommend genetic counseling and high-risk breast/pancreatic surveillance (e.g. annual breast MRI per NCCN guidelines).")
+        elif h == "POLG":
+            action_items.append("**POLG:** Strict contraindication against sodium valproate (Depakote); establish neurology baseline for mitochondrial maintenance.")
+        elif "pathogenic" in safe_str(v.get("clinvar_sig")).lower():
+            action_items.append(f"**{h} (`{achg}`):** Pathogenic carrier; specialist consultation for {dis.split('|')[0][:40]}.")
+
+    for v in categorized["cardio_coag"] + categorized["protective_pgx"]:
+        h = v["hugo"]
+        achg = safe_str(v.get("achange") or v.get("cchange"))
+        so = safe_str(v.get("so")).upper()
+        tier = safe_str(v.get("tier"))
+        if tier not in ["Tier1", "Tier2"] or so in ["SYN", "INT", "UT3", "UT5"]:
+            continue
+        if h == "F5" and ("534" in achg or "rs6025" in str(v.get("rsid"))):
+            action_items.append("**F5 (p.Arg534Gln):** Situational VTE prophylaxis during high-risk surgery or prolonged immobilization.")
+        elif h == "ANK2" and ("3906" in achg or "rs121912706" in str(v.get("rsid"))):
+            action_items.append("**ANK2 (p.Arg3906Trp):** Clinical review of cardiac conduction history; consider baseline ECG prior to high-risk QT-prolonging pharmacotherapy.")
+        elif h == "DPYD" and ("732" in achg or "1801160" in str(v.get("rsid"))):
+            action_items.append("**DPYD (*6):** Minor PGx modifier; standard clinical oncology dosing applies (empiric dose reduction not indicated for isolated *6).")
+        elif h == "APOB" and ("4481" in achg or "1801695" in str(v.get("rsid"))):
+            action_items.append("**APOB:** Polygenic lipid modifier managed under standard clinical guidelines without unindicated empiric drug avoidance.")
+
+    action_str = " ".join(list(dict.fromkeys(action_items))) if action_items else "Review secondary genomic modifiers in relevant clinical contexts."
+    opps.append(f"**Action (Targeted Clinical & Specialist Discussion):** Review confirmed findings in relevant clinical contexts: {action_str}")
 
     # 2. Monitor: Laboratory Surveillance
     lab_targets = []
     for v in variants:
+        tier = safe_str(v.get("tier"))
+        so = safe_str(v.get("so")).upper()
+        if tier not in ["Tier1", "Tier2"] or so in ["SYN", "INT", "UT3", "UT5"]:
+            continue
         dis = safe_str(v.get("clinvar_disease")).lower()
         h = v["hugo"]
+        achg = safe_str(v.get("achange") or v.get("cchange"))
         v_af = float(v.get("gnomad4_af")) if v.get("gnomad4_af") and str(v.get("gnomad4_af")).lower() != "none" else 0.0
         is_plp = "pathogenic" in safe_str(v.get("clinvar_sig")).lower() and "conflicting" not in safe_str(v.get("clinvar_sig")).lower() and "uncertain" not in safe_str(v.get("clinvar_sig")).lower()
         if "hypobeta" in dis and is_plp and v_af <= 0.005:
             lab_targets.append("Monitor: Apolipoprotein B & fractionated lipid panel, liver ultrasound / transaminases (AST/ALT), and fat-soluble vitamins (A, D, E, K)")
-        elif h == "APOB":
+        elif h == "APOB" and ("4481" in achg or is_plp):
             lab_targets.append("Monitor: Fasting lipid panel (Total Cholesterol, LDL-C, HDL-C, Triglycerides, and ApoB particle count)")
-        elif "pernicious" in dis or h == "CBLIF":
+        elif ("pernicious" in dis or h == "CBLIF") and is_plp:
             lab_targets.append("Monitor: Serum Cobalamin (B12) & Methylmalonic Acid (MMA)")
-        elif h == "ANK2":
+        elif h == "ANK2" and ("3906" in achg or is_plp):
             lab_targets.append("Monitor: Baseline 12-lead ECG for QT interval and cardiac conduction morphology")
-        elif "tyrosinemia" in dis:
+        elif h == "ATM" and is_plp:
+            lab_targets.append("Monitor: Annual breast MRI surveillance and oncology surveillance (NCCN guidelines)")
+        elif h == "POLG" and is_plp:
+            lab_targets.append("Monitor: Hepatic transaminases (AST/ALT) and clinical neurology evaluation")
+        elif "tyrosinemia" in dis and is_plp:
             lab_targets.append("Monitor: Plasma amino acid chromatography (tyrosine/phenylalanine ratio)")
-        elif "hearing" in dis or "deafness" in dis:
+        elif ("hearing" in dis or "deafness" in dis) and is_plp:
             lab_targets.append("Monitor: Baseline pure-tone audiometry")
             
     lab_str = "; ".join(list(dict.fromkeys(lab_targets))[:4]) if lab_targets else "Monitor: Comprehensive metabolic profile and fasting lipid panel"
@@ -1141,6 +1214,25 @@ def main():
 
     generate_pdf(html_path, pdf_path)
     print(f"[Execution Complete] Deep Research Synthesis generated successfully for {sample_name}.")
+
+    # Sync to Google Drive Ontology directory if accessible
+    gdrive_ontology = "/home/daniel-ehrle/Google Drive/My Drive/Ontology"
+    if os.path.exists(gdrive_ontology):
+        for fpath in [md_path, html_path, pdf_path]:
+            if os.path.exists(fpath):
+                out_base = os.path.basename(fpath)
+                dest = os.path.join(gdrive_ontology, out_base)
+                try:
+                    shutil.copyfile(fpath, dest)
+                    print(f"[Google Drive Sync] Synced {out_base} to Google Drive: {dest}")
+                    for folder in os.listdir(gdrive_ontology):
+                        subpath = os.path.join(gdrive_ontology, folder)
+                        if os.path.isdir(subpath) and patient_id in folder and folder in args.out_dir:
+                            sub_dest = os.path.join(subpath, out_base)
+                            shutil.copyfile(fpath, sub_dest)
+                            print(f"[Google Drive Sync] Synced {out_base} to dated folder: {sub_dest}")
+                except Exception as e:
+                    print(f"[Google Drive Sync Warning] Could not sync {out_base}: {e}")
 
 if __name__ == "__main__":
     main()

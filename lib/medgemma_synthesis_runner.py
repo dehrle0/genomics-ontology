@@ -130,6 +130,8 @@ def sanitize_for_medgemma(raw_findings, session_token="PROBAND_01"):
             "gene": str(item.get("hugo") or item.get("gene") or "").upper().strip(),
             "variant": str(item.get("achange") or item.get("cchange") or item.get("variant") or "").strip(),
             "zygosity": str(item.get("zygosity") or "het").strip(),
+            "so": so,
+            "tier": str(item.get("tier") or "").strip(),
             "clinvar_sig": str(item.get("clinvar_sig") or "").strip(),
             "clinvar_id": str(item.get("clinvar_id") or "").strip(),
             "omim_id": str(item.get("omim_id") or "").strip(),
@@ -149,14 +151,30 @@ def sanitize_for_medgemma(raw_findings, session_token="PROBAND_01"):
 
 def sort_priority(rec):
     sig = str(rec.get("clinvar_sig") or "").lower()
-    is_plp = "pathogenic" in sig and "conflicting" not in sig and "uncertain" not in sig
+    is_plp = "pathogenic" in sig and "conflicting" not in sig and "uncertain" not in sig and "benign" not in sig
+    tier = str(rec.get("tier") or "").strip()
+    so = str(rec.get("so") or "").upper().strip()
+
     cadd = float(rec.get("cadd_phred") or 0.0)
     avi = float(rec.get("avi_phred") or 0.0)
-    hugo = str(rec.get("gene") or "").upper()
+    rev = float(rec.get("revel") or 0.0)
     priority = 0.0
-    if is_plp: priority += 100.0
-    if hugo in ["CBLIF", "F5", "APOB", "DPYD", "ANK2", "CDKN2B", "POLG", "LRP5"]: priority += 60.0
-    return priority + cadd + (avi * 0.5)
+    if is_plp:
+        priority += 120.0
+    elif "likely pathogenic" in sig or "drug response" in sig:
+        priority += 40.0
+    elif "protective" in sig:
+        priority += 20.0
+
+    if tier == "Tier1":
+        priority += 50.0
+    elif tier == "Tier2":
+        priority += 20.0
+
+    if so in ["UT3", "UT5", "INT", "SYN"] and not is_plp:
+        priority -= 40.0
+
+    return priority + cadd + (avi * 0.5) + (rev * 20.0)
 
 def append_supporting_documentation_appendix(report_md, clean_records):
     """
@@ -186,6 +204,15 @@ def append_supporting_documentation_appendix(report_md, clean_records):
     for rec in sorted_records:
         h = str(rec.get("gene") or "").upper().strip()
         v = str(rec.get("variant") or "").strip()
+        so = str(rec.get("so") or "").upper().strip()
+        tier = str(rec.get("tier") or "").strip()
+        sig = str(rec.get("clinvar_sig") or "").lower()
+        is_plp = "pathogenic" in sig and "conflicting" not in sig and "uncertain" not in sig
+
+        # Prune silent synonymous, UTR, intronic, or Tier 3 unless definitive PLP
+        if (so in ["SYN", "INT", "UT3", "UT5"] or tier == "Tier3") and not is_plp:
+            continue
+
         chrom = str(rec.get("chrom") or "").strip()
         pos = str(rec.get("pos") or "").strip()
         ref = str(rec.get("ref") or "").strip().upper()
@@ -216,28 +243,37 @@ def append_supporting_documentation_appendix(report_md, clean_records):
             ag_link = f"[Atlas](https://alphagenome.deepmind.com/gene/{h})"
 
         pmid = str(rec.get("gwas_pmid") or "").strip()
-        if h == "CBLIF":
+        if h == "CBLIF" and is_plp:
             guide_link = "[OMIM 261000 (Intrinsic Factor)](https://www.omim.org/entry/261000)"
         elif h == "F5":
             if "534" in v or "rs6025" in rs.lower():
                 guide_link = "[ACMG/ACOG VTE (PMID 28373160)](https://pubmed.ncbi.nlm.nih.gov/28373160/)"
-            else:
+            elif "295" in v or is_plp:
                 guide_link = "[Factor V Deficiency (ClinVar)](https://www.ncbi.nlm.nih.gov/clinvar/variation/2884751/)"
-        elif h == "APOB":
-            if "4481" in v or "conflicting" in str(rec.get("clinvar_sig") or "").lower():
-                guide_link = "[GWAS Lipids (PMID 41325697)](https://pubmed.ncbi.nlm.nih.gov/41325697/)"
             else:
+                guide_link = f"[ClinVar Evidence](https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv_id}/)" if cv_id else f"[NCBI Gene {h}](https://www.ncbi.nlm.nih.gov/gene/?term={h})"
+        elif h == "APOB":
+            if "4481" in v or "1801695" in rs:
+                guide_link = "[GWAS Lipids (PMID 41325697)](https://pubmed.ncbi.nlm.nih.gov/41325697/)"
+            elif is_plp:
                 guide_link = "[FHBL1 (OMIM 615558)](https://www.omim.org/entry/615558)"
-        elif h == "DPYD":
+            else:
+                guide_link = f"[ClinVar Evidence](https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv_id}/)" if cv_id else f"[NCBI Gene {h}](https://www.ncbi.nlm.nih.gov/gene/?term={h})"
+        elif h == "DPYD" and ("732" in v or "1801160" in rs or is_plp):
             guide_link = "[CPIC Fluoropyrimidines (DPYD)](https://cpicpgx.org/guidelines/guideline-for-fluoropyrimidines-and-dpyd/)"
         elif h == "ANK2":
-            guide_link = "[CredibleMeds QTdrugs](https://crediblemeds.org/)"
+            if "3906" in v or "121912706" in rs or is_plp:
+                guide_link = "[CredibleMeds QTdrugs](https://crediblemeds.org/)"
+            else:
+                guide_link = f"[ClinVar Evidence](https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv_id}/)" if cv_id else f"[NCBI Gene {h}](https://www.ncbi.nlm.nih.gov/gene/?term={h})"
         elif h == "CDKN2B":
             guide_link = "[GWAS CAD 9p21 (PMID 30054458)](https://pubmed.ncbi.nlm.nih.gov/30054458/)"
-        elif h == "POLG":
+        elif h == "POLG" and is_plp:
             guide_link = "[Valproate Toxicity (PMID 24077912)](https://pubmed.ncbi.nlm.nih.gov/24077912/)"
-        elif h == "ATM":
+        elif h == "ATM" and is_plp:
             guide_link = "[NCCN Genetic Surveillance (ATM)](https://search.clinicalgenome.org/kb/genes/ATM)"
+        elif h == "TAT" and is_plp:
+            guide_link = "[Tyrosinemia Type II (OMIM 276600)](https://www.omim.org/entry/276600)"
         elif h == "VDR":
             guide_link = "[VDR Promoter (PMID 16785239)](https://pubmed.ncbi.nlm.nih.gov/16785239/)"
         elif pmid and pmid.isdigit():
@@ -288,16 +324,17 @@ def build_medgemma_prompt(clean_records, session_token):
         "You are MedGemma, an elite clinical genomics AI assistant specializing in evidence synthesis. "
         "Operational Directives:\n"
         "1. Zero PII: Never invent or use patient names, dates of birth, or facilities. Refer solely to the proband as '" + session_token + "'.\n"
-        "2. Clinical Scope & Tone: The exhaustive raw variant call tables and in-silico predictor matrices are already archived in the accompanying Master Ontology Explorer. Your role is to deliver a readable, highly authoritative executive clinical summary focused on the high-actionable level findings.\n"
-        "3. Include sufficient molecular mechanism details and clinical reasoning to be authoritative without bogging down in repetitive technical data dumps. Do not loop or repeat identical variant phrases.\n"
-        "4. Structure strictly following the VSCP-DF framework:\n"
+        "2. Strict Grounding & Anti-Hallucination: You must strictly restrict your analysis to the specific genes and variants present in the supplied JSON payload. Never reference, invent, or discuss genes or variants that are not in the provided callset.\n"
+        "3. Clinical Scope & Tone: The exhaustive raw variant call tables and in-silico predictor matrices are already archived in the accompanying Master Ontology Explorer. Your role is to deliver a readable, highly authoritative executive clinical summary focused on the high-actionable level findings.\n"
+        "4. Include sufficient molecular mechanism details and clinical reasoning to be authoritative without bogging down in repetitive technical data dumps. Do not loop or repeat identical variant phrases.\n"
+        "5. Structure strictly following the VSCP-DF framework:\n"
         "   - Orientation & Executive Summary\n"
-        "   - High-Actionable & Primary Findings (focused dossiers with authoritative depth for primary loci)\n"
-        "   - Cardiovascular, Channelopathy & Lipid Modifiers (APOB polygenic modifier, ANK2 cardiac conduction)\n"
-        "   - Critical Pharmacogenomic & Drug Interactions (DPYD 5-FU, F5 VTE, APOB MTTP/statin context, ANK2 QT caution)\n"
+        "   - High-Actionable & Primary Findings (focused dossiers with authoritative depth for primary loci in the callset)\n"
+        "   - Secondary Modifiers & Organ Surveillance (cardiovascular, metabolic, or cellular co-factors present in the callset)\n"
+        "   - Critical Pharmacogenomic & Drug Interactions (contraindications or metabolic alterations specific to the patient's verified variants)\n"
         "   - Clinical Decision Calculus (Arguments FOR and AGAINST over-intervention, with explicit 0.00-1.00 Confidence Score)\n"
-        "   - Action Directives: Action (Update Electronic Health Records with...)\n"
-        "   - Monitoring Directives: Monitor (Baseline & Periodic Clinical Surveillance for...)\n"
+        "   - Action Directives: Action (Update Electronic Health Records with confirmed findings)\n"
+        "   - Monitoring Directives: Monitor (Baseline & Periodic Clinical Surveillance tailored to the detected variants)\n"
         "   - Methodological Assumptions & Limitations (40x WGS boundaries, mosaicism, recessive carrier status)"
     )
     
@@ -305,9 +342,9 @@ def build_medgemma_prompt(clean_records, session_token):
         f"Generate a publication-grade, authoritative Clinical Genomics Evidence Summary for {session_token} based on the following verified genomic callset:\n\n"
         f"{json.dumps(top_records, indent=2)}\n\n"
         "Requirements:\n"
-        "- Focus on the high-actionable findings (e.g. CBLIF, F5, APOB, DPYD, ANK2) with clear molecular rationale.\n"
-        "- Explicitly detail drug interactions (fluoropyrimidines, QT-prolonging drugs via CredibleMeds, anticoagulation/VTE, and avoidance of unindicated MTTP/ApoB targeting).\n"
-        "- Ensure Action (EHR updates), Monitor (laboratory directives), Assumptions/Limitations, and Decision Calculus are fully articulated.\n"
+        "- Focus strictly and exclusively on the findings present in the supplied callset with clear molecular rationale.\n"
+        "- Detail any applicable drug interactions, contraindications, or metabolic warnings directly relevant to the provided variants.\n"
+        "- Ensure Action (EHR updates), Monitor (laboratory directives), Assumptions/Limitations, and Decision Calculus are fully articulated and grounded only in the provided callset.\n"
         "- Output clean GitHub-Flavored Markdown directly without wrapping in markdown code blocks."
     )
     return system_prompt, user_prompt
@@ -395,23 +432,44 @@ def main():
             f.write(synthesis)
         print(f"[Success] Written {len(synthesis.splitlines())} lines of MedGemma synthesis to: {args.out_md}")
 
+        # Export HTML and PDF deliverables
+        out_html = args.out_md.replace(".md", ".html")
+        out_pdf = args.out_md.replace(".md", ".pdf")
+        patient_title = args.patient_name or "Clinical Evidence Synthesis"
+        pid_title = args.patient_id or "PROBAND"
+        try:
+            from lib.generate_deep_research_report import format_report_html, generate_pdf
+            html_content = format_report_html(patient_title, pid_title, synthesis)
+            with open(out_html, "w", encoding="utf-8") as f:
+                f.write(html_content)
+            print(f"[Deliverable Export] Written HTML5:    {out_html}")
+            generate_pdf(out_html, out_pdf)
+        except Exception as e:
+            print(f"[Export Warning] Could not render HTML/PDF: {e}")
+
         # Automatically sync to Google Drive Ontology folder if available
         gdrive_ontology = "/home/daniel-ehrle/Google Drive/My Drive/Ontology"
         if os.path.exists(gdrive_ontology):
-            out_base = os.path.basename(args.out_md)
-            gdrive_dest = os.path.join(gdrive_ontology, out_base)
-            try:
-                shutil.copyfile(args.out_md, gdrive_dest)
-                print(f"[Google Drive Sync] Synced synthesis report to Google Drive: {gdrive_dest}")
-                # Also sync into dated subfolders if directory matches
-                for folder in os.listdir(gdrive_ontology):
-                    subpath = os.path.join(gdrive_ontology, folder)
-                    if os.path.isdir(subpath) and ("Daniel_Ehrle" in folder or "Melinda_Ehrle" in folder) and folder in args.out_md:
-                        sub_dest = os.path.join(subpath, out_base)
-                        shutil.copyfile(args.out_md, sub_dest)
-                        print(f"[Google Drive Sync] Synced synthesis report to dated folder: {sub_dest}")
-            except Exception as e:
-                print(f"[Google Drive Sync Warning] Could not copy to Google Drive: {e}")
+            files_to_sync = [args.out_md]
+            if os.path.exists(out_html):
+                files_to_sync.append(out_html)
+            if os.path.exists(out_pdf):
+                files_to_sync.append(out_pdf)
+
+            for fpath in files_to_sync:
+                out_base = os.path.basename(fpath)
+                gdrive_dest = os.path.join(gdrive_ontology, out_base)
+                try:
+                    shutil.copyfile(fpath, gdrive_dest)
+                    print(f"[Google Drive Sync] Synced {out_base} to Google Drive: {gdrive_dest}")
+                    for folder in os.listdir(gdrive_ontology):
+                        subpath = os.path.join(gdrive_ontology, folder)
+                        if os.path.isdir(subpath) and ("Daniel_Ehrle" in folder or "Melinda_Ehrle" in folder) and folder in args.out_md:
+                            sub_dest = os.path.join(subpath, out_base)
+                            shutil.copyfile(fpath, sub_dest)
+                            print(f"[Google Drive Sync] Synced {out_base} to dated folder: {sub_dest}")
+                except Exception as e:
+                    print(f"[Google Drive Sync Warning] Could not copy {out_base} to Google Drive: {e}")
     finally:
         if server_proc and not args.keep_server_alive:
             stop_local_server(server_proc)
