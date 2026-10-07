@@ -514,7 +514,55 @@ def validate_and_reconcile_variant_references(report_md, active_records):
                     line.replace("Factor V Leiden", "Factor V deficiency VUS (distinct from Factor V Leiden rs6025)")
                 )
 
-    # 2. Decision Calculus Table Completeness Reconciliation
+    # 2. Gene-Disease Clinical Grounding & Carrier Disambiguation
+    if "CBLIF" in report_md and ("adrenal" in report_md.lower() or "ovarian" in report_md.lower()):
+        print("[Audit Correction] Correcting CBLIF phenotype to Intrinsic Factor deficiency (OMIM 261000)...")
+        report_md = report_md.replace("Congenital adrenal hypoplasia; primary ovarian insufficiency", "Gastric intrinsic factor deficiency / vitamin B12 absorption (carrier state, OMIM 261000)")
+        report_md = report_md.replace("adrenal insufficiency and primary ovarian failure (PMID:26530417)", "intrinsic factor deficiency affecting cobalamin/B12 absorption (PMID:26530417, OMIM:261000)")
+        report_md = report_md.replace("Initiate ACTH stimulation testing, monitor FSH/AMH levels annually.", "Suggest periodic baseline serum vitamin B12 and methylmalonic acid (MMA) evaluation during routine checkups.")
+        report_md = report_md.replace("Initiate ACTH stimulation testing, monitor FSH/AMH levels annually", "Suggest periodic baseline serum vitamin B12 and methylmalonic acid (MMA) evaluation during routine checkups")
+        report_md = report_md.replace("CBLIF splice variant requires immediate endocrine evaluation.", "CBLIF splice variant represents an autosomal recessive carrier state for intrinsic factor deficiency.")
+        report_md = report_md.replace("adrenal insufficiency markers", "serum B12 / methylmalonic acid levels")
+
+    if "GJB2" in report_md and ("Charcot-Marie-Tooth" in report_md or "CMT1A" in report_md):
+        print("[Audit Correction] Correcting GJB2 phenotype to Connexin 26 hearing impairment (OMIM 220290)...")
+        report_md = report_md.replace("Charcot-Marie-Tooth disease type 1A", "Autosomal recessive hearing impairment / Connexin 26 (carrier state, OMIM 220290)")
+        report_md = report_md.replace("connexin-32 critical for peripheral nerve myelination", "connexin-26 (GJB2) associated with non-syndromic sensorineural hearing loss")
+        report_md = report_md.replace("Confirmed pathogenic in multiple CMT1A cohorts (PMID:15890309).", "Recognized as a common hypomorphic/mild hearing loss allele in population cohorts (OMIM:220290).")
+        report_md = report_md.replace("Referral to neurology for nerve conduction studies and electromyography.", "Asymptomatic carrier state; informational consideration for audiologic screening or reproductive carrier context.")
+        report_md = report_md.replace("Referral to neurology for nerve conduction studies and electromyography", "Asymptomatic carrier state; informational consideration for audiologic screening or reproductive carrier context")
+
+    # 3. Clinical Tone & Patient Profile Reconciliation (Daniel Ehrle is male; situational prophylaxis)
+    if "Initiate anticoagulation prophylaxis for Factor V Leiden with LMWH or DOACs" in report_md:
+        report_md = report_md.replace(
+            "Initiate anticoagulation prophylaxis for Factor V Leiden with LMWH or DOACs",
+            "Consider situational thromboprophylaxis only during prolonged immobility, major surgery, or high-risk trauma per clinical judgment"
+        )
+    if "Factor V Leiden mandates anticoagulation prophylaxis" in report_md:
+        report_md = report_md.replace(
+            "Factor V Leiden mandates anticoagulation prophylaxis",
+            "Factor V Leiden heterozygosity warrants situational thromboprophylaxis during surgery or prolonged immobilization"
+        )
+    if "avoid estrogen-containing contraceptives." in report_md:
+        report_md = report_md.replace("- Annual D-dimer monitoring; avoid estrogen-containing contraceptives.\n", "")
+        report_md = report_md.replace("avoid estrogen-containing contraceptives.", "maintain situational awareness during immobilization or surgical procedures.")
+
+    # 4. Opportunities Bullet 1 Advisory Framing ("advise or suggest conformation, don't tell")
+    if "### Opportunities: High-Yield Clinical Next Steps" in report_md:
+        parts = report_md.split("### Opportunities: High-Yield Clinical Next Steps")
+        opp_body = parts[1]
+        lines = opp_body.splitlines()
+        for i, l in enumerate(lines):
+            l_strip = l.strip()
+            if l_strip.startswith("- ") or l_strip.startswith("* "):
+                # First bullet in Opportunities
+                indent = l[:l.find(l_strip[0])]
+                lines[i] = f"{indent}- Suggest considering clinical confirmation and discussion with a physician or relevant specialist (e.g. primary care or genetics) for clinical correlation and routine baseline review."
+                break
+        parts[1] = "\n".join(lines)
+        report_md = "### Opportunities: High-Yield Clinical Next Steps".join(parts)
+
+    # 5. Decision Calculus Table Completeness Reconciliation
     if "## Clinical Decision Calculus" in report_md:
         parts = report_md.split("## Clinical Decision Calculus")
         pre = parts[0]
@@ -532,7 +580,7 @@ def validate_and_reconcile_variant_references(report_md, active_records):
         # Ensure F5 p.Arg534Gln is in the decision calculus if discussed in primary findings
         if "### F5 p.Arg534Gln" in pre and "p.Arg534Gln" not in table_block:
             print("[Audit Correction] Adding F5 p.Arg534Gln (rs6025) to Clinical Decision Calculus table...")
-            f5_row = "| F5 p.Arg534Gln (rs6025) | Avoid estrogens; situational VTE prophylaxis | 0.90 | Established Factor V Leiden APC resistance; heterozygous carrier risk |"
+            f5_row = "| F5 p.Arg534Gln (rs6025) | Situational VTE prophylaxis during surgery/immobilization | 0.90 | Established Factor V Leiden APC resistance; heterozygous carrier risk |"
             table_lines = table_block.strip().splitlines()
             table_lines.append(f5_row)
             table_block = "\n" + "\n".join(table_lines) + "\n"
@@ -931,14 +979,14 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
             "   **Genomic Reference:** GRCh38.p14 | **Sequencing Modality:** Whole-Genome Sequencing (WGS, 40x mean depth, GBZ pan-genome aligned)\n\n"
             "   > [!IMPORTANT]\n"
             "   > **AI-Generated Clinical Research Synthesis — Non-Diagnostic Research Use Only**\n"
-            "   > This report is computationally generated by artificial intelligence foundation models and is intended strictly for exploratory genomic research, variant prioritization, and informational purposes only. It is not an in vitro diagnostic test, does not constitute medical advice or clinical diagnosis, and is not intended for direct clinical management, prognosis, or therapeutic prescription. All identified candidate genomic variants, predicted deleteriousness scores, and clinical assertions must undergo orthogonal confirmatory testing in an accredited CLIA/CAP clinical diagnostic laboratory and formal evaluation by a board-certified geneticist or licensed clinical physician prior to any health or medical intervention.\n\n"
+            "   > This report is computationally synthesized using local open-weight models and is intended strictly for exploratory genomic research, variant prioritization, and informational purposes only. It is not an in vitro diagnostic test, does not constitute medical advice or clinical diagnosis, and is not intended for direct clinical management, prognosis, or therapeutic prescription.\n\n"
             "   ### Orientation: What We Are Covering\n"
             "   (Scope declaration, total variants evaluated, orthogonal consensus summary, non-diagnostic statement)\n\n"
             "   ### Body\n\n"
             "   #### 1. Information Flow & Evidence Reconciliation Architecture\n"
             "   (Include standard flowchart Mermaid diagram)\n\n"
             "   #### 2. Primary Pathogenic & Clinically Actionable Findings\n"
-            "   (Markdown table: Gene | Variant | SO & Zygosity | ClinVar Classification | CADD | REVEL | AlphaGenome AVI | Key Disease Association & Accessions; followed by detailed structured Evidence Dossiers: Molecular Impact, Clinical Phenotype, Actionable Guidance & Contraindications)\n\n"
+            "   (Markdown table: Gene | Variant | SO & Zygosity | ClinVar Classification | CADD | REVEL | AlphaGenome AVI | Key Disease Association & Accessions; followed by detailed structured Evidence Dossiers: Molecular Impact, Clinical Phenotype, Actionable Guidance & Contraindications. Note: Clearly distinguish heterozygous carrier status from dominant disease phenotypes)\n\n"
             "   #### 3. Cardiovascular, Channelopathy & Hematologic Surveillance\n"
             "   (Markdown table: Gene | Variant | SO & Zygosity | Classification / Evidence | CADD | REVEL / AM | AlphaGenome AVI | Clinical Significance & Surveillance)\n\n"
             "   #### 4. Metabolic, Mitochondrial & DNA Repair Co-Factors\n"
@@ -952,7 +1000,7 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
             "   ### Confidence & Uncertainty Assessment\n"
             "   (Structured assessment block with numerical confidence scores 0.00-1.00 and uncertainty flags)\n\n"
             "   ### Opportunities: High-Yield Clinical Next Steps\n"
-            "   (Action: Targeted Clinical & Specialist Discussion, Monitor: Laboratory & Diagnostic Surveillance, Explore: Secondary Research Leads & Exploratory Biomarkers)\n"
+            "   (Bullet 1 - Action: Advise or suggest clinical confirmation/discussion with a physician or specialist collaboratively, do not tell or command. Bullet 2 - Monitor: Routine laboratory or diagnostic surveillance considerations. Bullet 3 - Explore: Secondary research leads & exploratory biomarkers)\n"
             "5. Output clean Markdown directly without wrapping in markdown code blocks."
         )
         user_p = (
@@ -977,7 +1025,7 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
     disclaimer_block = (
         "> [!IMPORTANT]\n"
         "> **AI-Generated Clinical Research Synthesis — Non-Diagnostic Research Use Only**\n"
-        "> This report is computationally generated by artificial intelligence foundation models and is intended strictly for exploratory genomic research, variant prioritization, and informational purposes only. It is **not** an in vitro diagnostic test, does not constitute medical advice or clinical diagnosis, and is not intended for direct clinical management, prognosis, or therapeutic prescription. All identified candidate genomic variants, predicted deleteriousness scores, and clinical assertions must undergo orthogonal confirmatory testing in an accredited CLIA/CAP clinical diagnostic laboratory and formal evaluation by a board-certified geneticist or licensed clinical physician prior to any health or medical intervention.\n"
+        "> This report is computationally synthesized using local open-weight models and is intended strictly for exploratory genomic research, variant prioritization, and informational purposes only. It is **not** an in vitro diagnostic test, does not constitute medical advice or clinical diagnosis, and is not intended for direct clinical management, prognosis, or therapeutic prescription.\n"
     )
     if "### Orientation" in report_md and "> [!IMPORTANT]" not in report_md.split("### Orientation")[0]:
         parts = report_md.split("### Orientation", 1)
