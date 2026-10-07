@@ -561,7 +561,7 @@ def purge_memory_and_archive(patient_dir, patient_name_or_token="PROBAND_01"):
         
         archived_files = []
         for fname in os.listdir(patient_dir):
-            if fname.endswith((".md", ".html", ".pdf", "_adjudicated.json")) and ("clinical_ensemble_synthesis" in fname or "deep_research_report" in fname):
+            if fname.endswith((".md", ".html", ".pdf", "_adjudicated.json")) and ("clinical_ensemble_synthesis" in fname or "deep_research_report" in fname or "medgemma" in fname):
                 src = os.path.join(patient_dir, fname)
                 if os.path.isfile(src):
                     dst = os.path.join(archive_dir, fname)
@@ -574,6 +574,84 @@ def purge_memory_and_archive(patient_dir, patient_name_or_token="PROBAND_01"):
                 print(f"  -> Archived: {af}")
         else:
             print("[Artifact Archival] Clean directory: no prior synthesis artifacts found.")
+
+def archive_gdrive_prior_reports(gdrive_ontology, patient_name=None, active_out_md=None):
+    """
+    Ensures Google Drive only displays the latest run of reports.
+    Archives prior reports and historical run folders into timestamped archive directories.
+    """
+    if not os.path.exists(gdrive_ontology):
+        return
+
+    root_archive = os.path.join(gdrive_ontology, "archive")
+    os.makedirs(root_archive, exist_ok=True)
+    prior_runs_dir = os.path.join(root_archive, "prior_runs")
+    os.makedirs(prior_runs_dir, exist_ok=True)
+
+    patient_pattern = patient_name.replace(" ", "_") if patient_name else ""
+
+    # 1. Archive prior run directories (keep only the single latest date-stamped folder per patient)
+    patient_folders = {}
+    for entry in os.listdir(gdrive_ontology):
+        full_p = os.path.join(gdrive_ontology, entry)
+        if os.path.isdir(full_p) and entry not in ["archive", "prior_runs"]:
+            for p_prefix in ["Daniel_Ehrle", "Melinda_Ehrle", "DE_master"]:
+                if entry.startswith(p_prefix):
+                    parts = entry.split("-")
+                    date_key = "0000-00-00"
+                    if len(parts) >= 4:
+                        try:
+                            day, month, year = parts[-3], parts[-2], parts[-1]
+                            if len(year) == 4 and len(month) == 2 and len(day) == 2:
+                                date_key = f"{year}-{month}-{day}"
+                        except Exception:
+                            pass
+                    patient_folders.setdefault(p_prefix, []).append((date_key, entry, full_p))
+
+    for p_prefix, f_list in patient_folders.items():
+        if len(f_list) > 1:
+            f_list.sort(key=lambda x: x[0], reverse=True)
+            for _, old_entry, old_path in f_list[1:]:
+                dst = os.path.join(prior_runs_dir, old_entry)
+                try:
+                    shutil.move(old_path, dst)
+                    print(f"[Google Drive Archive] Moved older run folder: {old_entry} -> {dst}")
+                except Exception as e:
+                    print(f"[Google Drive Archive Warning] Could not move {old_entry}: {e}")
+
+    # 2. Archive older reports within active patient folders on Google Drive
+    for d in os.listdir(gdrive_ontology):
+        subfolder = os.path.join(gdrive_ontology, d)
+        if os.path.isdir(subfolder) and d != "archive" and (not patient_pattern or patient_pattern in d):
+            sub_archive = os.path.join(subfolder, "archive")
+            os.makedirs(sub_archive, exist_ok=True)
+            for fname in os.listdir(subfolder):
+                if fname.endswith((".md", ".html", ".pdf", "_adjudicated.json")):
+                    should_archive = ("deep_research_report" in fname or "medgemma" in fname)
+                    if active_out_md and "clinical_ensemble_synthesis" in fname and fname in os.path.basename(active_out_md):
+                        should_archive = True
+                    if should_archive:
+                        src = os.path.join(subfolder, fname)
+                        if os.path.isfile(src):
+                            dst = os.path.join(sub_archive, fname)
+                            try:
+                                shutil.move(src, dst)
+                                print(f"[Google Drive Archive] Archived in {d}: {fname} -> {dst}")
+                            except Exception:
+                                pass
+
+    # 3. Archive older / superseded reports at root of Google Drive
+    for fname in os.listdir(gdrive_ontology):
+        full_p = os.path.join(gdrive_ontology, fname)
+        if os.path.isfile(full_p):
+            if fname.endswith((".md", ".html", ".pdf", "_adjudicated.json")):
+                if "deep_research_report" in fname or "medgemma" in fname or fname.startswith("DE_") or fname.startswith(".~"):
+                    dst = os.path.join(root_archive, fname)
+                    try:
+                        shutil.move(full_p, dst)
+                        print(f"[Google Drive Archive] Archived root report: {fname} -> {dst}")
+                    except Exception:
+                        pass
 
 # ---------------------------------------------------------
 # Main Ensemble Pipeline Execution
@@ -886,9 +964,13 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
     except Exception as e:
         print(f"[Deliverable Export Warning] Could not render HTML/PDF: {e}")
 
-    # Google Drive Sync
+    # Google Drive Sync with Automated Archival
     gdrive_ontology = "/home/daniel-ehrle/Google Drive/My Drive/Ontology"
     if os.path.exists(gdrive_ontology):
+        # 1. Clean & archive older runs and superseded reports on Google Drive
+        archive_gdrive_prior_reports(gdrive_ontology, patient_name, out_md)
+
+        # 2. Sync fresh deliverables
         for fpath in [out_md, out_html, out_pdf, adjudicated_json_path]:
             if os.path.exists(fpath):
                 base_name = os.path.basename(fpath)
