@@ -180,10 +180,12 @@ def start_server_instance(model_key, port=7002, ctx_size=16384):
         preexec_fn=os.setsid
     )
 
-    for i in range(300):
+    for i in range(480):
         if is_server_listening(port):
             print(f"[{model_key}] Server ready and listening on port {port} in {i+1}s.")
             return proc
+        if (i + 1) % 30 == 0:
+            print(f"[{model_key}] Still loading model weights ({i+1}s elapsed)...")
         time.sleep(1)
 
     print(f"[{model_key}] Timeout waiting for server on port {port}. Log snippet:")
@@ -752,14 +754,17 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
             all_active_records.append(r)
 
     # ---------------------------------------------------------
-    # Track 1: Genomics (MedGemma 27B + Bio-Medical-Llama 8B)
+    # ---------------------------------------------------------
+    # Phase 1: Clinical Specialist Evaluations (Tracks 1A & 2B: MedGemma 27B)
     # ---------------------------------------------------------
     print("\n------------------------------------------------------------------")
-    print("PHASE 1: GENOMICS SPECIALIST EVALUATION (Track 1)")
+    print("PHASE 1: GENOMICS & CLINICAL SPECIALIST EVALUATION (Track 1 & Track 2B)")
     print("------------------------------------------------------------------")
 
     genomics_medgemma_out = ""
+    pharma_medgemma_out = ""
     with sequential_model_session("medgemma-27b", port=7002, ctx_size=16384) as query_fn:
+        # Track 1A: Monogenic & Cancer Evaluation
         sys_p = (
             "You are MedGemma 27B, a board-certified clinical genomicist. "
             "Analyze the following monogenic and cancer-predisposition genomic variants from 40x Whole-Genome Sequencing (WGS). "
@@ -768,9 +773,20 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
             "Clinical Reasoning (phenotype correlation), and Recommended Action/Surveillance."
         )
         user_p = f"Evaluate these genomic findings for {session_token} (40x WGS):\n\n{json.dumps(top_genomics, indent=2)}"
-        print("[Track 1A] Querying MedGemma 27B...")
+        print("[Track 1A] Querying MedGemma 27B (Genomics)...")
         genomics_medgemma_out = query_fn(sys_p, user_p, max_tokens=3072)
         print(f"[Track 1A Complete] MedGemma produced {len(genomics_medgemma_out.splitlines())} lines.")
+
+        # Track 2B: Pharmacogenomic Safety & Clinical Cross-Validation
+        sys_p_pharma = (
+            "You are MedGemma 27B, validating clinical pharmacogenomic safety and high-risk drug contraindications. "
+            "Provide clinical safety cross-checks for the pharmacogenomic and risk-modifier variants. "
+            "Evaluate clinical actionability and EHR documentation recommendations."
+        )
+        user_p_pharma = f"Review and cross-validate pharmacogenomic directives for {session_token}:\n\n{json.dumps(top_pharma, indent=2)}"
+        print("[Track 2B] Querying MedGemma 27B (Pharmacogenomics Cross-Check)...")
+        pharma_medgemma_out = query_fn(sys_p_pharma, user_p_pharma, max_tokens=2048)
+        print(f"[Track 2B Complete] MedGemma produced {len(pharma_medgemma_out.splitlines())} lines.")
 
     genomics_biomed_out = ""
     with sequential_model_session("biomed-llama-8b", port=7002, ctx_size=16384) as query_fn:
@@ -785,10 +801,10 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
         print(f"[Track 1B Complete] Bio-Medical-Llama produced {len(genomics_biomed_out.splitlines())} lines.")
 
     # ---------------------------------------------------------
-    # Track 2: Pharmacogenomics (Baichuan-M2 32B + MedGemma 27B)
+    # Phase 2: Pharmacogenomics Specialist Evaluation (Track 2A: Baichuan-M2 32B)
     # ---------------------------------------------------------
     print("\n------------------------------------------------------------------")
-    print("PHASE 2: PHARMACOGENOMICS & MODIFIER EVALUATION (Track 2)")
+    print("PHASE 2: PHARMACOGENOMICS & DRUG RESPONSE EVALUATION (Track 2A)")
     print("------------------------------------------------------------------")
 
     pharma_baichuan_out = ""
@@ -808,18 +824,6 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
         print("[Track 2A] Querying Baichuan-M2 32B...")
         pharma_baichuan_out = query_fn(sys_p, user_p, max_tokens=3072)
         print(f"[Track 2A Complete] Baichuan-M2 produced {len(pharma_baichuan_out.splitlines())} lines.")
-
-    pharma_medgemma_out = ""
-    with sequential_model_session("medgemma-27b", port=7002, ctx_size=16384) as query_fn:
-        sys_p = (
-            "You are MedGemma 27B, validating clinical pharmacogenomic safety and high-risk drug contraindications. "
-            "Provide clinical safety cross-checks for the pharmacogenomic and risk-modifier variants. "
-            "Evaluate clinical actionability and EHR documentation recommendations."
-        )
-        user_p = f"Review and cross-validate pharmacogenomic directives for {session_token}:\n\n{json.dumps(top_pharma, indent=2)}"
-        print("[Track 2B] Querying MedGemma 27B...")
-        pharma_medgemma_out = query_fn(sys_p, user_p, max_tokens=2048)
-        print(f"[Track 2B Complete] MedGemma produced {len(pharma_medgemma_out.splitlines())} lines.")
 
     # ---------------------------------------------------------
     # Phase 3: Adversarial Review & Adjudication (QwQ-32B)
