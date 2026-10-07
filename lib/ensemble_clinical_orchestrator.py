@@ -146,6 +146,15 @@ def is_server_listening(port=7002):
         return False
 
 def start_server_instance(model_key, port=7002, ctx_size=16384):
+    if port == 7005 and is_server_listening(7005):
+        print(f"[{model_key}] Resident supervisor already active and listening on port {port}.")
+        return None
+
+    if is_server_listening(port):
+        print(f"[{model_key}] Detected existing process listening on port {port}. Cleaning up...")
+        subprocess.run(["pkill", "-9", "-f", f"--port {port}"], stderr=subprocess.DEVNULL)
+        time.sleep(3)
+
     server_bin = find_llama_server()
     if not server_bin:
         raise RuntimeError("llama-server binary not found.")
@@ -171,7 +180,7 @@ def start_server_instance(model_key, port=7002, ctx_size=16384):
         preexec_fn=os.setsid
     )
 
-    for i in range(120):
+    for i in range(300):
         if is_server_listening(port):
             print(f"[{model_key}] Server ready and listening on port {port} in {i+1}s.")
             return proc
@@ -191,13 +200,13 @@ def stop_server_instance(proc, model_key="unknown"):
         print(f"[{model_key}] Terminating server and reclaiming host RAM...")
         try:
             os.killpg(os.getpgid(proc.pid), 15)
-            proc.wait(timeout=6)
+            proc.wait(timeout=10)
         except Exception:
             try:
                 os.killpg(os.getpgid(proc.pid), 9)
             except Exception:
                 pass
-        time.sleep(1)
+        time.sleep(3)
         print(f"[{model_key}] RAM successfully reclaimed.")
 
 def query_chat_completion(messages, port=7002, max_tokens=4096, temperature=0.2):
@@ -636,7 +645,9 @@ def archive_gdrive_prior_reports(gdrive_ontology, patient_name=None, active_out_
                     if should_archive:
                         src = os.path.join(subfolder, fname)
                         if os.path.isfile(src):
-                            dst = os.path.join(sub_archive, fname)
+                            ts_str = datetime.fromtimestamp(os.path.getmtime(src)).strftime("%Y%m%d_%H%M%S")
+                            bname, ext = os.path.splitext(fname)
+                            dst = os.path.join(sub_archive, f"{bname}_{ts_str}{ext}")
                             try:
                                 shutil.move(src, dst)
                                 print(f"[Google Drive Archive] Archived in {d}: {fname} -> {dst}")
@@ -648,8 +659,19 @@ def archive_gdrive_prior_reports(gdrive_ontology, patient_name=None, active_out_
         full_p = os.path.join(gdrive_ontology, fname)
         if os.path.isfile(full_p):
             if fname.endswith((".md", ".html", ".pdf", "_adjudicated.json")):
-                if "deep_research_report" in fname or "medgemma" in fname or fname.startswith("DE_") or fname.startswith(".~"):
-                    dst = os.path.join(root_archive, fname)
+                should_archive = False
+                if fname.startswith("DE_") or fname.startswith(".~"):
+                    should_archive = True
+                elif patient_pattern and patient_pattern in fname:
+                    if "clinical_ensemble_synthesis" in fname or "deep_research_report" in fname or "medgemma" in fname:
+                        should_archive = True
+                elif "medgemma" in fname:
+                    should_archive = True
+
+                if should_archive:
+                    ts_str = datetime.fromtimestamp(os.path.getmtime(full_p)).strftime("%Y%m%d_%H%M%S")
+                    bname, ext = os.path.splitext(fname)
+                    dst = os.path.join(root_archive, f"{bname}_{ts_str}{ext}")
                     try:
                         shutil.move(full_p, dst)
                         print(f"[Google Drive Archive] Archived root report: {fname} -> {dst}")
