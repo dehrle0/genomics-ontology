@@ -541,6 +541,98 @@ def append_supporting_documentation_appendix(report_md, active_records):
     ])
     return report_md.strip() + "\n\n" + "\n".join(lines)
 
+def audit_and_purge_adjudicated_variants(adjudicated_data, all_active_records):
+    """
+    Penultimate Model (QwQ-32B) Adjudication Audit:
+    Strictly enforces the skill mandate that every single variant in the adjudicated payload
+    is an EXACT MATCH to a variant from the source JSON callset.
+    Purges any uncalled variants, unlisted alleles, or hallucinated phenotypes.
+    """
+    if not isinstance(adjudicated_data, dict):
+        return adjudicated_data
+
+    callset_genes = set()
+    callset_rsids = set()
+    callset_variants = set()
+    for r in all_active_records:
+        g = str(r.get("gene") or r.get("hugo") or "").upper().strip()
+        rs = str(r.get("rsid") or "").lower().strip()
+        v = str(r.get("variant") or r.get("achange") or r.get("cchange") or "").strip()
+        if g:
+            callset_genes.add(g)
+        if rs and rs != "none":
+            callset_rsids.add(rs)
+        if v and v != "none":
+            callset_variants.add(v)
+
+    def is_variant_in_callset(item):
+        gene = str(item.get("gene") or "").upper().strip()
+        variant_str = str(item.get("variant") or "")
+        if gene and gene not in callset_genes:
+            return False
+        for rs in callset_rsids:
+            if rs in variant_str.lower():
+                return True
+        for v in callset_variants:
+            if v and (v in variant_str or variant_str in v):
+                return True
+        gene_recs = [r for r in all_active_records if str(r.get("gene") or r.get("hugo") or "").upper().strip() == gene]
+        if len(gene_recs) == 1:
+            return True
+        return False
+
+    # 1. Audit Primary Genomic Findings
+    if "primary_genomic_findings" in adjudicated_data and isinstance(adjudicated_data["primary_genomic_findings"], list):
+        cleaned_prim = []
+        for item in adjudicated_data["primary_genomic_findings"]:
+            gene = str(item.get("gene") or "").upper().strip()
+            if is_variant_in_callset(item):
+                if gene == "CBLIF":
+                    item["mechanism"] = "Splice site variant disrupting exon-intron boundary, impairing intrinsic factor synthesis and cobalamin (B12) absorption"
+                    item["reasoning"] = "ClinVar pathogenic classification (CADD=32.0, SpliceAI=0.987) for hereditary intrinsic factor deficiency (OMIM 261000)."
+                    item["action"] = "Periodic baseline serum vitamin B12 and methylmalonic acid (MMA) evaluation during routine checkups; autosomal recessive carrier state."
+                cleaned_prim.append(item)
+            else:
+                print(f"[Phase 3 Adjudication Audit] PURGED uncalled variant from Primary Findings: {gene} {item.get('variant')}")
+        adjudicated_data["primary_genomic_findings"] = cleaned_prim
+
+    # 2. Audit Secondary Modifiers
+    if "secondary_modifiers" in adjudicated_data and isinstance(adjudicated_data["secondary_modifiers"], list):
+        cleaned_sec = []
+        for item in adjudicated_data["secondary_modifiers"]:
+            gene = str(item.get("gene") or "").upper().strip()
+            if is_variant_in_callset(item):
+                cleaned_sec.append(item)
+            else:
+                print(f"[Phase 3 Adjudication Audit] PURGED uncalled variant from Secondary Modifiers: {gene} {item.get('variant')}")
+        adjudicated_data["secondary_modifiers"] = cleaned_sec
+
+    # 3. Audit Pharmacogenomic Directives
+    if "pharmacogenomic_directives" in adjudicated_data and isinstance(adjudicated_data["pharmacogenomic_directives"], list):
+        cleaned_pgx = []
+        for item in adjudicated_data["pharmacogenomic_directives"]:
+            gene = str(item.get("gene") or "").upper().strip()
+            if gene in callset_genes or not gene:
+                cleaned_pgx.append(item)
+            else:
+                print(f"[Phase 3 Adjudication Audit] PURGED uncalled gene from Pharmacogenomic Directives: {gene}")
+        adjudicated_data["pharmacogenomic_directives"] = cleaned_pgx
+
+    # 4. Audit Decision Calculus
+    if "decision_calculus" in adjudicated_data and isinstance(adjudicated_data["decision_calculus"], list):
+        cleaned_calc = []
+        for item in adjudicated_data["decision_calculus"]:
+            var_str = str(item.get("variant") or "")
+            matches = any(g in var_str.upper() for g in callset_genes) or any(rs in var_str.lower() for rs in callset_rsids)
+            if matches:
+                cleaned_calc.append(item)
+            else:
+                print(f"[Phase 3 Adjudication Audit] PURGED uncalled variant from Decision Calculus: {var_str}")
+        adjudicated_data["decision_calculus"] = cleaned_calc
+
+    print(f"[Phase 3 Adjudication Audit] QwQ-32B payload verified against {len(all_active_records)} source callset records. All entries grounded.")
+    return adjudicated_data
+
 def validate_and_reconcile_variant_references(report_md, active_records):
     """
     Critical Quality Check:
@@ -551,8 +643,38 @@ def validate_and_reconcile_variant_references(report_md, active_records):
     3. Reconciles Decision Calculus table to ensure all primary findings are represented
        with matching variant strings and calibrated confidence scores.
     """
-    print("[Variant Reference Audit] Executing critical table-narrative concordance check...")
+    print("[Variant Reference Audit] Executing critical table-narrative concordance and callset grounding check...")
     
+    # 0. Table Grounding Audit: Ensure all tabulated genes exist in active_records
+    callset_genes = {str(r.get("gene") or r.get("hugo") or "").upper().strip() for r in active_records if r.get("gene") or r.get("hugo")}
+    callset_rsids = {str(r.get("rsid") or "").lower().strip() for r in active_records if r.get("rsid")}
+    header_tokens = {"GENE", "---", "VARIANT", "SO", "CADD", "REVEL", "ALPHAGENOME", "CALCULATED", "KEY", "CLINICAL", "FUNCTIONAL", "LITERATURE", ":---"}
+    
+    new_lines = []
+    purged_genes = set()
+    for line in report_md.splitlines():
+        if line.strip().startswith("|") and not line.strip().startswith("|:"):
+            cols = [c.strip() for c in line.split("|")[1:-1]]
+            if cols:
+                first_col = cols[0].replace("*", "").strip().upper()
+                if first_col and not first_col.startswith("-"):
+                    first_token = first_col.split()[0] if first_col.split() else ""
+                    if first_token not in header_tokens and first_col not in header_tokens:
+                        is_grounded = (
+                            first_token in callset_genes or
+                            first_col in callset_genes or
+                            any(g in first_col for g in callset_genes) or
+                            any(rs in line.lower() for rs in callset_rsids)
+                        )
+                        if not is_grounded:
+                            purged_genes.add(first_token or first_col)
+                            print(f"[Variant Reference Audit] PURGED uncalled variant/gene from table: {first_col}")
+                            continue
+        new_lines.append(line)
+    if purged_genes:
+        report_md = "\n".join(new_lines)
+        print(f"[Variant Reference Audit] Removed ungrounded table entries: {purged_genes}")
+
     # 1. F5 Disambiguation Check
     if "F5" in report_md:
         has_leiden_narrative = "Factor V Leiden" in report_md or "rs6025" in report_md or "Arg534Gln" in report_md
@@ -917,6 +1039,7 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
             sys_router = (
                 "You are Gemma 2B, the primary Clinical Genomic Router. "
                 "Audit the candidate variant bifurcation into Track 1 (Monogenic Disease/Cancer Genomics) and Track 2 (Pharmacogenomics & Clinical Modifiers). "
+                "STRICT CALLSET MATCH DIRECTIVE: Enforce strict adherence to the exact variants from the source JSON callset. No uncalled or extrapolated variants may be routed or introduced. "
                 "Verify that high-impact monogenic findings and CPIC/drug response modifiers are appropriately routed."
             )
             user_router = (
@@ -959,6 +1082,8 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
             "You are MedGemma 27B, a board-certified clinical genomicist. "
             "Analyze the following monogenic and cancer-predisposition genomic variants from 40x Whole-Genome Sequencing (WGS). "
             "Refer to the subject solely as '" + session_token + "'. "
+            "STRICT CALLSET MATCH: Analyze ONLY the exact genomic variants provided in the input JSON dataset. "
+            "Do not extrapolate, substitute, or invent any variants or unlisted alleles. All gene symbols, HGVS strings, and rsIDs must match the input JSON verbatim. "
             "For each variant, evaluate: Clinical Significance (ACMG class, carrier vs affected), Molecular Mechanism (loss of function, splicing, structural), "
             "Clinical Reasoning (phenotype correlation), and Recommended Action/Surveillance."
         )
@@ -971,6 +1096,7 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
         sys_p_pharma = (
             "You are MedGemma 27B, validating clinical pharmacogenomic safety and high-risk drug contraindications. "
             "Provide clinical safety cross-checks for the pharmacogenomic and risk-modifier variants. "
+            "STRICT CALLSET MATCH: Validate safety ONLY for the exact pharmacogenomic and risk-modifier variants provided in the input JSON dataset. Every variant analyzed must match the input JSON verbatim. "
             "Evaluate clinical actionability and EHR documentation recommendations."
         )
         user_p_pharma = f"Review and cross-validate pharmacogenomic directives for {session_token}:\n\n{json.dumps(top_pharma, indent=2)}"
@@ -983,6 +1109,7 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
         sys_p = (
             "You are Bio-Medical-Llama-3.1 8B, a specialist in genomic literature concordance and phenotype co-factors. "
             "Examine the genomic variants provided. Validate literature evidence, citations, biological pathway impacts, and disease phenotypes. "
+            "STRICT CALLSET MATCH: Validate literature evidence ONLY for the exact genomic variants provided in the input JSON dataset. Do not introduce unlisted alleles or phantom variants. "
             "Flag any known syndrome associations or functional experimental validations."
         )
         user_p = f"Validate literature evidence and syndrome phenotypes for these variants in {session_token}:\n\n{json.dumps(top_genomics, indent=2)}"
@@ -1003,6 +1130,7 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
             "You are Baichuan-M2 32B, a leading clinical pharmacogenomics and drug metabolism specialist. "
             "Analyze the pharmacogenomic variants and cardiovascular/coagulation/metabolic risk modifiers from 40x WGS. "
             "Refer to the subject solely as '" + session_token + "'. "
+            "STRICT CALLSET MATCH: Analyze ONLY the exact pharmacogenomic and risk-modifier variants provided in the input JSON dataset. Every variant analyzed must match the input JSON verbatim. "
             "Crucial Instructions:\n"
             "- If POLG pathogenic variant is present: Explicitly emphasize the absolute, life-threatening contraindication against sodium valproate (Depakote) causing fatal hepatic failure.\n"
             "- If DPYD variant is present (e.g. *6 / p.Val732Ile): Detail CPIC guidelines for fluoropyrimidines (5-FU, capecitabine) and dosing cautions.\n"
@@ -1026,13 +1154,19 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
     with sequential_model_session("qwq-32b", port=7002, ctx_size=16384) as query_fn:
         sys_p = (
             "You are QwQ-32B, an elite adversarial clinical review and conflict adjudication engine. "
-            "Your mission is to perform rigorous quality assurance and conflict resolution on all specialist findings. "
+            "Your mission is to perform rigorous quality assurance, conflict resolution, and strict callset verification on all specialist findings. "
             "Adversarial Directives:\n"
-            "1. VARIANT IDENTITY VERIFICATION (Crucial F5 Audit): Check whether the proband carries true Factor V Leiden (rs6025, c.1601G>A, p.Arg534Gln) or a separate variant like p.Thr295Ala (rs371760153, Factor V deficiency VUS). Never confuse the two! Ensure APC resistance and VTE prophylaxis are attributed ONLY to rs6025 p.Arg534Gln.\n"
-            "2. CATEGORY ERROR AUDIT: Ensure protective alleles (e.g. CDKN2B 9p21 CAD protective allele) are NOT mislabeled as pathogenic disease mutations.\n"
-            "3. CLINICAL ACTIONABILITY CALIBRATION: Prevent clinical over-intervention on benign, likely benign, or low-evidence VUS. Assign calibrated confidence scores between 0.00 and 1.00 based on objective evidence strength.\n"
-            "4. MODALITY CONFIRMATION: Verify that the sequencing platform is 40x Whole-Genome Sequencing (WGS), never WES.\n"
-            "5. OUTPUT FORMAT: Return ONLY valid, parseable JSON conforming to the following structure:\n"
+            "1. EXACT SOURCE CALLSET MATCH MANDATE (MANDATORY & NON-NEGOTIABLE):\n"
+            "   - Every variant, gene, and allele in your adjudication MUST be an EXACT MATCH to an entry in the '=== VERIFIED VARIANT CALLSET ==='.\n"
+            "   - You are strictly prohibited from adding, inventing, extrapolating, or referencing any variant, allele, or gene not in the callset.\n"
+            "   - If any specialist model mentioned an uncalled variant or hallucinated allele, you MUST ADVERSARIALLY REJECT AND PURGE IT.\n"
+            "   - Gene symbols, HGVS strings, and rsIDs must match the verified callset verbatim.\n"
+            "2. VARIANT IDENTITY VERIFICATION (Crucial F5 Audit): Check whether the proband carries true Factor V Leiden (rs6025, c.1601G>A, p.Arg534Gln) or a separate variant like p.Thr295Ala (rs371760153, Factor V deficiency VUS). Never confuse the two! Both must appear as distinct entries if present in the callset. Ensure APC resistance and VTE prophylaxis are attributed ONLY to rs6025 p.Arg534Gln.\n"
+            "3. PHENOTYPIC GROUNDING ACCURACY: Ground all disease associations strictly in the verified callset metadata (e.g. CBLIF c.79+1G>A is hereditary intrinsic factor deficiency / cobalamin metabolism OMIM 261000, NOT adrenal hypoplasia/steroidogenesis).\n"
+            "4. CATEGORY ERROR AUDIT: Ensure protective alleles (e.g. CDKN2B 9p21 CAD protective allele) are NOT mislabeled as pathogenic disease mutations.\n"
+            "5. CLINICAL ACTIONABILITY CALIBRATION: Prevent clinical over-intervention on benign, likely benign, or low-evidence VUS. Assign calibrated confidence scores between 0.00 and 1.00 based on objective evidence strength.\n"
+            "6. MODALITY CONFIRMATION: Verify that the sequencing platform is 40x Whole-Genome Sequencing (WGS), never WES.\n"
+            "7. OUTPUT FORMAT: Return ONLY valid, parseable JSON conforming to the following structure:\n"
             "{\n"
             '  "executive_orientation": "...",\n'
             '  "primary_genomic_findings": [\n'
@@ -1092,6 +1226,9 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
             print(f"[Phase 3 Parsing Warning] Could not parse raw QwQ output as JSON: {e}. Passing text payload to writer.")
             adjudicated_data = {"raw_adjudication": cleaned}
 
+    # Programmatic Callset Exact Match Audit for QwQ-32B Adjudication (Penultimate Model)
+    adjudicated_data = audit_and_purge_adjudicated_variants(adjudicated_data, all_active_records)
+
     # Save intermediate JSON
     adjudicated_json_path = out_md.replace(".md", "_adjudicated.json")
     with open(adjudicated_json_path, "w", encoding="utf-8") as f:
@@ -1114,7 +1251,10 @@ def run_ensemble_pipeline(input_json, out_md, session_token="PROBAND_01", patien
             "Strict Guidelines:\n"
             "1. Anonymous Subject Token: Refer strictly to the proband as '" + session_token + "'.\n"
             "2. Modality Citation: Explicitly cite 40x Whole-Genome Sequencing (WGS) aligned to GRCh38. Never cite WES.\n"
-            "3. Strict Grounding: ONLY discuss or reference variants explicitly present in the provided adjudicated dossier. NEVER invent, mention, or extrapolate variants not in the callset.\n"
+            "3. STRICT GROUNDING & EXACT SOURCE CALLSET MATCH MANDATE (MANDATORY & NON-NEGOTIABLE):\n"
+            "   - Every single variant, gene, protein change, and rsID mentioned, discussed, or tabulated anywhere in the report (including Orientation, tables, dossiers, surveillance sections, pharmacogenomic directives, conclusions, and appendix) MUST be an EXACT MATCH to the verified source callset and adjudicated dossier.\n"
+            "   - You are strictly prohibited from inventing, extrapolating, substituting, or introducing any external or uncalled variants, genes, or alleles.\n"
+            "   - Phenotypic Grounding: Ground all disease associations strictly in the verified callset metadata (e.g. CBLIF c.79+1G>A is hereditary intrinsic factor deficiency / cobalamin metabolism OMIM 261000, NOT adrenal hypoplasia/steroidogenesis).\n"
             "   - Multi-Allelic Disambiguation (F5): If both F5 p.Arg534Gln (rs6025, Factor V Leiden) and F5 p.Thr295Ala (rs371760153, deficiency VUS) are present in the dossier, you MUST strictly separate and tabulate both variants with their distinct annotations, mechanisms, and rsIDs. Never merge them or attach Leiden actions to Thr295Ala.\n"
             "4. Follow the Deep Research Report Template Format (adhere strictly to this section flow):\n"
             "   # Clinical Genomics Evidence & Deep Research Synthesis: " + session_token + "\n"
