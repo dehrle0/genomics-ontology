@@ -484,13 +484,22 @@ def main():
     ], check=True)
 
     mock_data_js = os.path.join(script_dir, "data", "mock-data.js")
+    ontology_pharma_json = os.path.join(local_outdir, f"{base_prefix}_ontology_pharma_alphagenome.json")
+    ontology_pharma_alias = os.path.join(local_outdir, f"{base_prefix}_ontology_pharma.json")
+
     subprocess.run([
         "python3", "generate_claude_v2_report.py",
         act_json,
         raw_db,
         vcf_path or "/dev/null",
-        mock_data_js
+        mock_data_js,
+        ontology_pharma_json
     ], check=True)
+
+    if os.path.exists(ontology_pharma_json):
+        shutil.copy2(ontology_pharma_json, ontology_pharma_alias)
+        print(f"[JSON Deliverable Engine] Exported comprehensive dataset: {ontology_pharma_json}")
+        print(f"[JSON Deliverable Engine] Created alias: {ontology_pharma_alias}")
 
     build_standalone_html5(
         os.path.join(script_dir, "index.html"),
@@ -576,6 +585,10 @@ def main():
         os.path.basename(txt_report),
         os.path.basename(act_json)
     ]
+    if os.path.exists(ontology_pharma_json):
+        zip_items.append(os.path.basename(ontology_pharma_json))
+    if os.path.exists(ontology_pharma_alias):
+        zip_items.append(os.path.basename(ontology_pharma_alias))
     if os.path.exists(deep_report_html):
         zip_items.append(os.path.basename(deep_report_html))
     if os.path.exists(deep_report_pdf):
@@ -597,6 +610,10 @@ def main():
         pdf_report,
         zip_bundle
     ]
+    if os.path.exists(ontology_pharma_json):
+        deliverables.append(ontology_pharma_json)
+    if os.path.exists(ontology_pharma_alias):
+        deliverables.append(ontology_pharma_alias)
     if os.path.exists(ag_candidates_tsv):
         deliverables.append(ag_candidates_tsv)
     if os.path.exists(sample_ag_cache):
@@ -621,8 +638,10 @@ def main():
     print(f"  5. Clinical Summary TXT                    : {txt_report}")
     print(f"  6. Printable PDF Report                    : {pdf_report}")
     print(f"  7. Offline iOS Bundle                      : {zip_bundle}")
+    if os.path.exists(ontology_pharma_json):
+        print(f"  8. Ontology, Pharma & AlphaGenome JSON     : {ontology_pharma_json}")
     if os.path.exists(ag_candidates_tsv):
-        print(f"  8. AlphaGenome Candidates Matrix TSV       : {ag_candidates_tsv}")
+        print(f"  9. AlphaGenome Candidates Matrix TSV       : {ag_candidates_tsv}")
     if not args.local_only:
         print(f"  👉 Google Drive Cloud Remote               : drive:Ontology/{subfolder_name}/")
         print(f"  👉 Google Drive Local Directory            : {args.gdrive_dir}/{subfolder_name}/")

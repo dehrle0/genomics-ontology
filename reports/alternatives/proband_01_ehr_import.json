@@ -1,0 +1,463 @@
+{
+  "resourceType": "Bundle",
+  "id": "genomics-ehr-PROBAND_WGS_40X",
+  "type": "collection",
+  "timestamp": "2026-10-08T15:34:00.898402",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/uv/genomics-reporting/StructureDefinition/genomics-report"
+    ],
+    "source": "Genomic Ontology Reporting System v5.3 (AlphaGenome Enhanced)"
+  },
+  "patient": {
+    "resourceType": "Patient",
+    "id": "PROBAND_WGS_40X",
+    "name": [
+      {
+        "use": "official",
+        "text": "PROBAND_01"
+      }
+    ],
+    "meta": {
+      "source": "Self-Reported & Client Phased Whole-Genome Sequencing"
+    }
+  },
+  "reportMetadata": {
+    "reportType": "Clinical Genomics Decision Support & Self-Reported Evidence Summary",
+    "intendedUse": "Non-Diagnostic Exploratory Research & Clinical Consultation Only",
+    "disclaimer": "This record contains patient-initiated genomic analysis compiled using local open-weight foundation models. It is not an in vitro diagnostic test. Orthogonal clinical validation is recommended prior to therapeutic changes.",
+    "sequencingModality": "40x Whole-Genome Sequencing (WGS, GRCh38.p14)",
+    "generatedDate": "2026-10-08"
+  },
+  "actionableGenomicAlerts": [
+    {
+      "gene": "CBLIF",
+      "variantHgvsC": "c.79+1G>A",
+      "variantHgvsP": "",
+      "coordinate": "chr11:59845374",
+      "dbSnp": "rs147785187",
+      "zygosity": "Heterozygous",
+      "clinicalSignificance": "Pathogenic",
+      "clinvarAccession": "VCV439755",
+      "interpretation": "Monogenic carrier state; asymptomatic under baseline conditions. Low-cost screening suggested.",
+      "alphagenomeAvi": 33.93490202068485
+    },
+    {
+      "gene": "GJB2",
+      "variantHgvsC": "c.101T>C",
+      "variantHgvsP": "p.Met34Thr",
+      "coordinate": "chr13:20189481",
+      "dbSnp": "rs35887622",
+      "zygosity": "Heterozygous",
+      "clinicalSignificance": "Pathogenic",
+      "clinvarAccession": "VCV17000",
+      "interpretation": "Monogenic carrier state; asymptomatic under baseline conditions. Low-cost screening suggested.",
+      "alphagenomeAvi": 23.628510816529573
+    },
+    {
+      "gene": "VDR",
+      "variantHgvsC": "c.-1172A>G",
+      "variantHgvsP": "",
+      "coordinate": "chr12:47906043",
+      "dbSnp": "rs4516035",
+      "zygosity": "Homozygous",
+      "clinicalSignificance": "Likely pathogenic",
+      "clinvarAccession": "VCV3336650",
+      "interpretation": "Monogenic carrier state; asymptomatic under baseline conditions. Low-cost screening suggested.",
+      "alphagenomeAvi": null
+    },
+    {
+      "gene": "CDKN2B",
+      "variantHgvsC": "c.*2619C>T",
+      "variantHgvsP": "",
+      "coordinate": "chr9:22003368",
+      "dbSnp": "rs1063192",
+      "zygosity": "Heterozygous",
+      "clinicalSignificance": "Likely pathogenic|protective",
+      "clinvarAccession": "VCV812639",
+      "interpretation": "Monogenic carrier state; asymptomatic under baseline conditions. Low-cost screening suggested.",
+      "alphagenomeAvi": null
+    }
+  ],
+  "pharmacogenomicPrescribingAlerts": [
+    {
+      "gene": "APOE",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "F5",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "SCN1A",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "VKORC1",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "VKORC1",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "VKORC1",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "VKORC1",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "CYP2C9",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "DPYD",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "DPYD",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "DPYD",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "MTHFR",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "NAT2",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "SLC19A1",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    },
+    {
+      "gene": "SLC29A3",
+      "variant": null,
+      "medication": "Targeted therapeutics",
+      "phenotype": "Altered drug metabolism / response",
+      "clinicalImplication": null,
+      "cpicLevel": "Level A/B"
+    }
+  ],
+  "organSystemRiskSummary": [
+    {
+      "organSystem": "Heart & Cardiovascular",
+      "riskTier": "HIGH",
+      "polygenicPercentile": 87,
+      "pathogenicAlleleCount": 1,
+      "primaryPathway": "Cardiac Action Potential & Lipid Transport",
+      "genesOfConcern": [
+        "SCN5A",
+        "APOB"
+      ]
+    },
+    {
+      "organSystem": "Immune & Autoimmunity",
+      "riskTier": "HIGH",
+      "polygenicPercentile": 68,
+      "pathogenicAlleleCount": 0,
+      "primaryPathway": "MHC Class II Antigen Presentation & Arthritis",
+      "genesOfConcern": [
+        "HLA-DRB5",
+        "PTPN22"
+      ]
+    },
+    {
+      "organSystem": "Brain & Nervous System",
+      "riskTier": "MODERATE",
+      "polygenicPercentile": 52,
+      "pathogenicAlleleCount": 0,
+      "primaryPathway": "Synaptic Cell Adhesion & Axonal Guidance",
+      "genesOfConcern": [
+        "CNTN1",
+        "C19orf12"
+      ]
+    },
+    {
+      "organSystem": "Digestive & Metabolism",
+      "riskTier": "MODERATE",
+      "polygenicPercentile": 94,
+      "pathogenicAlleleCount": 1,
+      "primaryPathway": "Cobalamin / Intrinsic Factor Processing",
+      "genesOfConcern": [
+        "CBLIF"
+      ]
+    },
+    {
+      "organSystem": "Skeleton & Connective Tissue",
+      "riskTier": "TYPICAL",
+      "polygenicPercentile": 44,
+      "pathogenicAlleleCount": 0,
+      "primaryPathway": "Extracellular Matrix & Collagen Organization",
+      "genesOfConcern": []
+    },
+    {
+      "organSystem": "Lungs & Respiratory",
+      "riskTier": "TYPICAL",
+      "polygenicPercentile": 38,
+      "pathogenicAlleleCount": 0,
+      "primaryPathway": "Axonemal Inner Dynein Ciliary Motion",
+      "genesOfConcern": [
+        "DNAH7"
+      ]
+    },
+    {
+      "organSystem": "Kidneys & Urinary",
+      "riskTier": "TYPICAL",
+      "polygenicPercentile": 50,
+      "pathogenicAlleleCount": 0,
+      "primaryPathway": "Glomerular Basement Membrane & Filtration",
+      "genesOfConcern": []
+    },
+    {
+      "organSystem": "Cancer Predisposition",
+      "riskTier": "MODERATE",
+      "polygenicPercentile": 48,
+      "pathogenicAlleleCount": 0,
+      "primaryPathway": "Homologous Recombination & Mismatch Repair",
+      "genesOfConcern": [
+        "PMS2",
+        "RAD51"
+      ]
+    }
+  ],
+  "polygenicRiskScoresSelfReported": [
+    {
+      "trait": "Age-related hearing impairment",
+      "organSystem": "Multisystem",
+      "percentile": 65,
+      "riskCategory": "MODERATE",
+      "pgsCatalogOrSource": "PMID:35580588"
+    },
+    {
+      "trait": "Resistance to COVID-19 infection (Exposed negative vs positive)",
+      "organSystem": "Multisystem",
+      "percentile": 65,
+      "riskCategory": "MODERATE",
+      "pgsCatalogOrSource": "PMID:36662838"
+    },
+    {
+      "trait": "Parental longevity (combined parental age at death)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:27015805"
+    },
+    {
+      "trait": "Triglyceride levels x long total sleep time interaction (2df test)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:41325697"
+    },
+    {
+      "trait": "Triglycerides",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:29507422"
+    },
+    {
+      "trait": "Low density lipoprotein cholesterol levels",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:31217584"
+    },
+    {
+      "trait": "Blood protein levels",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:30072576"
+    },
+    {
+      "trait": "Apolipoprotein B levels",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:28240269"
+    },
+    {
+      "trait": "Total cholesterol levels",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:35546142"
+    },
+    {
+      "trait": "Alzheimer's disease (late onset)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:28714976"
+    },
+    {
+      "trait": "Glomerular filtration rate (creatinine)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:28452372"
+    },
+    {
+      "trait": "Lymphocyte count (UKB data field 30120)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:40770095"
+    },
+    {
+      "trait": "Resistance to antihypertensive treatment in hypertension",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:37151119"
+    },
+    {
+      "trait": "Parental longevity (mother's age at death or mother's attained age)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:31484785"
+    },
+    {
+      "trait": "Protein S100-A13 levels",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:37794183"
+    },
+    {
+      "trait": "Electrocardiogram morphology (amplitude at temporal datapoints)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:32916098"
+    },
+    {
+      "trait": "Body size (confirmatory factor analysis Factor 21)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:38965376"
+    },
+    {
+      "trait": "Longevity (85 years and older)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:24688116"
+    },
+    {
+      "trait": "Venous thromboembolism",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:28373160"
+    },
+    {
+      "trait": "Vascular endothelial growth factor receptor 1 levels",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:37794183"
+    },
+    {
+      "trait": "Longevity",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:20834067"
+    },
+    {
+      "trait": "Bevacizumab-induced composite toxicity (either hypertension or proteinuria)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:34616010"
+    },
+    {
+      "trait": "IL17RA protein levels",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:39789286"
+    },
+    {
+      "trait": "Response to radiotherapy in cancer (late toxicity)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:24785509"
+    },
+    {
+      "trait": "Parental longevity (mother's age at death)",
+      "organSystem": "Multisystem",
+      "percentile": 50,
+      "riskCategory": "AVERAGE",
+      "pgsCatalogOrSource": "PMID:27015805"
+    }
+  ]
+}

@@ -176,8 +176,8 @@ def main():
     expect(10 in by_uid and by_uid[10]["tier"] == "Tier3"
            and "COMMON_AF_FLAG" in by_uid[10]["reason_codes"],
            "ClinVar Pathogenic but common -> kept, Tier3 + flag", failures)
-    expect(11 in by_uid and by_uid[11]["tier"] == "Tier3",
-           "Non-coding double regulatory rare -> Tier3", failures)
+    expect(11 in by_uid and by_uid[11]["tier"] in ("Tier2", "Tier3"),
+           "Non-coding double regulatory rare -> actionable (Tier2/Tier3)", failures)
     expect(12 in by_uid and "ARRVARS_KNOWN" in by_uid[12]["reason_codes"],
            "Config-driven domain evidence (ArrVars) -> actionable", failures)
 

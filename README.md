@@ -14,6 +14,102 @@ This system bridges raw genomic variants with biomedical ontologies (**HPO**, **
 
 ---
 
+## 🔄 End-to-End System Architecture, AI Models & Privacy Flow
+
+```mermaid
+flowchart TD
+    classDef piiYes fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c;
+    classDef piiZero fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef modelNode fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92;
+    classDef deliveryNode fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,color:#01579b;
+
+    subgraph Phase1["1. Clinical Ingestion Boundary · [PII: Present]"]
+        IN_VCF["Phased WGS VCFs (Approach 4D Trio/Duo)\nPrivate Variant Calls · Patient Demographics"]:::piiYes
+        IN_OC["OpenCRAVAT 3.1.1 SQLite\nPatient Annotation DB · 239 Columns"]:::piiYes
+        IN_CFG["Clinical Panel Schemas\nHPO · GO · Organ Systems (9,038 Genes)"]
+    end
+
+    subgraph Phase2["2. Privacy Broker & Sanitization · [PII: Zero / Stripped]"]
+        SAN_STRIP["PII Sanitizer & Path Redactor\nPatient Name/ID -> 'PROBAND_01' · Paths Redacted"]:::piiZero
+        BROKER["Genomic Privacy Broker (Differential Privacy)\nHMAC Decoy SNV Chaffing & Winnowing"]:::piiZero
+        SAN_DATA["Sanitized Master Dataset\nZero-PII Master JSON Payload"]:::piiZero
+    end
+
+    subgraph Phase3["3. Biological Predictors & Foundation Models · [Air-Gapped / Zero PII]"]
+        subgraph BioModels["In-Silico Biological Foundation Models"]
+            MOD_IN_SILICO["In-Silico Missense & Splicing Suite\nAlphaMissense · SpliceAI · CADD · REVEL · ESM1b"]:::modelNode
+            MOD_AG["Google DeepMind AlphaGenome Atlas\nAVI Impact Score · RNA-seq · DNASE · Histone · TF Shifts"]:::modelNode
+        end
+        subgraph LocalLLM["Local AI Foundation Ensemble (Sequential Port 7002 / Resident 7005)"]
+            LLM_ROUTER["Google Gemma 2B\nResident Pipeline Supervisor & Router (Port 7005)"]:::modelNode
+            
+            subgraph DualTrack["Dual-Track Co-Factor Synthesis (Port 7002)"]
+                TRACK_GEN["Track 1: Genomics Co-Factors\nMedGemma 27B + Bio-Medical-Llama 8B"]:::modelNode
+                TRACK_PGX["Track 2: Pharmacogenomics Co-Factors\nBaichuan-M2 32B + MedGemma 27B"]:::modelNode
+            end
+
+            LLM_QWQ["QwQ-32B\nAdversarial Callset Audit & Conflict Adjudication"]:::modelNode
+            LLM_MISTRAL["Mistral-Small 3.2 24B\nClinical Report Writer (Alt B & Alt C Formats)"]:::modelNode
+        end
+    end
+
+    subgraph Phase4["4. Evidence-Gated Triage & Synthesis · [PII: Zero]"]
+        TR_FILTER["Clinical Actionability Triage (ontology_filter.py)\nTier 1 P/LP · Tier 2 In-Silico VUS · Tier 3 Protective · Tier 4 PGx"]:::piiZero
+        ADJUD_JSON["Adjudicated Structured JSON\nStrict Callset Grounding · Calculated Confidence (0.00-1.00)"]:::piiZero
+        SAN_DELIV["De-Identified Draft Deliverables\nAlt C Clinician Brief · Alt B Dossier · EHR FHIR JSON (PROBAND_01)"]:::piiZero
+    end
+
+    subgraph Phase5["5. Local Patient Re-Binding & Memory Purge · [PII: Restored Locally]"]
+        PURGE["Clean Slate Memory Purge\nTerminates Local Servers · Wipes KV-Cache · Unmaps VRAM/RAM"]
+        REBIND["Local PII Re-Binding Engine\nRe-associates Real Patient Demographics Locally On-Device"]:::piiYes
+    end
+
+    subgraph Phase6["6. Final Standardized Deliverables & Cloud Sync · [PII: Present / Encrypted]"]
+        OUT_BRIEF["3-Page Clinician Action Brief (Alt C HTML)\nBottom Line · Surveillance Matrix · EHR Directory"]:::deliveryNode
+        OUT_DEEP["Deep Research Dossier (Alt B HTML / MD)\nGrouped Clinical Landscape · 0.00-1.00 Confidence Bounds"]:::deliveryNode
+        OUT_EHR["Patient Self-Reported EHR Import JSON\nStandardized FHIR Bundle Format"]:::deliveryNode
+        OUT_HTML["Standalone Visual Explorer (HTML5)\nInteractive SVG/D3 Tree · Pan & Zoom · 100% Offline"]:::deliveryNode
+        PKG["Deliverables Packaging & Cloud Mirror\n{Sample}_iOS_bundle.zip · Local Drive + rclone Sync"]:::deliveryNode
+    end
+
+    IN_VCF & IN_OC --> SAN_STRIP
+    IN_CFG --> TR_FILTER
+    SAN_STRIP --> BROKER --> SAN_DATA
+
+    SAN_DATA --> MOD_IN_SILICO
+    SAN_DATA --> MOD_AG
+    MOD_IN_SILICO & MOD_AG --> TR_FILTER
+
+    TR_FILTER --> LLM_ROUTER
+    LLM_ROUTER --> TRACK_GEN
+    LLM_ROUTER --> TRACK_PGX
+    TRACK_GEN & TRACK_PGX --> LLM_QWQ
+    LLM_QWQ --> ADJUD_JSON
+    ADJUD_JSON --> LLM_MISTRAL
+
+    LLM_MISTRAL --> SAN_DELIV
+    SAN_DELIV --> PURGE --> REBIND
+
+    REBIND --> OUT_BRIEF
+    REBIND --> OUT_DEEP
+    REBIND --> OUT_EHR
+    REBIND --> OUT_HTML
+    OUT_BRIEF & OUT_DEEP & OUT_EHR & OUT_HTML --> PKG
+```
+
+### 🛡️ Privacy Boundaries & AI Model Architecture Summary
+
+| Architectural Boundary | PII State | Engine / Components | Operational Security Guarantee |
+| :--- | :--- | :--- | :--- |
+| **1. Private Ingestion** | 🔴 **PII Present** | Raw Phased VCFs, OpenCRAVAT SQLite, Clinical Panels | Confined strictly to host machine; never exposed to remote endpoints. |
+| **2. Privacy Sanitization** | 🟢 **Zero PII** | `generate_flow_pipeline.py` & `GenomicPrivacyBroker` | Patient identifiers replaced with `PROBAND_01`; paths sanitized; HMAC chaffing & winnowing prevents genomic re-identification. |
+| **3. Biological In-Silico Models** | 🟢 **Zero PII** | AlphaMissense, SpliceAI, CADD, REVEL, DeepMind AlphaGenome Atlas | Predictors execute strictly on coordinate/allele tokens with dual-tiered caching and quota protection. |
+| **4. Local AI Ensemble Models** | 🟢 **Zero PII** | Gemma 2B (port 7005), MedGemma 27B, Bio-Medical-Llama 8B, Baichuan-M2 32B, QwQ-32B, Mistral-Small 24B | **100% Air-gapped local execution**; sequential RAM loading on port 7002; zero internet egress; strict source callset grounding with automated adversarial audit. |
+| **5. Memory Purge & Re-Binding** | 🔴 **PII Restored Locally** | Host Python Runtime | All local inference servers terminated, KV-caches wiped, and VRAM/RAM unmapped before local patient metadata is re-bound. |
+| **6. Packaging & Cloud Sync** | 🔒 **Protected / Encrypted** | Standalone HTML5 Explorer, Alt C Brief, Alt B Dossier, FHIR EHR JSON, `rclone` | Deliverables packaged into `{Sample}_iOS_bundle.zip` and securely mirrored to local Drive and cloud remote. |
+
+---
+
 ## ⚡ Highlights & Key Capabilities (v5.2)
 
 ### 1. Unified 7-Stage End-to-End Orchestrator (`run_ontology_pipeline.py`)
@@ -59,12 +155,18 @@ Automated single-command CLI executing the entire clinical reporting lifecycle:
 ```
 ontology_report/
 ├── run_ontology_pipeline.py            # Master 7-stage Python pipeline orchestrator (v5.2)
+├── run_standard_reporting.py           # Standardized multi-cohort clinical reporting orchestrator (v5.3)
+├── generate_flow_pipeline.py           # CLI compatibility orchestrator for end-to-end evidence reporting
+├── generate_ehr_export.py              # FHIR-compliant structured EHR bundle generator
+├── generate_me_reports.py              # Clinician brief and deep dossier builder for Melinda Ehrle
 ├── generate_claude_v2_report.py        # Python ETL pipeline for generating DAG JSON data
 ├── cloud_delivery_service.py           # Dual Google Drive cloud delivery and rclone synchronizer
 ├── index.html                          # 5-view web application shell
 ├── js/                                 # Client-side reactive router, tree, and graph engine
 ├── css/                                # Clinical design tokens, responsive grids, and print CSS
 ├── lib/
+│   ├── ensemble_clinical_orchestrator.py # Multi-model local ensemble orchestrator (Gemma, MedGemma, QwQ, Mistral)
+│   ├── genomic_privacy_broker.py       # Differential privacy & HMAC chaffing/winnowing broker
 │   ├── genomics_utils.py               # Shared coordinate, numeric, and clinical string utilities
 │   ├── ontology_filter.py              # Clinical multi-tier filtering & universal trait triage engine
 │   ├── generate_deep_research_report.py# 1-to-4 page publication-grade research synthesis engine
@@ -78,7 +180,10 @@ ontology_report/
 │   └── deep-variant-research-report/   # Version-controlled Antigravity agent skill
 ├── scripts/
 │   └── sync_skills.sh                  # Automated skill synchronizer (repo <-> system config)
+├── reports/
+│   └── alternatives/                   # De-identified clinical reference templates (Alt B & Alt C)
 ├── archive/
+│   ├── generators/                     # Archived intermediate generator scripts
 │   └── legacy/                         # Retired historical renderers and scripts
 ├── docs/                               # Engineering documentation, step notes, and specifications
 └── data/                               # Reference gene panels, caches, and mock payloads
@@ -106,7 +211,25 @@ python3 run_ontology_pipeline.py \
   --phased-vcf /data/Genomes/ME/Approach4D_Output/ME_grch38_wgs_phased.pass.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_sv_phased.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_cnv_phased.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_str.vcf.gz
 ```
 
-### 2. Generate Standalone Deep Research Synthesis Reports
+### 2. Run Standardized Multi-Cohort Reporting (v5.3)
+
+Synthesize the synchronized clinical deliverables (3-Page Clinician Action Brief [Alt C], Deep Research Dossier [Alt B], and FHIR EHR Import JSON):
+
+```bash
+# Execute for Daniel Ehrle:
+python3 run_standard_reporting.py de
+
+# Execute for Melinda Ehrle:
+python3 run_standard_reporting.py me
+
+# Or run via the flow pipeline CLI:
+python3 generate_flow_pipeline.py \
+  --sample-id Daniel_Ehrle-07-10-2026 \
+  --patient-name "Daniel Ehrle" \
+  --patient-id "Daniel_Ehrle"
+```
+
+### 3. Generate Standalone Deep Research Synthesis Reports
 
 ```bash
 # Generate 4-page clinical evidence synthesis report (Markdown, HTML5, vector PDF):

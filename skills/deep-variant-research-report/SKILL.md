@@ -137,47 +137,82 @@ All variants are evaluated and prioritized using principled, domain-agnostic cri
 
 ## 4. Mandatory Soft Template Flow & VSCP-DF Standards
 
-The synthesis report follows an authoritative, readable **Soft Template Flow** with structured dossiers:
-1. **Header & Orientation:** `# Clinical Genomics Evidence Summary: {PROBAND}` followed by `## Orientation & Executive Summary` defining proband scope, 40x WGS modality, and high-level risk overview.
-2. **High-Actionable & Primary Findings:** Dossiers for top actionable/pathogenic loci in the callset with subheadings:
-   - `**Clinical Significance:**` (ClinVar classification, associated phenotype, mode of inheritance)
-   - `**Molecular Mechanism:**` (Specific amino acid / splice alteration, structural domain, loss/gain of function)
-   - `**Clinical Reasoning:**` (Literature consensus, in silico ensemble CADD/REVEL/AlphaGenome/AlphaMissense, penetrance)
-   - `**Action:**` (Concrete clinical actions: specialist referrals, diagnostic workups, family cascade testing)
-3. **Secondary Modifiers & Organ Surveillance:** Numbered dossiers for secondary risk modifiers:
-   - `**Clinical Significance:**`, `**Molecular Mechanism:**`, `**Clinical Reasoning:**`, `**Monitor:**`
-4. **Critical Pharmacogenomic & Drug Interactions:** High-impact bulleted drug cautions, contraindications, and dosing guidelines.
-5. **Clinical Decision Calculus:** Calibrated Markdown table (`| Variant | Action Recommendation | Confidence Score | Rationale |`, scores 0.00–1.00).
-6. **Action Directives & Monitoring Directives:** EHR problem list/allergy updates and concrete surveillance timelines.
-7. **Methodological Assumptions & Limitations:** Explicitly cite 40x WGS boundaries, mosaicism, and recessive carrier status.
-8. **Supporting Documentation Appendix:** Authoritative directory of variant evidence (GRCh38 coordinates, ClinVar, dbSNP, OMIM, ClinGen, AlphaGenome Atlas, and primary guidelines).
+The reporting suite produces two synchronized clinical deliverables plus a structured EHR import dataset:
+
+### Deliverable 1: 3-Page Clinician Action Brief (`{Sample}_clinical_brief.html`)
+Designed specifically for sharing with physicians, clinical geneticists, and uploading into patient EHR records:
+* **Page 1 (The Bottom Line):**
+  - Priority Genomic Findings table (*CBLIF*, *GJB2*, *VDR*, *F5*, *ANK2*).
+  - Actionable Pharmacogenomic Prescribing Guardrails (*DPYD*, *NAT2*, *VKORC1*, *CYP2C9*).
+* **Page 2 (Surveillance & Decision Calculus):**
+  - Suggested Clinical & Laboratory Surveillance Schedule (frequencies and actionable thresholds).
+  - Balanced arguments FOR and AGAINST clinical interventions (gentle guidance, non-prescriptive).
+  - Calculated Evidence Confidence Metrics (0–100%).
+* **Page 3 (Digital Navigation & EHR Note):**
+  - Direct links to local interactive reports (`master_ontology_report.html`) and external repositories.
+  - EHR Problem List / Consultation Note block ready for direct EHR chart integration.
+
+### Deliverable 2: Deep Research Dossier (`{Sample}_deep_research_report.md` / `.html`)
+Comprehensive research synthesis formatted with strict polarity segregation and enhanced ergonomics:
+* **No Table of Contents:** Direct entry into content starting with Sentence 1.
+* **No Upfront 3D Viewer Link:** Clean academic layout without distractions.
+* **Section 7 (Confidence Assessment):** Formatted with confidence levels and explanatory text on **separate lines**:
+  ```markdown
+  ##### Analytical Callset Confidence
+  **98%**
+  High-depth 40x WGS callset aligned against panSN GBZ pan-genome graph...
+  ```
+* **Landscape Grouped Variant Catalog:** The multi-page catalog of prioritized variants is collapsed into distinct functional/clinical groupings:
+  1. *Pathogenic & Monogenic Carriers*
+  2. *Actionable Pharmacogenomics & Drug Response*
+  3. *Cardiovascular & Channelopathy Modifiers*
+  4. *Metabolic, Mitochondrial & DNA Repair Machinery*
+  5. *Protective & Longevity Modifiers*
+  6. *Secondary & Exploratory Clinical Variants*
+  - In print and PDF rendering, each grouping features a page break before the section with layout oriented in **landscape**.
+
+### Deliverable 3: Patient Self-Reported EHR Import JSON (`{Sample}_ehr_import.json`)
+A standards-compliant FHIR-aligned JSON bundle designed for EHR and patient portal ingestion containing:
+* Patient self-reported metadata and non-clinical WGS analysis flags.
+* Prioritized genomic alerts with HGVS notation, coordinates, zygosity, and ClinVar VCV accessions.
+* Actionable pharmacogenomic prescribing alerts with CPIC level indications.
+* Multi-system organ risk matrix summary and polygenic risk scores.
 
 ---
 
-## 5. Zero-PII Blind Execution Protocol
-1. **Zero Assistant Inspection:** AI assistants and agents must **never** read, open, or quote patient clinical reports (`.md`, `.html`, `.pdf`) in conversation turns.
-2. **Blind Validation:** All verification of successful generation is performed purely via program exit codes (`exit code 0`), file existence on disk, and Google Drive sync status.
-3. **Contextual Memory Purge:** Prior recollections of specific private patient variants and clinical findings must be treated as purged from assistant conversational memory.
+## 5. End-to-End Automated Pipeline Flow
 
----
-
-## 5. Execution & Pipeline Integration
-
-### Standalone CLI Execution
-```bash
-python3 lib/generate_deep_research_report.py \
-  --sqlite reports/{SAMPLE_DIR}/{SAMPLE}_master_actionable.sqlite \
-  --act-json reports/{SAMPLE_DIR}/{SAMPLE}_master_actionable.json \
-  --ag-cache reports/{SAMPLE_DIR}/{SAMPLE}_alphagenome_cache.json \
-  --out-dir reports/{SAMPLE_DIR} \
-  --sample-name "{SAMPLE_NAME}" \
-  --patient-id "{SAMPLE_ID}"
+The end-to-end execution flow executes across 6 deterministic stages:
+```mermaid
+flowchart TD
+    [=Master JSON + Pharma + AlphaGenome=] --> ((Stage 1: Ingestion))
+    ((Stage 1: Ingestion)) --> ((Stage 2: Local PII Stripping))
+    ((Stage 2: Local PII Stripping)) --> [=Sanitized Zero-PII JSON=]
+    [=Sanitized Zero-PII JSON=] --> ((Stage 3: Gemini Fast High Synthesis))
+    ((Stage 3: Gemini Fast High Synthesis)) --> [=Sanitized Templates Alt B & C=]
+    [=Sanitized Templates Alt B & C=] --> ((Stage 4: MedGemma Local PII Binding))
+    ((Stage 4: MedGemma Local PII Binding)) --> [=Personalized Deliverables=]
+    ((Stage 4: MedGemma Local PII Binding)) --> ((Stage 5: Unload Local AI & Free RAM))
+    [=Personalized Deliverables=] --> ((Stage 6: Google Drive Sync))
+    ((Stage 6: Google Drive Sync)) --> [=Google Drive / Ontology /=]
 ```
 
-### Pipeline Stage 7.2 Integration
-Executed automatically in `run_ontology_pipeline.py` after Stage 7.1 AlphaGenome TSV export:
-* Validates local `medgemma-27b` availability and manages runtime lifecycle (load on-demand $\rightarrow$ synthesize $\rightarrow$ unload).
-* Generates `{Sample}_deep_research_report.md` with ACMG BA1 false-reporting gates.
-* Renders print-optimized `{Sample}_deep_research_report.html`.
-* Compiles vector `{Sample}_deep_research_report.pdf` via headless Chrome/Chromium.
-* Packages all three deliverables into `{Sample}_iOS_bundle.zip`.
+1. **Stage 1 (Ingestion):** Local AI loads master JSON (`{Sample}_ontology_pharma_alphagenome.json`) containing complete open-cravat annotations, CPIC interactions, and AlphaGenome Atlas predictions.
+2. **Stage 2 (Local PII Stripping):** Programmatically scrubs all patient names, sample identifiers, and filesystem paths, producing zero-PII `proband_01_ontology_pharma_alphagenome.json`.
+3. **Stage 3 (Model Synthesis):** Synthesizes the Clinician Brief, Deep Dossier, and EHR Import JSON enforcing exact variant matching and strict validation templates.
+4. **Stage 4 (Local PII Binding):** Local MedGemma binds real patient name and sample IDs into deliverables entirely on localhost.
+5. **Stage 5 (Memory Reclamation):** Forcefully unloads local inference processes (`pkill -f llama-server.*7002`) and flushes RAM.
+6. **Stage 6 (Google Drive Sync):** Copies final personalized deliverables to Google Drive `Ontology/` root and dated run folder.
+
+---
+
+## 6. Execution Script
+
+Run the automated flow via:
+```bash
+python3 generate_flow_pipeline.py \
+  --sample-id Daniel_Ehrle-07-10-2026 \
+  --patient-name "Daniel Ehrle" \
+  --patient-id "Daniel_Ehrle"
+```
+

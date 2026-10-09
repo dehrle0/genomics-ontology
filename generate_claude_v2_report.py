@@ -6,8 +6,33 @@ with ClinVar Protective variants (MAF 0.1-0.7), VCF phased haplotypes (Maternal/
 Pharmacogenomic drug interactions, Autosomal Dominant / Recessive pathology traits, and UCSC Genome Browser links.
 """
 import json, sys, os, sqlite3, gzip
+from datetime import datetime
 
-def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, output_js_path):
+def find_external_pharma_json(patient_id):
+    """
+    Locates patient pharmacogenomics report JSON across local and system paths.
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = []
+    sample_prefix = "DE" if ("Daniel" in patient_id or "DE" in patient_id) else ("ME" if ("Melinda" in patient_id or "ME" in patient_id) else patient_id)
+    
+    candidates.extend([
+        os.path.join(script_dir, "reports", f"{sample_prefix}_pharma_reports", f"{patient_id}_pharma.json"),
+        os.path.join(script_dir, "reports", f"{sample_prefix}_pharma_reports", "Daniel_Ehrle_pharma.json" if sample_prefix == "DE" else "Melinda_Ehrle_pharma.json"),
+        f"/data/Genomes/{sample_prefix}/Approach4D_Output/pharma_reports/{patient_id}_pharma.json",
+        f"/data/Genomes/{sample_prefix}/Approach4D_Output/pharma_reports/" + ("Daniel_Ehrle_pharma.json" if sample_prefix == "DE" else "Melinda_Ehrle_pharma.json")
+    ])
+    
+    for c in candidates:
+        if os.path.exists(c):
+            try:
+                with open(c, 'r', encoding='utf-8') as f:
+                    return c, json.load(f)
+            except Exception as e:
+                print(f"[Pharma Loader Warning] Could not parse {c}: {e}")
+    return None, None
+
+def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, output_js_path, output_json_path=None):
     with open(actionable_json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
@@ -322,6 +347,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
             "vaf": r.get('vaf'),
             "consequence": consequences,
             "category": category,
+            "tier": tier,
             "clinvar": r.get('clinvar_sig') or "Not reviewed",
             "clinvarRev": r.get('clinvar_rev') or "criteria provided",
             "clinvarId": r.get('clinvar_id'),
@@ -1058,9 +1084,89 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
         f.write(js_content)
     print(f"Successfully generated Claude v2 data at: {output_js_path}")
 
+    # Build and export comprehensive JSON deliverable if requested
+    if output_json_path:
+        pharma_src_path, external_pharma = find_external_pharma_json(patient_id)
+
+        ag_candidates = []
+        for g in genes_list:
+            for v in g.get("variants", []):
+                if v.get("isAlphaGenomeTarget") or v.get("aviPhred") is not None:
+                    ag_candidates.append({
+                        "gene": g.get("symbol"),
+                        "chromosome": g.get("chrom"),
+                        "pos": g.get("pos"),
+                        "ref": v.get("ref"),
+                        "alt": v.get("alt"),
+                        "consequence": v.get("consequence"),
+                        "proteinChange": v.get("achange"),
+                        "zygosity": v.get("zygosity"),
+                        "phasing": v.get("phase"),
+                        "tier": v.get("tier"),
+                        "category": v.get("category"),
+                        "clinvar": v.get("clinvar"),
+                        "cadd": v.get("cadd"),
+                        "revel": v.get("revel"),
+                        "alphamissense": v.get("alphamissense"),
+                        "spliceai": v.get("spliceai"),
+                        "aviPhred": v.get("aviPhred"),
+                        "aviPercentile": v.get("aviPercentile"),
+                        "aviModality": v.get("aviModality"),
+                        "aviStatus": v.get("aviStatus"),
+                        "isAlphaGenomeTarget": v.get("isAlphaGenomeTarget"),
+                        "alphagenomeSubreason": v.get("alphagenomeSubreason"),
+                        "alphagenomeUrl": v.get("alphagenomeUrl")
+                    })
+
+        json_deliverable = {
+            "metadata": {
+                "sample": patient_id,
+                "pipeline": "Genomic Ontology Reporting System v5.2 (AlphaGenome & Pharma Enhanced)",
+                "generated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "sourceActionableJson": actionable_json_path,
+                "jobMeta": job_meta
+            },
+            "reportSummary": report_obj,
+            "ontologies": ontologies,
+            "pharmacogenomics": {
+                "screenedInteractionsCount": len(pgx_list),
+                "interactions": pgx_list,
+                "externalPharmaReport": {
+                    "available": bool(external_pharma),
+                    "sourcePath": pharma_src_path,
+                    "engineVersion": external_pharma.get("engine_version") if external_pharma else None,
+                    "meanConsensusConfidence": external_pharma.get("mean_consensus_confidence") if external_pharma else None,
+                    "totalScreenedDrugs": external_pharma.get("total_screened_drugs") if external_pharma else None,
+                    "totalPharmacogenes": external_pharma.get("total_pharmacogenes") if external_pharma else None,
+                    "actionCounts": external_pharma.get("action_counts") if external_pharma else None,
+                    "highPriorityDrugCards": [
+                        c for c in external_pharma.get("drug_cards", [])
+                        if c.get("action") in ["AVOID", "DOSE_DOWN", "DOSE_UP", "CAUTION"]
+                    ] if external_pharma else [],
+                    "drugCards": external_pharma.get("drug_cards", []) if external_pharma else [],
+                    "pharmacogenes": external_pharma.get("pharmacogenes", {}) if external_pharma else {}
+                }
+            },
+            "alphagenomeAtlas": {
+                "description": "Google DeepMind AlphaGenome Foundation Model & Atlas Integration",
+                "atlasBaseUrl": "https://deepmind.google.com/science/alphagenome/atlas",
+                "totalEvaluatedVariants": len(records),
+                "totalCandidateRescues": len(ag_candidates),
+                "candidates": ag_candidates
+            },
+            "genes": genes_list,
+            "organRiskMatrix": organ_risk_matrix,
+            "polygenicRisk": prs_list
+        }
+
+        with open(output_json_path, 'w', encoding='utf-8') as f_out:
+            json.dump(json_deliverable, f_out, indent=2)
+        print(f"Successfully generated Ontology, Pharma & AlphaGenome JSON at: {output_json_path}")
+
 if __name__ == '__main__':
     in_json = sys.argv[1] if len(sys.argv) > 1 else '/home/daniel-ehrle/My-Projects/genomics-ontology/genomics-ontology/reports/DE_master_260706/DE_master_master_actionable.json'
     raw_db = sys.argv[2] if len(sys.argv) > 2 else '/data/opencravat/jobs/default/260706-105810/DE_master_phased_final.UCSC.vcf.gz.sqlite'
     vcf = sys.argv[3] if len(sys.argv) > 3 else '/data/opencravat/jobs/default/260706-105810/DE_master_phased_final.UCSC.vcf.gz'
     out_js = sys.argv[4] if len(sys.argv) > 4 else '/home/daniel-ehrle/My-Projects/genomic-ontology-claude-v2/data/mock-data.js'
-    parse_actionable_to_claude_v2(in_json, raw_db, vcf, out_js)
+    out_json = sys.argv[5] if len(sys.argv) > 5 else None
+    parse_actionable_to_claude_v2(in_json, raw_db, vcf, out_js, out_json)

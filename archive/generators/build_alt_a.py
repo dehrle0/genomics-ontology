@@ -1,0 +1,271 @@
+import os
+import json
+
+# ==============================================================================
+# ALTERNATIVE A: UNIFIED EMBEDDED HYBRID PORTAL (HTML)
+# ==============================================================================
+
+html_a = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unified Genomic Portal & Evidence Navigator — PROBAND_01</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', sans-serif; background: #0b0f19; color: #f1f5f9; }
+  code, pre { font-family: 'JetBrains Mono', monospace; }
+  .tab-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    color: #94a3b8;
+  }
+  .tab-btn:hover { color: #f8fafc; background: #1e293b; }
+  .tab-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #131c2e; color: #94a3b8; padding: 10px 12px; border: 1px solid #1e293b; text-align: left; font-weight: 600; }
+  td { padding: 9px 12px; border: 1px solid #1e293b; background: #0f172a; }
+  tr:nth-child(even) td { background: #111a2e; }
+  tr:hover td { background: #1a253c; }
+</style>
+<script>
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    document.getElementById('btn-' + tabId).classList.add('active');
+    document.getElementById('pane-' + tabId).classList.add('active');
+  }
+</script>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Persistent Portal Header -->
+  <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-50 backdrop-blur px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/30">
+        GP
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base font-bold text-white">Genomics Portal & Evidence Navigator</h1>
+          <span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded text-[10px] font-semibold uppercase">Alternative A • Hybrid</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Subject: <code class="text-blue-300">PROBAND_01</code> | 40x WGS (panSN GBZ aligned) | October 08, 2026</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+      <button id="btn-synthesis" onclick="switchTab('synthesis')" class="tab-btn active">AI Research Synthesis</button>
+      <button id="btn-master" onclick="switchTab('master')" class="tab-btn">Embedded Master Report</button>
+      <button id="btn-explorer" onclick="switchTab('explorer')" class="tab-btn">3D Visual Explorer</button>
+      <button id="btn-catalog" onclick="switchTab('catalog')" class="tab-btn">Variant Catalog</button>
+    </div>
+
+    <!-- Quick Action Jump Links -->
+    <div class="flex items-center gap-2">
+      <a href="proband_clinical_brief.html" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium border border-slate-700 transition">Action Brief (Alt C)</a>
+      <a href="proband_deep_dossier.html" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium border border-slate-700 transition">Dossier (Alt B)</a>
+    </div>
+  </header>
+
+  <!-- Notification Banner -->
+  <div class="bg-blue-950/40 border-b border-blue-900/50 px-6 py-2 text-xs text-blue-300 flex items-center justify-between">
+    <div>
+      <span class="font-semibold text-blue-200">Non-Diagnostic Research Synthesis:</span> Generated using local open-weight models. AlphaGenome Atlas annotations reflect computational models and are not meant for clinical or diagnostic purposes.
+    </div>
+    <div class="text-[11px] text-blue-400/80">Interactive Multi-Hypertext Framework</div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-6">
+
+    <!-- TAB 1: AI RESEARCH SYNTHESIS -->
+    <div id="pane-synthesis" class="tab-pane active space-y-8">
+      
+      <!-- Top Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl shadow-lg">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-red-400">Pathogenic Carrier</div>
+          <div class="text-xl font-bold text-white mt-1">CBLIF & GJB2</div>
+          <p class="text-xs text-slate-400 mt-1">Recessive intrinsic factor & connexin 26 carriers; asymptomatic baseline.</p>
+        </div>
+        <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl shadow-lg">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Actionable PGx</div>
+          <div class="text-xl font-bold text-white mt-1">DPYD & NAT2</div>
+          <p class="text-xs text-slate-400 mt-1">Fluoropyrimidine intermediate metabolizer & slow acetylator.</p>
+        </div>
+        <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl shadow-lg">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-blue-400">Situational Modifiers</div>
+          <div class="text-xl font-bold text-white mt-1">F5 Leiden & ANK2</div>
+          <p class="text-xs text-slate-400 mt-1">Situational surgical VTE prophylaxis; QT drug awareness.</p>
+        </div>
+        <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl shadow-lg">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Calculated Confidence</div>
+          <div class="text-xl font-bold text-white mt-1">95% Primary / 98% WGS</div>
+          <p class="text-xs text-slate-400 mt-1">High-depth orthogonal concordance across ClinVar & AVI.</p>
+        </div>
+      </div>
+
+      <!-- Synthesis Body with Direct Modal Links -->
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-6">
+        <div>
+          <h2 class="text-lg font-bold text-white border-b border-slate-800 pb-2 mb-3">Primary Pathogenic & Clinically Actionable Findings</h2>
+          <div class="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Gene</th>
+                  <th>Variant</th>
+                  <th>Zygosity</th>
+                  <th>ClinVar</th>
+                  <th>AlphaGenome AVI</th>
+                  <th>Clinical Guidance</th>
+                  <th>Cross-System Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-bold text-red-400">CBLIF</td>
+                  <td class="font-mono text-xs">c.79+1G&gt;A</td>
+                  <td>Het (Carrier)</td>
+                  <td><span class="text-red-400 font-semibold">Pathogenic</span></td>
+                  <td class="text-purple-400 font-semibold">Q33.9 (Splicing)</td>
+                  <td class="text-slate-300 text-xs">Carrier for intrinsic factor deficiency. Suggest periodic serum B12 and MMA monitoring.</td>
+                  <td><button onclick="switchTab('master')" class="px-2.5 py-1 bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white rounded text-xs transition">View in Ontology</button></td>
+                </tr>
+                <tr>
+                  <td class="font-bold text-red-400">GJB2</td>
+                  <td class="font-mono text-xs">p.Met34Thr</td>
+                  <td>Het (Carrier)</td>
+                  <td><span class="text-red-400 font-semibold">Pathogenic</span></td>
+                  <td class="text-purple-400 font-semibold">Q23.6 (Cactus)</td>
+                  <td class="text-slate-300 text-xs">Connexin 26 recessive carrier. Baseline audiometry suggested; avoid ototoxic exposures.</td>
+                  <td><button onclick="switchTab('master')" class="px-2.5 py-1 bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white rounded text-xs transition">View in Ontology</button></td>
+                </tr>
+                <tr>
+                  <td class="font-bold text-amber-400">VDR</td>
+                  <td class="font-mono text-xs">c.-1172A&gt;G</td>
+                  <td>Hom (Alt)</td>
+                  <td><span class="text-amber-400 font-semibold">Likely Path</span></td>
+                  <td class="text-slate-500">—</td>
+                  <td class="text-slate-300 text-xs">Promoter regulatory modifier. Suggest routine screening of 25(OH)D and bone density.</td>
+                  <td><button onclick="switchTab('master')" class="px-2.5 py-1 bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white rounded text-xs transition">View in Ontology</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-lg font-bold text-white border-b border-slate-800 pb-2 mb-3">Pharmacogenomics & Toxicogenomics Guardrails</h2>
+          <div class="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Gene</th>
+                  <th>Genotype</th>
+                  <th>Phenotype</th>
+                  <th>Interacting Drugs</th>
+                  <th>Clinical Prescribing Guidance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-bold text-emerald-400">DPYD</td>
+                  <td class="font-mono text-xs">p.Met166Val (*6/*6)</td>
+                  <td>Intermediate Metabolizer</td>
+                  <td class="text-slate-200">Fluoropyrimidines (5-FU, Capecitabine)</td>
+                  <td class="text-slate-300 text-xs">CPIC Level A: Moderately reduced clearance. Standard starting dose with vigilant early toxicity monitoring.</td>
+                </tr>
+                <tr>
+                  <td class="font-bold text-emerald-400">NAT2</td>
+                  <td class="font-mono text-xs">p.Ile114Thr (*5/*5)</td>
+                  <td>Slow Acetylator</td>
+                  <td class="text-slate-200">Isoniazid, Hydralazine, Sulfonamides</td>
+                  <td class="text-slate-300 text-xs">Markedly reduced acetylation. Titrate doses conservatively and monitor to prevent peripheral neuropathy or lupus.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div class="p-4 bg-emerald-950/20 border border-emerald-800/40 rounded-xl">
+            <h4 class="font-bold text-emerald-400 text-xs uppercase tracking-wider mb-2">Arguments FOR Surveillance</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">Verified carrier statuses establish clear, zero-risk monitoring targets (B12/MMA, baseline ECG, audiometry). Situational awareness of Factor V Leiden enables targeted prophylaxis during surgical immobilization without unprovoked lifelong medication.</p>
+          </div>
+          <div class="p-4 bg-red-950/20 border border-red-800/40 rounded-xl">
+            <h4 class="font-bold text-red-400 text-xs uppercase tracking-wider mb-2">Arguments AGAINST Aggressive Intervention</h4>
+            <p class="text-xs text-slate-300 leading-relaxed">No bi-allelic Mendelian disease is present; immediate diagnostic panic or lifestyle restrictions are contraindicated. Chronic unprovoked anticoagulation for Factor V Leiden carries bleeding risks that exceed clinical benefits.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: EMBEDDED MASTER REPORT (iFrame or Interactive Pane) -->
+    <div id="pane-master" class="tab-pane">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white">Embedded Master Ontology Report</h2>
+            <p class="text-[11px] text-slate-400">Full organ-by-organ clinical breakdown with interactive HPO ontology hierarchy.</p>
+          </div>
+          <a href="../Daniel_Ehrle-07-10-2026/Daniel_Ehrle_master_ontology_report.html" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-medium transition">Open in New Window ↗</a>
+        </div>
+        <iframe src="../Daniel_Ehrle-07-10-2026/Daniel_Ehrle_master_ontology_report.html" class="w-full h-[800px] border-none bg-white"></iframe>
+      </div>
+    </div>
+
+    <!-- TAB 3: 3D VISUAL EXPLORER -->
+    <div id="pane-explorer" class="tab-pane">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white">3D Visual Ontology Explorer</h2>
+            <p class="text-[11px] text-slate-400">Interactive 3D force-directed network graph linking 1,003 genes to human phenotype ontologies.</p>
+          </div>
+          <a href="../Daniel_Ehrle-07-10-2026/Daniel_Ehrle_visual_explorer.html" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-medium transition">Open in Fullscreen ↗</a>
+        </div>
+        <iframe src="../Daniel_Ehrle-07-10-2026/Daniel_Ehrle_visual_explorer.html" class="w-full h-[800px] border-none bg-black"></iframe>
+      </div>
+    </div>
+
+    <!-- TAB 4: COMPLETE VARIANT CATALOG -->
+    <div id="pane-catalog" class="tab-pane">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-base font-bold text-white">Comprehensive Prioritized Variant Catalog</h2>
+            <p class="text-xs text-slate-400">Sorted alphabetically by gene symbol; filtered to Tier 1/2 and curated loci.</p>
+          </div>
+          <a href="proband_deep_dossier.html#catalog" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs font-medium transition">View Full Catalog in Dossier</a>
+        </div>
+        <p class="text-xs text-slate-400 mb-4">The catalog features 718 curated variant records with live external deep-links to NCBI ClinVar, AlphaGenome Atlas, and CPIC.</p>
+        <div class="p-4 bg-slate-950 border border-slate-800 rounded-lg text-center">
+          <a href="proband_deep_dossier.html#catalog" class="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-lg transition">Open Catalog in Research Dossier ↗</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>
+"""
+
+with open('reports/alternatives/proband_portal_report.html', 'w') as f:
+    f.write(html_a)
+
+print("Alternative A HTML generated successfully.")

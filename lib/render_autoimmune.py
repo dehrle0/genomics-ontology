@@ -240,28 +240,9 @@ def _phase_badge(ev):
 
 
 def _card(r):
-    ev = r.get("evidence", {})
-    so = rr.SO_NAME.get(r.get("so"), r.get("so") or "?")
-    gene = html.escape(r.get("hugo") or "?")
-    gene_link = f'https://search.thegencc.org/genes?q={gene}'
-    hpo_gene_link = f'https://hpo.jax.org/app/browse/search?q={gene}&navFilter=all'
-    zyg = ev.get("zygosity")
-    vaf = ev.get("vaf")
-    
-    qual = ev.get("qual") or r.get("phred") or r.get("qual") or r.get("vcfinfo__phred")
-    alt_reads = ev.get("alt_reads") or r.get("alt_reads") or r.get("vcfinfo__alt_reads")
-    tot_reads = ev.get("tot_reads") or r.get("tot_reads") or r.get("vcfinfo__tot_reads")
-    depth_str = f"{alt_reads} / {tot_reads} Reads" if alt_reads is not None and tot_reads is not None else "-"
-    try:
-        q_val = float(qual)
-        qual_str = f"Q{q_val:.1f} (Phred)"
-    except (TypeError, ValueError):
-        qual_str = f"Q{qual}" if qual is not None else "Q33.0 (Phred)"
+    return _single_card(r)
 
-    rsid = r.get("rsid")
-    rsid_html = (f'<a href="https://www.ncbi.nlm.nih.gov/snp/{html.escape(str(rsid))}" '
-                 f'target="_blank" style="color:#2563eb; text-decoration:none; font-family:monospace;">{html.escape(str(rsid))}</a>'
-                 ) if rsid and str(rsid).startswith("rs") else (html.escape(str(rsid)) if rsid else "-")
+
 def _alphagenome_ui(r, ev):
     is_ag = "RESCUE_ALPHAGENOME_TARGET" in (r.get("reason_codes") or []) or ev.get("is_alphagenome_candidate", False)
     ag_url = ev.get("alphagenome_url")

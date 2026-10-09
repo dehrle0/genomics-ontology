@@ -19,6 +19,7 @@ usage() {
     echo ""
     echo "Options:"
     echo "  -c CONFIG      Domain YAML config (default: config/ontology_domains.yaml)"
+    echo "  -v VCF         Phased VCF(s) comma-separated (e.g. SNVs, SVs)"
     echo "  -g GDRIVE_DIR  Google Drive base directory (default: ~/Google Drive/My Drive/Ontology)"
     echo "  -l             Local only (skip Google Drive sync)"
     echo "  -h             Show this help message"
@@ -34,10 +35,12 @@ usage() {
 CONFIG="$SCRIPT_DIR/config/ontology_domains.yaml"
 GDRIVE_DIR="$HOME/Google Drive/My Drive/Ontology"
 LOCAL_ONLY=""
+VCF_ARG=""
 
-while getopts ":c:g:lh" opt; do
+while getopts ":c:v:g:lh" opt; do
     case "$opt" in
         c) CONFIG="$OPTARG" ;;
+        v) VCF_ARG="--vcf $OPTARG" ;;
         g) GDRIVE_DIR="$OPTARG" ;;
         l) LOCAL_ONLY="--local-only" ;;
         h) usage ;;
@@ -58,4 +61,5 @@ python3 "$SCRIPT_DIR/run_ontology_pipeline.py" \
     --input "$INPUT_SOURCE" \
     --config "$CONFIG" \
     --gdrive-dir "$GDRIVE_DIR" \
+    $VCF_ARG \
     $LOCAL_ONLY

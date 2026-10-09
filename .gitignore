@@ -26,3 +26,7 @@ __pycache__/
 reports/Daniel_Ehrle*
 reports/Melinda_Ehrle*
 reports/*pharma_reports*
+
+# Ephemeral Sanitized Intermediate Caches
+data/sanitized/*_ontology_pharma_alphagenome.json
+data/sanitized/*_sanitized.json
