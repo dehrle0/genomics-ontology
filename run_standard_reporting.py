@@ -279,6 +279,15 @@ def run_standard_pipeline(
     print(f"  [Deliverable 2] Written Deep Dossier HTML: {deep_html_path} ({os.path.getsize(deep_html_path):,} bytes)")
     print(f"  [Deliverable 3] Written EHR Import JSON: {ehr_out_path} ({os.path.getsize(ehr_out_path):,} bytes)")
 
+    # Deliverable 4: Standalone Landscape Clinical Dashboard
+    landscape_out_path = os.path.join(sample_dir, f"{patient_id}_landscape_dashboard.html")
+    try:
+        from build_landscape_report import build_standalone_landscape_html
+        build_standalone_landscape_html(patient_id, master_json_path, landscape_out_path)
+        print(f"  [Deliverable 4] Written Landscape Dashboard: {landscape_out_path} ({os.path.getsize(landscape_out_path):,} bytes)")
+    except Exception as e:
+        print(f"  [Landscape Note] Dashboard compile skipped / fallback: {e}")
+
     # --------------------------------------------------------------------------
     # STAGE 5: MEMORY RECLAMATION (AIRGAPPED LOCAL INFERENCE CLEANUP)
     # --------------------------------------------------------------------------
@@ -290,18 +299,19 @@ def run_standard_pipeline(
     # STAGE 6: GOOGLE DRIVE SYNCHRONIZATION
     # --------------------------------------------------------------------------
     print(f"\n[Stage 6/6] Syncing deliverables to Google Drive ({gdrive_dir})...")
+    sync_files = [clinic_html_path, deep_md_path, deep_html_path, ehr_out_path, landscape_out_path]
     if os.path.exists(gdrive_dir):
         # 1. Dated Run Folder
         gdrive_dated = os.path.join(gdrive_dir, sample_dir_name)
         os.makedirs(gdrive_dated, exist_ok=True)
-        for fpath in [clinic_html_path, deep_md_path, deep_html_path, ehr_out_path]:
+        for fpath in sync_files:
             if os.path.exists(fpath):
                 dst = os.path.join(gdrive_dated, os.path.basename(fpath))
                 shutil.copy2(fpath, dst)
                 print(f"  Synced to dated folder: {dst}")
 
         # 2. Main Ontology Root
-        for fpath in [clinic_html_path, deep_md_path, deep_html_path, ehr_out_path]:
+        for fpath in sync_files:
             if os.path.exists(fpath):
                 dst_root = os.path.join(gdrive_dir, os.path.basename(fpath))
                 shutil.copy2(fpath, dst_root)

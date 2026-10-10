@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Clinical Genomics Landscape Dashboard — Dual Cohort Explorer</title>
+<link rel="stylesheet" href="css/landscape.css" />
+</head>
+<body>
+
+<!-- Artistic Genetic & Epigenetic Faint Background Watermark -->
+<div class="dna-watermark" aria-hidden="true" style="position:fixed;inset:0;width:100%;height:100%;opacity:0.04;pointer-events:none;z-index:0;">
+  <svg viewBox="0 0 1200 1000" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="helix-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.8" />
+        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.8" />
+      </linearGradient>
+      <linearGradient id="helix-purple" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.8" />
+        <stop offset="100%" stop-color="#f43f5e" stop-opacity="0.8" />
+      </linearGradient>
+    </defs>
+    <path d="M 100 0 Q 300 250 100 500 T 100 1000" fill="none" stroke="url(#helix-cyan)" stroke-width="4" />
+    <path d="M 300 0 Q 100 250 300 500 T 300 1000" fill="none" stroke="url(#helix-purple)" stroke-width="4" />
+    <path d="M 900 0 Q 1100 250 900 500 T 900 1000" fill="none" stroke="url(#helix-purple)" stroke-width="3" />
+    <path d="M 1100 0 Q 900 250 1100 500 T 1100 1000" fill="none" stroke="url(#helix-cyan)" stroke-width="3" />
+  </svg>
+</div>
+
+<!-- ============================== TOPBAR ============================== -->
+<header class="topbar">
+  <div class="topbar__left">
+    <div class="topbar__brand">
+      <div class="topbar__logo">GO</div>
+      <span>Genomic Clinical Dashboard</span>
+    </div>
+    <div class="topbar__tagline">Landscape Visualizations & Multidimensional Variant Reports</div>
+
+    <!-- Cohort Switcher (Daniel vs Melinda) -->
+    <div class="cohort-switch" role="group" aria-label="Patient Cohort Switcher">
+      <span class="cohort-switch__label">Patient:</span>
+      <button class="cohort-btn active" data-patient="Daniel_Ehrle" id="cohort-de">Daniel Ehrle</button>
+      <button class="cohort-btn" data-patient="Melinda_Ehrle" id="cohort-me">Melinda Ehrle</button>
+    </div>
+  </div>
+
+  <div class="topbar__right">
+    <div class="topbar__meta mono" id="topbar-meta">Loading cohort telemetry…</div>
+    <button class="btn-icon" onclick="window.print()" title="Print Dashboard to PDF">
+      <span>🖨️</span> Print PDF
+    </button>
+  </div>
+</header>
+
+<!-- ============================== MAIN CONTAINER ============================== -->
+<main class="app-container">
+
+  <!-- ============================== 3-ROW LANDSCAPE CHARTS ============================== -->
+  <section class="landscape-rows" aria-label="Genomic Clinical Breakdowns">
+
+    <!-- ROW 1: ONTOLOGY (HPO Clinical Domains) -->
+    <div class="chart-row-card">
+      <div class="chart-row-card__head">
+        <div class="chart-row-card__title">
+          <span>🧬 Row 1 — Groupings by Ontology (HPO Clinical Domains & Phenotypes)</span>
+        </div>
+        <div class="chart-row-card__pill">Level 1 HPO Disease Categories</div>
+      </div>
+      <div class="chart-panels-grid">
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">A</span>
+            <span>Diagnostic & Actionable Rate by Clinical Presentation (non-ICU)</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row1-bar"></div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">B</span>
+            <span>Clinical Presentation prior to RGS (Phenotypic Burden)</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row1-pie-prior"></div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">C</span>
+            <span>Diagnosis Category after RGS (Confirmed Molecular Findings)</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row1-pie-post"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 2: ORGAN SYSTEMS (9 Anatomical Systems & Risk Stratification) -->
+    <div class="chart-row-card">
+      <div class="chart-row-card__head">
+        <div class="chart-row-card__title">
+          <span>🫀 Row 2 — Groupings by Organ System (9 Anatomical Systems & Risk Tiers)</span>
+        </div>
+        <div class="chart-row-card__pill">Multi-System Risk Matrix</div>
+      </div>
+      <div class="chart-panels-grid">
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">A</span>
+            <span>Variant Burden & Actionability across Anatomical Systems</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row2-bar"></div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">B</span>
+            <span>Organ System Involvement prior to Genomic Tiering</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row2-pie-prior"></div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">C</span>
+            <span>Primary Organ System Attribution for Actionable Findings</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row2-pie-post"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: PHARMACOGENOMICS (CPIC / DPWG Clinical Actionability) -->
+    <div class="chart-row-card">
+      <div class="chart-row-card__head">
+        <div class="chart-row-card__title">
+          <span>💊 Row 3 — Groupings by Pharmacogenomics (CPIC / DPWG Clinical Actionability)</span>
+        </div>
+        <div class="chart-row-card__pill">Drug-Gene Interactions</div>
+      </div>
+      <div class="chart-panels-grid">
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">A</span>
+            <span>CPIC Actionability by Therapeutic Drug Class</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row3-bar"></div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">B</span>
+            <span>Drug-Gene Metabolizer Phenotype Distribution</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row3-pie-prior"></div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">C</span>
+            <span>Clinical Guidance Categories post-Analysis</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row3-pie-post"></div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================== REPORT SELECTOR & VARIANT EXPLORER ============================== -->
+  <section class="explorer-section" aria-label="Genomic Variant Explorer">
+    
+    <div class="report-controls-toolbar">
+      <!-- Report Dropdown -->
+      <div class="report-selector-wrap">
+        <label for="report-selector" class="report-selector-label">Select Report View:</label>
+        <select id="report-selector" class="report-dropdown">
+          <option value="visual_explorer">Visual Explorer — Master Genomic Catalog</option>
+          <option value="rare">Rare Variants (gnomAD AF ≤ 1%)</option>
+          <option value="clinvar">ClinVar Pathogenicity & Clinical Curation</option>
+          <option value="cadd">CADD Deleteriousness Ranking (Phred ≥ 15)</option>
+          <option value="spliceai">SpliceAI Deep Learning Splicing Disruption (Δ ≥ 0.10)</option>
+          <option value="atlas">DeepMind AlphaGenome Atlas (AVI Phred Score)</option>
+          <option value="alphamissense">AlphaMissense Structural Pathogenicity</option>
+          <option value="revel">REVEL Ensembled Missense Pathogenicity (Score ≥ 0.5)</option>
+          <option value="ai_deep">AI Deep Summary — Clinical Research Dossier (Alt B)</option>
+          <option value="ai_clinical">AI Clinical Action Brief (Alt C 3-Page Brief)</option>
+        </select>
+      </div>
+
+      <!-- Real-Time Search -->
+      <div class="search-filter-wrap">
+        <input type="text" id="search-input" class="search-input" placeholder="Search by gene symbol, rsID, coordinate, consequence, disease…" />
+      </div>
+
+      <!-- Toolbar Buttons -->
+      <div class="toolbar-actions">
+        <button id="btn-expand-all" class="btn-secondary">Expand All Genes</button>
+        <button id="btn-collapse-all" class="btn-secondary">Collapse All</button>
+      </div>
+    </div>
+
+    <!-- Active Report Content Mount -->
+    <div id="explorer-content-mount"></div>
+
+  </section>
+
+</main>
+
+<!-- Cohort Data Bundle -->
+<script src="data/cohort_landscape_data.js"></script>
+<!-- Application Engine -->
+<script src="js/landscape.js"></script>
+
+</body>
+</html>
