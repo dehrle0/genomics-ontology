@@ -255,7 +255,15 @@ def update_actionable_with_phased_vcfs(act_json_path, act_db_path, vcf_paths):
     for r in records:
         c, p = r.get("chrom"), r.get("pos")
         if c and p:
-            record_coords[(str(c), int(p))] = r
+            try:
+                c_str = str(c)
+                p_int = int(p)
+                record_coords[(c_str, p_int)] = r
+                c_clean = c_str[3:] if c_str.startswith("chr") else c_str
+                record_coords[(c_clean, p_int)] = r
+                record_coords[(f"chr{c_clean}", p_int)] = r
+            except (ValueError, TypeError):
+                continue
 
     matched_count = 0
     phased_maternal = 0

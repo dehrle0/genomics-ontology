@@ -74,7 +74,15 @@ def build_grouped_catalog(variants_list):
         organ = str(v.get('organSystem', ''))
         gene_name = str(v.get('geneName', '') or v.get('gene', '')).lower()
 
-        if tier not in ['Tier1', 'Tier2'] and cat not in ['concern', 'protective'] and cv in ['Not reviewed', 'None', '']:
+        is_high_avi = False
+        try:
+            avi_val = v.get('avi') or v.get('aviPhred')
+            if avi_val is not None and float(avi_val) >= 25.0:
+                is_high_avi = True
+        except (ValueError, TypeError):
+            pass
+
+        if tier not in ['Tier1', 'Tier2'] and cat not in ['concern', 'protective'] and cv in ['Not reviewed', 'None', ''] and not is_high_avi:
             continue
 
         var_rec = {
