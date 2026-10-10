@@ -24,7 +24,7 @@ def parse_args():
     parser.add_argument("--in-json", required=True, help="Path to master_actionable.json")
     parser.add_argument("--cache", default=GLOBAL_CACHE_FILE, help="Path to global cache JSON")
     parser.add_argument("--sample-cache", default=None, help="Optional sample-specific cache JSON copy")
-    parser.add_argument("--max-queries", type=int, default=1000, help="Max API queries allowed in a single run")
+    parser.add_argument("--max-queries", type=int, default=5000, help="Max API queries allowed in a single run")
     parser.add_argument("--force", action="store_true", help="Force re-query of cached items")
     return parser.parse_args()
 
@@ -60,7 +60,7 @@ def is_snv(ref: str, alt: str) -> bool:
     return len(r) == 1 and len(a) == 1 and r in "ACGT" and a in "ACGT"
 
 
-def query_alphagenome_batch(variants: List[str], chunk_size: int = 100) -> List[Dict[str, Any]]:
+def query_alphagenome_batch(variants: List[str], chunk_size: int = 100, cache_ref: Dict[str, Any] = None, cache_path: str = None) -> List[Dict[str, Any]]:
     if not variants:
         return []
 
@@ -117,10 +117,32 @@ def query_alphagenome_batch(variants: List[str], chunk_size: int = 100) -> List[
             try:
                 with open(output_file, "r", encoding="utf-8") as f:
                     chunk_data = json.load(f)
+                    chunk_items = []
                     if isinstance(chunk_data, list):
-                        all_results.extend(chunk_data)
+                        chunk_items = chunk_data
                     elif isinstance(chunk_data, dict):
-                        all_results.append(chunk_data)
+                        chunk_items = [chunk_data]
+                    all_results.extend(chunk_items)
+
+                    # Incrementally populate and persist cache per completed chunk
+                    if cache_ref is not None:
+                        for item in chunk_items:
+                            vk = item.get("variant")
+                            if not vk:
+                                continue
+                            features = {k: v for k, v in item.items() if k.startswith("fi_")}
+                            cache_ref[vk] = {
+                                "supported": True,
+                                "avi_phred": item.get("avi_phred"),
+                                "avi_raw": item.get("avi_raw"),
+                                "avi_quantile": item.get("avi_quantile"),
+                                "top_percentile": item.get("top_percentile"),
+                                "top_modality": item.get("top_modality"),
+                                "top_feature_importance": item.get("top_feature_importance"),
+                                "features": features
+                            }
+                        if cache_path:
+                            save_cache(cache_ref, cache_path)
             except Exception as e:
                 print(f"[AlphaGenome Enrich Error] Failed parsing JSON output: {e}")
 
@@ -140,21 +162,15 @@ def main():
     records = data.get("records", [])
     cache = load_cache(args.cache)
 
-    candidates = []
-    for r in records:
-        tier = r.get("tier")
-        rcodes = r.get("reason_codes") or []
-        ev = r.get("evidence", {}) or {}
-        is_t1_t2 = str(tier) in ("Tier1", "Tier2")
-        is_cand = ("RESCUE_ALPHAGENOME_TARGET" in rcodes) or ev.get("is_alphagenome_candidate", False) or is_t1_t2
-        if is_cand:
-            candidates.append(r)
+    # Evaluate 100% of actionable records across all tiers and categories
+    candidates = records
 
     print(f"[AlphaGenome Enrich] Total Actionable Records : {len(records)}")
-    print(f"[AlphaGenome Enrich] Tier1/Tier2/Triage Targets : {len(candidates)}")
+    print(f"[AlphaGenome Enrich] Candidates for Evaluation: {len(candidates)}")
     print(f"[AlphaGenome Enrich] Cached Entries in Memory  : {len(cache)}")
 
     to_query = []
+    to_query_set = set()
     skipped_indels = 0
     cached_hits = 0
 
@@ -181,30 +197,17 @@ def main():
             }
             continue
 
-        if len(to_query) < args.max_queries:
-            to_query.append(var_key)
+        if var_key not in to_query_set:
+            to_query_set.add(var_key)
+            if len(to_query) < args.max_queries:
+                to_query.append(var_key)
 
     print(f"[AlphaGenome Enrich] Existing Cache Hits       : {cached_hits}")
     print(f"[AlphaGenome Enrich] Indels/Non-SNV Skipped    : {skipped_indels}")
-    print(f"[AlphaGenome Enrich] Variants to Query (Live)  : {len(to_query)}")
+    print(f"[AlphaGenome Enrich] Unique Variants to Query  : {len(to_query)}")
 
     if to_query:
-        batch_results = query_alphagenome_batch(to_query)
-        for res in batch_results:
-            v_key = res.get("variant")
-            if not v_key:
-                continue
-            features = {k: v for k, v in res.items() if k.startswith("fi_")}
-            cache[v_key] = {
-                "supported": True,
-                "avi_phred": res.get("avi_phred"),
-                "avi_raw": res.get("avi_raw"),
-                "avi_quantile": res.get("avi_quantile"),
-                "top_percentile": res.get("top_percentile"),
-                "top_modality": res.get("top_modality"),
-                "top_feature_importance": res.get("top_feature_importance"),
-                "features": features
-            }
+        batch_results = query_alphagenome_batch(to_query, cache_ref=cache, cache_path=args.cache)
         print(f"[AlphaGenome Enrich] Ingested {len(batch_results)} live predictions into cache.")
 
     # Apply cache to actionable records

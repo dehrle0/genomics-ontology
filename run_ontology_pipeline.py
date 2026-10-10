@@ -495,7 +495,7 @@ def main():
             "--in-json", act_json,
             "--cache", ag_cache_file,
             "--sample-cache", sample_ag_cache,
-            "--max-queries", "1000"
+            "--max-queries", "5000"
         ], check=True)
     except Exception as e:
         print(f"[AlphaGenome Enrich Note] Live query bypassed / Cache fallback applied: {e}")
