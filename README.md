@@ -198,17 +198,24 @@ ontology_report/
 Execute the full 7-stage pipeline against an OpenCRAVAT SQLite database and phased VCFs:
 
 ```bash
-# Daniel Ehrle (with SE Maternal Anchor):
+# Daniel Ehrle (with Tri-VCF Phasing & Optional Upstream VEP + AlphaGenome Pre-Annotation):
 python3 run_ontology_pipeline.py \
   --sample Daniel_Ehrle \
-  --input reports/Daniel_Ehrle-04-10-2026/Daniel_Ehrle.sqlite \
-  --phased-vcf /data/Genomes/DE/Approach4D_Output/DE_grch38_wgs_phased.pass.vcf.gz,/data/Genomes/DE/Approach4D_Output/DE_grch38_sv_phased.vcf.gz,/data/Genomes/DE/Approach4D_Output/DE_grch38_cnv_phased.vcf.gz,/data/Genomes/DE/Approach4D_Output/DE_grch38_str.vcf.gz
+  --input reports/Daniel_Ehrle-02-10-2026/Daniel_Ehrle.sqlite \
+  --vcf "/data/Genomes/DE/Approach4D_Output/DE_grch38_wgs_phased.vcf.gz,/data/Genomes/DE/Approach4D_Output/DE_grch38_sv_phased.vcf.gz,/data/Genomes/DE/Approach4D_Output/DE_grch38_cnv_phased.vcf.gz" \
+  --run-vep \
+  --local-only
 
-# Melinda Ehrle (with MI Maternal Anchor):
+# Melinda Ehrle (with Tri-VCF Phasing & Optional Upstream VEP + AlphaGenome Pre-Annotation):
 python3 run_ontology_pipeline.py \
   --sample Melinda_Ehrle \
-  --input reports/Melinda_Ehrle-04-10-2026/Melinda_Ehrle.sqlite \
-  --phased-vcf /data/Genomes/ME/Approach4D_Output/ME_grch38_wgs_phased.pass.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_sv_phased.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_cnv_phased.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_str.vcf.gz
+  --input reports/Melinda_Ehrle-03-10-2026/Melinda_Ehrle.sqlite \
+  --vcf "/data/Genomes/ME/Approach4D_Output/ME_grch38_wgs_phased.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_sv_phased.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_cnv_phased.vcf.gz" \
+  --run-vep \
+  --local-only
+
+# Or via the master wrapper with -a (VEP + AlphaGenome):
+./run_ontology_master_pipeline.sh -a -l Daniel_Ehrle reports/Daniel_Ehrle-02-10-2026/Daniel_Ehrle.sqlite
 ```
 
 ### 2. Run Standardized Multi-Cohort Reporting (v5.3)
