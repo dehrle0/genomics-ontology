@@ -43,6 +43,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Standard Clinical Genomics Reporting Orchestrator")
     parser.add_argument("target", choices=["me", "de", "ME", "DE"], help="Target patient profile (me or de)")
     parser.add_argument("--reports-dir", default="/home/daniel-ehrle/My-Projects/genomics/ontology_report/reports")
+    parser.add_argument("--sample-dir", default=None, help="Explicit sample folder name (e.g. Daniel_Ehrle-09-10-2026)")
     parser.add_argument("--gdrive-dir", default="/home/daniel-ehrle/Google Drive/My Drive/Ontology")
     parser.add_argument("--dry-run", action="store_true", help="Validate inputs without writing files")
     return parser.parse_args()
@@ -124,7 +125,11 @@ def run_standard_pipeline(
 
     patient_name = patient_name_override or preset["patient_name"]
     patient_id = patient_id_override or preset["patient_id"]
-    sample_dir_name = sample_dir_override or preset["sample_dir"]
+    today_folder = f"{patient_id}-{datetime.now().strftime('%d-%m-%Y')}"
+    if not sample_dir_override and os.path.exists(os.path.join(reports_dir, today_folder)):
+        sample_dir_name = today_folder
+    else:
+        sample_dir_name = sample_dir_override or preset["sample_dir"]
     sample_dir = os.path.join(reports_dir, sample_dir_name)
     master_json_path = os.path.join(sample_dir, f"{patient_id}_ontology_pharma_alphagenome.json")
 
@@ -305,7 +310,8 @@ def main():
         target_key=args.target,
         reports_dir=args.reports_dir,
         gdrive_dir=args.gdrive_dir,
-        dry_run=args.dry_run
+        dry_run=args.dry_run,
+        sample_dir_override=args.sample_dir
     )
 
 if __name__ == "__main__":

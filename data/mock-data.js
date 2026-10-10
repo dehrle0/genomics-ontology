@@ -1,6 +1,6 @@
 /**
  * REAL DATASET — Genomic Ontology Explorer (Verified Multi-Level DAG)
- * Generated from OpenCRAVAT output: /home/daniel-ehrle/My-Projects/genomics/ontology_report/reports/Melinda_Ehrle-07-10-2026/Melinda_Ehrle_master_actionable.json
+ * Generated from OpenCRAVAT output: /home/daniel-ehrle/My-Projects/genomics/ontology_report/reports/Melinda_Ehrle-09-10-2026/Melinda_Ehrle_master_actionable.json
  */
 
 const JOB_META = {
@@ -2153,7 +2153,7 @@ const GENES = [
         "genotype": "A/-",
         "zygosity": "Heterozygous",
         "phase": "Unknown",
-        "vcfGt": "",
+        "vcfGt": "./.",
         "maf": 1.2492504497301619e-06,
         "coordinate": "chr11:108250699",
         "chrom": "chr11",
@@ -2163,7 +2163,7 @@ const GENES = [
         "cchange": "c.1236-2del",
         "achange": "",
         "transcript": "ENST00000675843.1",
-        "vaf": 0.3333333333333333,
+        "vaf": "0.166667",
         "consequence": [
           "SPL"
         ],
@@ -2183,10 +2183,10 @@ const GENES = [
         },
         "alphamissense": null,
         "amClass": "likely_benign",
-        "qual": 3.8,
+        "qual": "1.4",
         "reads": {
-          "matching": 9,
-          "total": 27
+          "matching": "3",
+          "total": "18"
         },
         "acmgPm5": null,
         "acmgPs1": null,
@@ -26507,6 +26507,267 @@ const GENES = [
         "url": "https://pubmed.ncbi.nlm.nih.gov/27015805/"
       }
     ]
+  },
+  {
+    "symbol": "ANO1",
+    "name": "ANO1",
+    "chromosome": "chr11:70089999",
+    "chrom": "chr11",
+    "pos": 70089999,
+    "organSystem": "Multisystem",
+    "ncbiGeneId": "0",
+    "omimGene": "100000",
+    "omimPhenotype": null,
+    "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr11:70084999-70094999",
+    "links": {
+      "ncbiGene": "https://www.ncbi.nlm.nih.gov/gene/?term=ANO1",
+      "omim": "https://omim.org/search?search=ANO1",
+      "genecards": "https://www.genecards.org/cgi-bin/carddisp.pl?gene=ANO1",
+      "clinvarGene": "https://www.ncbi.nlm.nih.gov/clinvar/?term=ANO1%5Bgene%5D"
+    },
+    "summary": "The ANO1 gene encodes an essential clinical protein.",
+    "associatedPathology": [],
+    "pli": 0.5,
+    "loeuf": 0.8,
+    "variantsDetected": 1,
+    "researchedVariants": 0,
+    "hpoTermCount": 28,
+    "goTermCount": 24,
+    "variants": [
+      {
+        "id": "chr11:70089999",
+        "gene": "ANO1",
+        "genotype": "GTT/-",
+        "zygosity": "Heterozygous",
+        "phase": "Unknown",
+        "vcfGt": "",
+        "maf": 0.0,
+        "coordinate": "chr11:70089999",
+        "chrom": "chr11",
+        "pos": 70089999,
+        "ref": "GTT",
+        "alt": "-",
+        "cchange": "c.441+1915_441+1917del",
+        "achange": "p.Arg147fs",
+        "transcript": "ENST00000355303.10",
+        "vaf": 0.5416666666666666,
+        "consequence": [
+          "EXL",
+          "p.Arg147fs"
+        ],
+        "category": "uncertain",
+        "tier": "Tier2",
+        "clinvar": "Not reviewed",
+        "clinvarRev": "criteria provided",
+        "clinvarId": null,
+        "revel": null,
+        "cadd": null,
+        "spliceai": null,
+        "spliceaiDetails": {
+          "ag": null,
+          "al": null,
+          "dg": null,
+          "dl": null
+        },
+        "alphamissense": null,
+        "amClass": "likely_benign",
+        "qual": 67.9,
+        "reads": {
+          "matching": 13,
+          "total": 24
+        },
+        "acmgPm5": null,
+        "acmgPs1": null,
+        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr11:70089499-70090499",
+        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr11:70089999:GTT%3E-&m=variant",
+        "isAlphaGenomeTarget": false,
+        "alphagenomeSubreason": "",
+        "aviPhred": null,
+        "aviPercentile": null,
+        "aviModality": null,
+        "aviStatus": "INDEL_NOT_SUPPORTED",
+        "lastEvaluated": "2026-08-27",
+        "studies": []
+      }
+    ],
+    "hpoTerms": [
+      {
+        "id": "HP:0001297",
+        "label": "Stroke",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001269",
+        "label": "Hemiparesis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002587",
+        "label": "Projectile vomiting",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001252",
+        "label": "Hypotonia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000007",
+        "label": "Autosomal recessive inheritance",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000007",
+        "label": "Autosomal recessive inheritance",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000006",
+        "label": "Autosomal dominant inheritance",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002014",
+        "label": "Diarrhea",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0100546",
+        "label": "Carotid artery stenosis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002076",
+        "label": "Migraine",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003577",
+        "label": "Congenital onset",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003581",
+        "label": "Adult onset",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0011968",
+        "label": "Feeding difficulties",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002315",
+        "label": "Headache",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002326",
+        "label": "Transient ischemic attack",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003623",
+        "label": "Neonatal onset",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0011463",
+        "label": "Childhood onset",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0030897",
+        "label": "Decreased intestinal transit time",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003270",
+        "label": "Abdominal distention",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0008081",
+        "label": "Pes valgus",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000289",
+        "label": "Broad philtrum",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000218",
+        "label": "High palate",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001561",
+        "label": "Polyhydramnios",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001508",
+        "label": "Failure to thrive",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000369",
+        "label": "Low-set ears",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0012495",
+        "label": "Posterior cerebral artery stenosis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000518",
+        "label": "Cataract",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001824",
+        "label": "Weight loss",
+        "evidence": "Curated HPO"
+      }
+    ],
+    "goBpo": [
+      "monoatomic ion transport",
+      "chloride transport",
+      "phospholipase C-activating G protein-coupled receptor signaling pathway",
+      "iodide transport",
+      "monoatomic ion transmembrane transport",
+      "cellular response to heat",
+      "detection of temperature stimulus involved in sensory perception of pain",
+      "mucus secretion",
+      "protein localization to membrane",
+      "monoatomic cation transmembrane transport",
+      "glial cell projection elongation",
+      "cellular response to peptide",
+      "chloride transmembrane transport"
+    ],
+    "goMfo": [
+      "signaling receptor binding",
+      "calcium-activated cation channel activity",
+      "intracellularly calcium-gated chloride channel activity",
+      "voltage-gated chloride channel activity",
+      "chloride channel activity",
+      "protein binding",
+      "iodide transmembrane transporter activity",
+      "identical protein binding",
+      "protein homodimerization activity",
+      "metal ion binding",
+      "protein dimerization activity"
+    ],
+    "goCco": [
+      "plasma membrane",
+      "apical plasma membrane",
+      "chloride channel complex",
+      "extracellular exosome",
+      "presynapse"
+    ],
+    "publications": []
   },
   {
     "symbol": "APOL1",
@@ -128449,267 +128710,6 @@ const GENES = [
     "publications": []
   },
   {
-    "symbol": "ANO1",
-    "name": "ANO1",
-    "chromosome": "chr11:70089999",
-    "chrom": "chr11",
-    "pos": 70089999,
-    "organSystem": "Multisystem",
-    "ncbiGeneId": "0",
-    "omimGene": "100000",
-    "omimPhenotype": null,
-    "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr11:70084999-70094999",
-    "links": {
-      "ncbiGene": "https://www.ncbi.nlm.nih.gov/gene/?term=ANO1",
-      "omim": "https://omim.org/search?search=ANO1",
-      "genecards": "https://www.genecards.org/cgi-bin/carddisp.pl?gene=ANO1",
-      "clinvarGene": "https://www.ncbi.nlm.nih.gov/clinvar/?term=ANO1%5Bgene%5D"
-    },
-    "summary": "The ANO1 gene encodes an essential clinical protein.",
-    "associatedPathology": [],
-    "pli": 0.5,
-    "loeuf": 0.8,
-    "variantsDetected": 1,
-    "researchedVariants": 0,
-    "hpoTermCount": 28,
-    "goTermCount": 24,
-    "variants": [
-      {
-        "id": "chr11:70089999",
-        "gene": "ANO1",
-        "genotype": "GTT/-",
-        "zygosity": "Heterozygous",
-        "phase": "Unknown",
-        "vcfGt": "",
-        "maf": 0.0,
-        "coordinate": "chr11:70089999",
-        "chrom": "chr11",
-        "pos": 70089999,
-        "ref": "GTT",
-        "alt": "-",
-        "cchange": "c.441+1915_441+1917del",
-        "achange": "p.Arg147fs",
-        "transcript": "ENST00000355303.10",
-        "vaf": 0.5416666666666666,
-        "consequence": [
-          "EXL",
-          "p.Arg147fs"
-        ],
-        "category": "uncertain",
-        "tier": "Tier2",
-        "clinvar": "Not reviewed",
-        "clinvarRev": "criteria provided",
-        "clinvarId": null,
-        "revel": null,
-        "cadd": null,
-        "spliceai": null,
-        "spliceaiDetails": {
-          "ag": null,
-          "al": null,
-          "dg": null,
-          "dl": null
-        },
-        "alphamissense": null,
-        "amClass": "likely_benign",
-        "qual": 67.9,
-        "reads": {
-          "matching": 13,
-          "total": 24
-        },
-        "acmgPm5": null,
-        "acmgPs1": null,
-        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr11:70089499-70090499",
-        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr11:70089999:GTT%3E-&m=variant",
-        "isAlphaGenomeTarget": false,
-        "alphagenomeSubreason": "",
-        "aviPhred": null,
-        "aviPercentile": null,
-        "aviModality": null,
-        "aviStatus": "INDEL_NOT_SUPPORTED",
-        "lastEvaluated": "2026-08-27",
-        "studies": []
-      }
-    ],
-    "hpoTerms": [
-      {
-        "id": "HP:0001297",
-        "label": "Stroke",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001269",
-        "label": "Hemiparesis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002587",
-        "label": "Projectile vomiting",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001252",
-        "label": "Hypotonia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000007",
-        "label": "Autosomal recessive inheritance",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000007",
-        "label": "Autosomal recessive inheritance",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000006",
-        "label": "Autosomal dominant inheritance",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002014",
-        "label": "Diarrhea",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0100546",
-        "label": "Carotid artery stenosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002076",
-        "label": "Migraine",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003577",
-        "label": "Congenital onset",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003581",
-        "label": "Adult onset",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0011968",
-        "label": "Feeding difficulties",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002315",
-        "label": "Headache",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002326",
-        "label": "Transient ischemic attack",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003623",
-        "label": "Neonatal onset",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0011463",
-        "label": "Childhood onset",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0030897",
-        "label": "Decreased intestinal transit time",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003270",
-        "label": "Abdominal distention",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0008081",
-        "label": "Pes valgus",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000289",
-        "label": "Broad philtrum",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000218",
-        "label": "High palate",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001561",
-        "label": "Polyhydramnios",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001508",
-        "label": "Failure to thrive",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000369",
-        "label": "Low-set ears",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0012495",
-        "label": "Posterior cerebral artery stenosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000518",
-        "label": "Cataract",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001824",
-        "label": "Weight loss",
-        "evidence": "Curated HPO"
-      }
-    ],
-    "goBpo": [
-      "monoatomic ion transport",
-      "chloride transport",
-      "phospholipase C-activating G protein-coupled receptor signaling pathway",
-      "iodide transport",
-      "monoatomic ion transmembrane transport",
-      "cellular response to heat",
-      "detection of temperature stimulus involved in sensory perception of pain",
-      "mucus secretion",
-      "protein localization to membrane",
-      "monoatomic cation transmembrane transport",
-      "glial cell projection elongation",
-      "cellular response to peptide",
-      "chloride transmembrane transport"
-    ],
-    "goMfo": [
-      "signaling receptor binding",
-      "calcium-activated cation channel activity",
-      "intracellularly calcium-gated chloride channel activity",
-      "voltage-gated chloride channel activity",
-      "chloride channel activity",
-      "protein binding",
-      "iodide transmembrane transporter activity",
-      "identical protein binding",
-      "protein homodimerization activity",
-      "metal ion binding",
-      "protein dimerization activity"
-    ],
-    "goCco": [
-      "plasma membrane",
-      "apical plasma membrane",
-      "chloride channel complex",
-      "extracellular exosome",
-      "presynapse"
-    ],
-    "publications": []
-  },
-  {
     "symbol": "APOO",
     "name": "APOO",
     "chromosome": "chrX:23858749",
@@ -222055,716 +222055,6 @@ const GENES = [
     "publications": []
   },
   {
-    "symbol": "AGRN",
-    "name": "AGRN",
-    "chromosome": "chr1:1028322",
-    "chrom": "chr1",
-    "pos": 1028322,
-    "organSystem": "Multisystem",
-    "ncbiGeneId": "0",
-    "omimGene": "100000",
-    "omimPhenotype": null,
-    "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr1:1023322-1033322",
-    "links": {
-      "ncbiGene": "https://www.ncbi.nlm.nih.gov/gene/?term=AGRN",
-      "omim": "https://omim.org/search?search=AGRN",
-      "genecards": "https://www.genecards.org/cgi-bin/carddisp.pl?gene=AGRN",
-      "clinvarGene": "https://www.ncbi.nlm.nih.gov/clinvar/?term=AGRN%5Bgene%5D"
-    },
-    "summary": "The AGRN gene encodes an essential clinical protein.",
-    "associatedPathology": [],
-    "pli": 0.5,
-    "loeuf": 0.8,
-    "variantsDetected": 1,
-    "researchedVariants": 0,
-    "hpoTermCount": 116,
-    "goTermCount": 31,
-    "variants": [
-      {
-        "id": "chr1:1028322",
-        "gene": "AGRN",
-        "genotype": "CC/-",
-        "zygosity": "Heterozygous",
-        "phase": "Unknown",
-        "vcfGt": "",
-        "maf": 0.0,
-        "coordinate": "chr1:1028322",
-        "chrom": "chr1",
-        "pos": 1028322,
-        "ref": "CC",
-        "alt": "-",
-        "cchange": "c.463+5873_463+5874del",
-        "achange": "",
-        "transcript": "ENST00000379370.7",
-        "vaf": 0.6666666666666666,
-        "consequence": [
-          "INT"
-        ],
-        "category": "uncategorized",
-        "tier": "Tier3",
-        "clinvar": "Not reviewed",
-        "clinvarRev": "criteria provided",
-        "clinvarId": null,
-        "revel": null,
-        "cadd": null,
-        "spliceai": null,
-        "spliceaiDetails": {
-          "ag": null,
-          "al": null,
-          "dg": null,
-          "dl": null
-        },
-        "alphamissense": null,
-        "amClass": "likely_benign",
-        "qual": 57.0,
-        "reads": {
-          "matching": 8,
-          "total": 12
-        },
-        "acmgPm5": null,
-        "acmgPs1": null,
-        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr1:1027822-1028822",
-        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr1:1028322:CC%3E-&m=variant",
-        "isAlphaGenomeTarget": false,
-        "alphagenomeSubreason": "",
-        "aviPhred": null,
-        "aviPercentile": null,
-        "aviModality": null,
-        "aviStatus": "INDEL_NOT_SUPPORTED",
-        "lastEvaluated": "2026-08-27",
-        "studies": []
-      }
-    ],
-    "hpoTerms": [
-      {
-        "id": "HP:0002421",
-        "label": "Poor head control",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003722",
-        "label": "Neck flexor weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003701",
-        "label": "Proximal muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003701",
-        "label": "Proximal muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001270",
-        "label": "Motor delay",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001288",
-        "label": "Gait disturbance",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001283",
-        "label": "Bulbar palsy",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001284",
-        "label": "Areflexia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001250",
-        "label": "Seizure",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001252",
-        "label": "Hypotonia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001251",
-        "label": "Ataxia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001249",
-        "label": "Intellectual disability",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001265",
-        "label": "Hyporeflexia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002515",
-        "label": "Waddling gait",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003803",
-        "label": "Type 1 muscle fiber predominance",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001374",
-        "label": "Congenital hip dislocation",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001382",
-        "label": "Joint hypermobility",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0410011",
-        "label": "Abnormality of masticatory muscle",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001324",
-        "label": "Muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000007",
-        "label": "Autosomal recessive inheritance",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002650",
-        "label": "Scoliosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001315",
-        "label": "Diminished deep tendon reflex",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0031108",
-        "label": "Triceps weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001446",
-        "label": "Abnormality of the musculature of the upper limbs",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002792",
-        "label": "Reduced vital capacity",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0025401",
-        "label": "Staring gaze",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002751",
-        "label": "Kyphoscoliosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002020",
-        "label": "Gastroesophageal reflux",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002033",
-        "label": "Poor suck",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0004661",
-        "label": "Frontalis muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003325",
-        "label": "Limb-girdle muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002015",
-        "label": "Dysphagia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003306",
-        "label": "Spinal rigidity",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003324",
-        "label": "Generalized muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0005943",
-        "label": "Respiratory arrest",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002093",
-        "label": "Respiratory insufficiency",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002091",
-        "label": "Restrictive ventilatory defect",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003388",
-        "label": "Easy fatigability",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003388",
-        "label": "Easy fatigability",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003388",
-        "label": "Easy fatigability",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003473",
-        "label": "Fatigable weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003484",
-        "label": "Upper limb muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003458",
-        "label": "EMG: myopathic abnormalities",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003458",
-        "label": "EMG: myopathic abnormalities",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003443",
-        "label": "Decreased size of nerve terminals",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003402",
-        "label": "Decreased miniature endplate potentials",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003403",
-        "label": "EMG: decremental response of compound muscle action potential to repetitive nerve stimulation",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003403",
-        "label": "EMG: decremental response of compound muscle action potential to repetitive nerve stimulation",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002194",
-        "label": "Delayed gross motor development",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0010536",
-        "label": "Central sleep apnea",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0004885",
-        "label": "Episodic respiratory distress",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003547",
-        "label": "Shoulder girdle muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0004889",
-        "label": "Intermittent episodes of respiratory insufficiency due to muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002205",
-        "label": "Recurrent respiratory infections",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0011968",
-        "label": "Feeding difficulties",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0010628",
-        "label": "Facial palsy",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002392",
-        "label": "EEG with polyspike wave complexes",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003693",
-        "label": "Distal amyotrophy",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002329",
-        "label": "Drowsiness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0008443",
-        "label": "Neuropathic spinal arthropathy",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0007178",
-        "label": "Motor polyneuropathy",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0009077",
-        "label": "Weakness of long finger extensor muscles",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000639",
-        "label": "Nystagmus",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000651",
-        "label": "Diplopia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000651",
-        "label": "Diplopia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000602",
-        "label": "Ophthalmoplegia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0009053",
-        "label": "Distal lower limb muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0009046",
-        "label": "Difficulty running",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0009005",
-        "label": "Weakness of the intrinsic hand muscles",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0005659",
-        "label": "Thoracic kyphoscoliosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000768",
-        "label": "Pectus carinatum",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0011469",
-        "label": "Nasal regurgitation",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0011463",
-        "label": "Childhood onset",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0012764",
-        "label": "Orthopnea",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000774",
-        "label": "Narrow chest",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0012801",
-        "label": "Narrow jaw",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003202",
-        "label": "Skeletal muscle atrophy",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0030842",
-        "label": "Choking episodes",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0010307",
-        "label": "Stridor",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0100285",
-        "label": "EMG: impaired neuromuscular transmission",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000961",
-        "label": "Cyanosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000961",
-        "label": "Cyanosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0100295",
-        "label": "Muscle fiber atrophy",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000276",
-        "label": "Long face",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002804",
-        "label": "Arthrogryposis multiplex congenita",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002882",
-        "label": "Sudden episodic apnea",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002878",
-        "label": "Respiratory failure",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000218",
-        "label": "High palate",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000218",
-        "label": "High palate",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000218",
-        "label": "High palate",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002875",
-        "label": "Exertional dyspnea",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001561",
-        "label": "Polyhydramnios",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001558",
-        "label": "Decreased fetal movement",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002872",
-        "label": "Apneic episodes precipitated by illness, fatigue, stress",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002870",
-        "label": "Obstructive sleep apnea",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0031374",
-        "label": "Ankle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0030051",
-        "label": "Tip-toe gait",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0030208",
-        "label": "Anti-neuromuscular Junction acetylcholine receptor antibody positivity",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001618",
-        "label": "Dysphonia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0030196",
-        "label": "Fatigable weakness of respiratory muscles",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001612",
-        "label": "Weak cry",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001611",
-        "label": "Hypernasal speech",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0030199",
-        "label": "Fatigable weakness of neck muscles",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000369",
-        "label": "Low-set ears",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000308",
-        "label": "Microretrognathia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0030319",
-        "label": "Weakness of facial musculature",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000407",
-        "label": "Sensorineural hearing impairment",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000496",
-        "label": "Abnormality of eye movement",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000467",
-        "label": "Neck muscle weakness",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001761",
-        "label": "Pes cavus",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000508",
-        "label": "Ptosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000508",
-        "label": "Ptosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000508",
-        "label": "Ptosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000597",
-        "label": "Ophthalmoparesis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000565",
-        "label": "Esotropia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0012515",
-        "label": "Hip flexor weakness",
-        "evidence": "Curated HPO"
-      }
-    ],
-    "goBpo": [
-      "chondrocyte differentiation",
-      "cytoskeleton organization",
-      "signal transduction",
-      "cell surface receptor signaling pathway",
-      "G protein-coupled acetylcholine receptor signaling pathway",
-      "chemical synaptic transmission",
-      "nervous system development",
-      "neuromuscular junction development",
-      "regulation of synaptic assembly at neuromuscular junction",
-      "cell differentiation",
-      "receptor clustering",
-      "clustering of voltage-gated sodium channels",
-      "positive regulation of synaptic assembly at neuromuscular junction",
-      "positive regulation of transcription by RNA polymerase II",
-      "filopodium assembly",
-      "synapse organization",
-      "membrane organization",
-      "synaptic signaling"
-    ],
-    "goMfo": [
-      "dystroglycan binding",
-      "structural constituent of cytoskeleton",
-      "extracellular matrix structural constituent",
-      "calcium ion binding",
-      "protein binding",
-      "transmembrane receptor protein tyrosine kinase activator activity",
-      "acetylcholine receptor regulator activity",
-      "sialic acid binding",
-      "chondroitin sulfate binding",
-      "laminin binding",
-      "heparan sulfate proteoglycan binding",
-      "metal ion binding",
-      "receptor ligand activity"
-    ],
-    "goCco": [
-      "extracellular region",
-      "basement membrane",
-      "Golgi lumen",
-      "plasma membrane",
-      "extracellular matrix",
-      "lysosomal lumen",
-      "synapse",
-      "extracellular exosome"
-    ],
-    "publications": []
-  },
-  {
     "symbol": "AHDC1",
     "name": "AHDC1",
     "chromosome": "chr1:27537051",
@@ -305010,6 +304300,343 @@ const GENES = [
     "publications": []
   },
   {
+    "symbol": "SLC13A1",
+    "name": "SLC13A1",
+    "chromosome": "chr7:123173720",
+    "chrom": "chr7",
+    "pos": 123173720,
+    "organSystem": "Multisystem",
+    "ncbiGeneId": "0",
+    "omimGene": "100000",
+    "omimPhenotype": null,
+    "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr7:123168720-123178720",
+    "links": {
+      "ncbiGene": "https://www.ncbi.nlm.nih.gov/gene/?term=SLC13A1",
+      "omim": "https://omim.org/search?search=SLC13A1",
+      "genecards": "https://www.genecards.org/cgi-bin/carddisp.pl?gene=SLC13A1",
+      "clinvarGene": "https://www.ncbi.nlm.nih.gov/clinvar/?term=SLC13A1%5Bgene%5D"
+    },
+    "summary": "The SLC13A1 gene encodes an essential clinical protein.",
+    "associatedPathology": [],
+    "pli": 0.5,
+    "loeuf": 0.8,
+    "variantsDetected": 4,
+    "researchedVariants": 0,
+    "hpoTermCount": 0,
+    "goTermCount": 12,
+    "variants": [
+      {
+        "id": "rs17543132",
+        "gene": "SLC13A1",
+        "genotype": "G/A",
+        "zygosity": "Heterozygous",
+        "phase": "Unphased",
+        "vcfGt": "0/1",
+        "maf": 0.35869321995972253,
+        "coordinate": "chr7:123173720",
+        "chrom": "chr7",
+        "pos": 123173720,
+        "ref": "G",
+        "alt": "A",
+        "cchange": "c.229-1816C>T",
+        "achange": "",
+        "transcript": "ENST00000194130.7",
+        "vaf": "0.461538",
+        "consequence": [
+          "INT"
+        ],
+        "category": "uncategorized",
+        "tier": "Tier3",
+        "clinvar": "Not reviewed",
+        "clinvarRev": "criteria provided",
+        "clinvarId": null,
+        "revel": null,
+        "cadd": 3.195,
+        "spliceai": null,
+        "spliceaiDetails": {
+          "ag": null,
+          "al": null,
+          "dg": null,
+          "dl": null
+        },
+        "alphamissense": null,
+        "amClass": "likely_benign",
+        "qual": "39.2",
+        "reads": {
+          "matching": "12",
+          "total": "26"
+        },
+        "acmgPm5": null,
+        "acmgPs1": null,
+        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr7:123173220-123174220",
+        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr7:123173720:G%3EA&m=variant",
+        "isAlphaGenomeTarget": false,
+        "alphagenomeSubreason": "",
+        "aviPhred": null,
+        "aviPercentile": null,
+        "aviModality": null,
+        "aviStatus": null,
+        "lastEvaluated": "2026-08-27",
+        "studies": [
+          {
+            "title": "GWAS of Resistance to COVID-19 infection (Exposed negative vs positive) and Genetic Association at rs17543132",
+            "finding": "Genome-wide significant association with Resistance to COVID-19 infection (Exposed negative vs positive) (Odds Ratio / Beta: N/A, p-value: 6e-06)",
+            "description": "Carriers of the ? allele in SLC13A1 demonstrate statistical correlation with Resistance to COVID-19 infection (Exposed negative vs positive) across epidemiological cohorts.",
+            "condition": "Resistance to COVID-19 infection (Exposed negative vs positive)",
+            "oddsRatio": "N/A",
+            "pValue": 6e-06,
+            "riskAllele": "?",
+            "genotypeRelevance": "Allele: ?",
+            "evidenceLevel": 2,
+            "source": "GWAS Catalog (PMID: 36662838)",
+            "pmid": "36662838",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36662838/"
+          }
+        ]
+      },
+      {
+        "id": "rs2402635",
+        "gene": "SLC13A1",
+        "genotype": "G/A",
+        "zygosity": "Heterozygous",
+        "phase": "Unphased",
+        "vcfGt": "0/1",
+        "maf": 0.4101483257370182,
+        "coordinate": "chr7:123179825",
+        "chrom": "chr7",
+        "pos": 123179825,
+        "ref": "G",
+        "alt": "A",
+        "cchange": "c.228+1148C>T",
+        "achange": "",
+        "transcript": "ENST00000194130.7",
+        "vaf": "0.533333",
+        "consequence": [
+          "INT"
+        ],
+        "category": "uncategorized",
+        "tier": "Tier3",
+        "clinvar": "Not reviewed",
+        "clinvarRev": "criteria provided",
+        "clinvarId": null,
+        "revel": null,
+        "cadd": 0.011,
+        "spliceai": null,
+        "spliceaiDetails": {
+          "ag": null,
+          "al": null,
+          "dg": null,
+          "dl": null
+        },
+        "alphamissense": null,
+        "amClass": "likely_benign",
+        "qual": "33.8",
+        "reads": {
+          "matching": "16",
+          "total": "30"
+        },
+        "acmgPm5": null,
+        "acmgPs1": null,
+        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr7:123179325-123180325",
+        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr7:123179825:G%3EA&m=variant",
+        "isAlphaGenomeTarget": false,
+        "alphagenomeSubreason": "",
+        "aviPhred": null,
+        "aviPercentile": null,
+        "aviModality": null,
+        "aviStatus": null,
+        "lastEvaluated": "2026-08-27",
+        "studies": [
+          {
+            "title": "GWAS of Resistance to COVID-19 infection (Exposed negative vs positive) and Genetic Association at rs2402635",
+            "finding": "Genome-wide significant association with Resistance to COVID-19 infection (Exposed negative vs positive) (Odds Ratio / Beta: N/A, p-value: 1e-07)",
+            "description": "Carriers of the ? allele in SLC13A1 demonstrate statistical correlation with Resistance to COVID-19 infection (Exposed negative vs positive) across epidemiological cohorts.",
+            "condition": "Resistance to COVID-19 infection (Exposed negative vs positive)",
+            "oddsRatio": "N/A",
+            "pValue": 1e-07,
+            "riskAllele": "?",
+            "genotypeRelevance": "Allele: ?",
+            "evidenceLevel": 2,
+            "source": "GWAS Catalog (PMID: 36662838)",
+            "pmid": "36662838",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36662838/"
+          }
+        ]
+      },
+      {
+        "id": "rs58101626",
+        "gene": "SLC13A1",
+        "genotype": "A/G",
+        "zygosity": "Heterozygous",
+        "phase": "Unphased",
+        "vcfGt": "0/1",
+        "maf": 0.38168767599147346,
+        "coordinate": "chr7:123183189",
+        "chrom": "chr7",
+        "pos": 123183189,
+        "ref": "A",
+        "alt": "G",
+        "cchange": "c.100-2088T>C",
+        "achange": "",
+        "transcript": "ENST00000194130.7",
+        "vaf": "0.655172",
+        "consequence": [
+          "INT"
+        ],
+        "category": "uncategorized",
+        "tier": "Tier3",
+        "clinvar": "Not reviewed",
+        "clinvarRev": "criteria provided",
+        "clinvarId": null,
+        "revel": null,
+        "cadd": 2.337,
+        "spliceai": null,
+        "spliceaiDetails": {
+          "ag": null,
+          "al": null,
+          "dg": null,
+          "dl": null
+        },
+        "alphamissense": null,
+        "amClass": "likely_benign",
+        "qual": "44.3",
+        "reads": {
+          "matching": "19",
+          "total": "29"
+        },
+        "acmgPm5": null,
+        "acmgPs1": null,
+        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr7:123182689-123183689",
+        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr7:123183189:A%3EG&m=variant",
+        "isAlphaGenomeTarget": false,
+        "alphagenomeSubreason": "",
+        "aviPhred": null,
+        "aviPercentile": null,
+        "aviModality": null,
+        "aviStatus": null,
+        "lastEvaluated": "2026-08-27",
+        "studies": [
+          {
+            "title": "GWAS of Resistance to COVID-19 infection (Exposed negative vs positive) and Genetic Association at rs58101626",
+            "finding": "Genome-wide significant association with Resistance to COVID-19 infection (Exposed negative vs positive) (Odds Ratio / Beta: N/A, p-value: 2e-06)",
+            "description": "Carriers of the ? allele in SLC13A1 demonstrate statistical correlation with Resistance to COVID-19 infection (Exposed negative vs positive) across epidemiological cohorts.",
+            "condition": "Resistance to COVID-19 infection (Exposed negative vs positive)",
+            "oddsRatio": "N/A",
+            "pValue": 2e-06,
+            "riskAllele": "?",
+            "genotypeRelevance": "Allele: ?",
+            "evidenceLevel": 2,
+            "source": "GWAS Catalog (PMID: 36662838)",
+            "pmid": "36662838",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36662838/"
+          }
+        ]
+      },
+      {
+        "id": "rs10487976",
+        "gene": "SLC13A1",
+        "genotype": "G/C",
+        "zygosity": "Heterozygous",
+        "phase": "Unphased",
+        "vcfGt": "0/1",
+        "maf": 0.3469304373039513,
+        "coordinate": "chr7:123195971",
+        "chrom": "chr7",
+        "pos": 123195971,
+        "ref": "G",
+        "alt": "C",
+        "cchange": "c.99+3877C>G",
+        "achange": "",
+        "transcript": "ENST00000194130.7",
+        "vaf": "0.4375",
+        "consequence": [
+          "INT"
+        ],
+        "category": "uncategorized",
+        "tier": "Tier3",
+        "clinvar": "Not reviewed",
+        "clinvarRev": "criteria provided",
+        "clinvarId": null,
+        "revel": null,
+        "cadd": 2.89,
+        "spliceai": null,
+        "spliceaiDetails": {
+          "ag": null,
+          "al": null,
+          "dg": null,
+          "dl": null
+        },
+        "alphamissense": null,
+        "amClass": "likely_benign",
+        "qual": "37.2",
+        "reads": {
+          "matching": "14",
+          "total": "32"
+        },
+        "acmgPm5": null,
+        "acmgPs1": null,
+        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr7:123195471-123196471",
+        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr7:123195971:G%3EC&m=variant",
+        "isAlphaGenomeTarget": false,
+        "alphagenomeSubreason": "",
+        "aviPhred": null,
+        "aviPercentile": null,
+        "aviModality": null,
+        "aviStatus": null,
+        "lastEvaluated": "2026-08-27",
+        "studies": [
+          {
+            "title": "GWAS of Resistance to COVID-19 infection (Exposed negative vs positive) and Genetic Association at rs10487976",
+            "finding": "Genome-wide significant association with Resistance to COVID-19 infection (Exposed negative vs positive) (Odds Ratio / Beta: N/A, p-value: 2e-06)",
+            "description": "Carriers of the ? allele in SLC13A1 demonstrate statistical correlation with Resistance to COVID-19 infection (Exposed negative vs positive) across epidemiological cohorts.",
+            "condition": "Resistance to COVID-19 infection (Exposed negative vs positive)",
+            "oddsRatio": "N/A",
+            "pValue": 2e-06,
+            "riskAllele": "?",
+            "genotypeRelevance": "Allele: ?",
+            "evidenceLevel": 2,
+            "source": "GWAS Catalog (PMID: 36662838)",
+            "pmid": "36662838",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36662838/"
+          }
+        ]
+      }
+    ],
+    "hpoTerms": [],
+    "goBpo": [
+      "monoatomic ion transport",
+      "sodium ion transport",
+      "sodium ion transmembrane transport",
+      "transmembrane transport",
+      "monoatomic anion transmembrane transport",
+      "sulfate transmembrane transport"
+    ],
+    "goMfo": [
+      "secondary active sulfate transmembrane transporter activity",
+      "symporter activity",
+      "solute:sodium symporter activity",
+      "monoatomic anion:sodium symporter activity",
+      "sodium:sulfate symporter activity",
+      "transmembrane transporter activity"
+    ],
+    "goCco": [
+      "plasma membrane",
+      "membrane",
+      "apical plasma membrane"
+    ],
+    "publications": [
+      {
+        "pmid": "36662838",
+        "title": "Genome-wide association study of Resistance to COVID-19 infection (Exposed negative vs positive) (Risk allele: ?)",
+        "journal": "GWAS Catalog",
+        "year": 2023,
+        "authors": "GWAS Consortium",
+        "relevance": "Directly associates SLC13A1 with Resistance to COVID-19 infection (Exposed negative vs positive) (p=6e-06).",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/36662838/"
+      }
+    ]
+  },
+  {
     "symbol": "SLC40A1",
     "name": "SLC40A1",
     "chromosome": "chr2:189583825",
@@ -318893,6 +318520,716 @@ const GENES = [
         "url": "https://pubmed.ncbi.nlm.nih.gov/37500982/"
       }
     ]
+  },
+  {
+    "symbol": "AGRN",
+    "name": "AGRN",
+    "chromosome": "chr1:1028322",
+    "chrom": "chr1",
+    "pos": 1028322,
+    "organSystem": "Multisystem",
+    "ncbiGeneId": "0",
+    "omimGene": "100000",
+    "omimPhenotype": null,
+    "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr1:1023322-1033322",
+    "links": {
+      "ncbiGene": "https://www.ncbi.nlm.nih.gov/gene/?term=AGRN",
+      "omim": "https://omim.org/search?search=AGRN",
+      "genecards": "https://www.genecards.org/cgi-bin/carddisp.pl?gene=AGRN",
+      "clinvarGene": "https://www.ncbi.nlm.nih.gov/clinvar/?term=AGRN%5Bgene%5D"
+    },
+    "summary": "The AGRN gene encodes an essential clinical protein.",
+    "associatedPathology": [],
+    "pli": 0.5,
+    "loeuf": 0.8,
+    "variantsDetected": 1,
+    "researchedVariants": 0,
+    "hpoTermCount": 116,
+    "goTermCount": 31,
+    "variants": [
+      {
+        "id": "chr1:1028322",
+        "gene": "AGRN",
+        "genotype": "CC/-",
+        "zygosity": "Heterozygous",
+        "phase": "Unknown",
+        "vcfGt": "",
+        "maf": 0.0,
+        "coordinate": "chr1:1028322",
+        "chrom": "chr1",
+        "pos": 1028322,
+        "ref": "CC",
+        "alt": "-",
+        "cchange": "c.463+5873_463+5874del",
+        "achange": "",
+        "transcript": "ENST00000379370.7",
+        "vaf": 0.6666666666666666,
+        "consequence": [
+          "INT"
+        ],
+        "category": "uncategorized",
+        "tier": "Tier3",
+        "clinvar": "Not reviewed",
+        "clinvarRev": "criteria provided",
+        "clinvarId": null,
+        "revel": null,
+        "cadd": null,
+        "spliceai": null,
+        "spliceaiDetails": {
+          "ag": null,
+          "al": null,
+          "dg": null,
+          "dl": null
+        },
+        "alphamissense": null,
+        "amClass": "likely_benign",
+        "qual": 57.0,
+        "reads": {
+          "matching": 8,
+          "total": 12
+        },
+        "acmgPm5": null,
+        "acmgPs1": null,
+        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr1:1027822-1028822",
+        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr1:1028322:CC%3E-&m=variant",
+        "isAlphaGenomeTarget": false,
+        "alphagenomeSubreason": "",
+        "aviPhred": null,
+        "aviPercentile": null,
+        "aviModality": null,
+        "aviStatus": "INDEL_NOT_SUPPORTED",
+        "lastEvaluated": "2026-08-27",
+        "studies": []
+      }
+    ],
+    "hpoTerms": [
+      {
+        "id": "HP:0002421",
+        "label": "Poor head control",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003722",
+        "label": "Neck flexor weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003701",
+        "label": "Proximal muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003701",
+        "label": "Proximal muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001270",
+        "label": "Motor delay",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001288",
+        "label": "Gait disturbance",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001283",
+        "label": "Bulbar palsy",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001284",
+        "label": "Areflexia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001250",
+        "label": "Seizure",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001252",
+        "label": "Hypotonia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001251",
+        "label": "Ataxia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001249",
+        "label": "Intellectual disability",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001265",
+        "label": "Hyporeflexia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002515",
+        "label": "Waddling gait",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003803",
+        "label": "Type 1 muscle fiber predominance",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001374",
+        "label": "Congenital hip dislocation",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001382",
+        "label": "Joint hypermobility",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0410011",
+        "label": "Abnormality of masticatory muscle",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001324",
+        "label": "Muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000007",
+        "label": "Autosomal recessive inheritance",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002650",
+        "label": "Scoliosis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001315",
+        "label": "Diminished deep tendon reflex",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0031108",
+        "label": "Triceps weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001446",
+        "label": "Abnormality of the musculature of the upper limbs",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002792",
+        "label": "Reduced vital capacity",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0025401",
+        "label": "Staring gaze",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002751",
+        "label": "Kyphoscoliosis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002020",
+        "label": "Gastroesophageal reflux",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002033",
+        "label": "Poor suck",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0004661",
+        "label": "Frontalis muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003325",
+        "label": "Limb-girdle muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002015",
+        "label": "Dysphagia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003306",
+        "label": "Spinal rigidity",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003324",
+        "label": "Generalized muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0005943",
+        "label": "Respiratory arrest",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002093",
+        "label": "Respiratory insufficiency",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002091",
+        "label": "Restrictive ventilatory defect",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003388",
+        "label": "Easy fatigability",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003388",
+        "label": "Easy fatigability",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003388",
+        "label": "Easy fatigability",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003473",
+        "label": "Fatigable weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003484",
+        "label": "Upper limb muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003458",
+        "label": "EMG: myopathic abnormalities",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003458",
+        "label": "EMG: myopathic abnormalities",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003443",
+        "label": "Decreased size of nerve terminals",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003402",
+        "label": "Decreased miniature endplate potentials",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003403",
+        "label": "EMG: decremental response of compound muscle action potential to repetitive nerve stimulation",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003403",
+        "label": "EMG: decremental response of compound muscle action potential to repetitive nerve stimulation",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002194",
+        "label": "Delayed gross motor development",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0010536",
+        "label": "Central sleep apnea",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0004885",
+        "label": "Episodic respiratory distress",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003547",
+        "label": "Shoulder girdle muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0004889",
+        "label": "Intermittent episodes of respiratory insufficiency due to muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002205",
+        "label": "Recurrent respiratory infections",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0011968",
+        "label": "Feeding difficulties",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0010628",
+        "label": "Facial palsy",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002392",
+        "label": "EEG with polyspike wave complexes",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003693",
+        "label": "Distal amyotrophy",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002329",
+        "label": "Drowsiness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0008443",
+        "label": "Neuropathic spinal arthropathy",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0007178",
+        "label": "Motor polyneuropathy",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0009077",
+        "label": "Weakness of long finger extensor muscles",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000639",
+        "label": "Nystagmus",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000651",
+        "label": "Diplopia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000651",
+        "label": "Diplopia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000602",
+        "label": "Ophthalmoplegia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0009053",
+        "label": "Distal lower limb muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0009046",
+        "label": "Difficulty running",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0009005",
+        "label": "Weakness of the intrinsic hand muscles",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0005659",
+        "label": "Thoracic kyphoscoliosis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000768",
+        "label": "Pectus carinatum",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0011469",
+        "label": "Nasal regurgitation",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0011463",
+        "label": "Childhood onset",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0012764",
+        "label": "Orthopnea",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000774",
+        "label": "Narrow chest",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0012801",
+        "label": "Narrow jaw",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0003202",
+        "label": "Skeletal muscle atrophy",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0030842",
+        "label": "Choking episodes",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0010307",
+        "label": "Stridor",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0100285",
+        "label": "EMG: impaired neuromuscular transmission",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000961",
+        "label": "Cyanosis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000961",
+        "label": "Cyanosis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0100295",
+        "label": "Muscle fiber atrophy",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000276",
+        "label": "Long face",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002804",
+        "label": "Arthrogryposis multiplex congenita",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002882",
+        "label": "Sudden episodic apnea",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002878",
+        "label": "Respiratory failure",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000218",
+        "label": "High palate",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000218",
+        "label": "High palate",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000218",
+        "label": "High palate",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002875",
+        "label": "Exertional dyspnea",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001561",
+        "label": "Polyhydramnios",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001558",
+        "label": "Decreased fetal movement",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002872",
+        "label": "Apneic episodes precipitated by illness, fatigue, stress",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0002870",
+        "label": "Obstructive sleep apnea",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0031374",
+        "label": "Ankle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0030051",
+        "label": "Tip-toe gait",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0030208",
+        "label": "Anti-neuromuscular Junction acetylcholine receptor antibody positivity",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001618",
+        "label": "Dysphonia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0030196",
+        "label": "Fatigable weakness of respiratory muscles",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001612",
+        "label": "Weak cry",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001611",
+        "label": "Hypernasal speech",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0030199",
+        "label": "Fatigable weakness of neck muscles",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000369",
+        "label": "Low-set ears",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000308",
+        "label": "Microretrognathia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0030319",
+        "label": "Weakness of facial musculature",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000407",
+        "label": "Sensorineural hearing impairment",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000496",
+        "label": "Abnormality of eye movement",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000467",
+        "label": "Neck muscle weakness",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0001761",
+        "label": "Pes cavus",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000508",
+        "label": "Ptosis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000508",
+        "label": "Ptosis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000508",
+        "label": "Ptosis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000597",
+        "label": "Ophthalmoparesis",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0000565",
+        "label": "Esotropia",
+        "evidence": "Curated HPO"
+      },
+      {
+        "id": "HP:0012515",
+        "label": "Hip flexor weakness",
+        "evidence": "Curated HPO"
+      }
+    ],
+    "goBpo": [
+      "chondrocyte differentiation",
+      "cytoskeleton organization",
+      "signal transduction",
+      "cell surface receptor signaling pathway",
+      "G protein-coupled acetylcholine receptor signaling pathway",
+      "chemical synaptic transmission",
+      "nervous system development",
+      "neuromuscular junction development",
+      "regulation of synaptic assembly at neuromuscular junction",
+      "cell differentiation",
+      "receptor clustering",
+      "clustering of voltage-gated sodium channels",
+      "positive regulation of synaptic assembly at neuromuscular junction",
+      "positive regulation of transcription by RNA polymerase II",
+      "filopodium assembly",
+      "synapse organization",
+      "membrane organization",
+      "synaptic signaling"
+    ],
+    "goMfo": [
+      "dystroglycan binding",
+      "structural constituent of cytoskeleton",
+      "extracellular matrix structural constituent",
+      "calcium ion binding",
+      "protein binding",
+      "transmembrane receptor protein tyrosine kinase activator activity",
+      "acetylcholine receptor regulator activity",
+      "sialic acid binding",
+      "chondroitin sulfate binding",
+      "laminin binding",
+      "heparan sulfate proteoglycan binding",
+      "metal ion binding",
+      "receptor ligand activity"
+    ],
+    "goCco": [
+      "extracellular region",
+      "basement membrane",
+      "Golgi lumen",
+      "plasma membrane",
+      "extracellular matrix",
+      "lysosomal lumen",
+      "synapse",
+      "extracellular exosome"
+    ],
+    "publications": []
   },
   {
     "symbol": "AKAP1",
@@ -338732,7 +339069,7 @@ const GENES = [
         "genotype": "T/-",
         "zygosity": "Heterozygous",
         "phase": "Unknown",
-        "vcfGt": "",
+        "vcfGt": "0/0",
         "maf": 0.0,
         "coordinate": "chr2:168455834",
         "chrom": "chr2",
@@ -338742,7 +339079,7 @@ const GENES = [
         "cchange": "c.-604del",
         "achange": "",
         "transcript": "ENST00000305747.11",
-        "vaf": 0.5,
+        "vaf": "0.666667",
         "consequence": [
           "2KU"
         ],
@@ -338762,10 +339099,10 @@ const GENES = [
         },
         "alphamissense": null,
         "amClass": "likely_benign",
-        "qual": 32.0,
+        "qual": "4.2",
         "reads": {
-          "matching": 3,
-          "total": 6
+          "matching": "2",
+          "total": "3"
         },
         "acmgPm5": null,
         "acmgPs1": null,
@@ -393575,7 +393912,7 @@ const GENES = [
         "genotype": "AA/-",
         "zygosity": "Heterozygous",
         "phase": "Unknown",
-        "vcfGt": "",
+        "vcfGt": "./.",
         "maf": 0.0008278030524368018,
         "coordinate": "chr1:17309173",
         "chrom": "chr1",
@@ -393585,7 +393922,7 @@ const GENES = [
         "cchange": "c.92+873_92+874del",
         "achange": "",
         "transcript": "ENST00000375448.4",
-        "vaf": 0.2777777777777778,
+        "vaf": "1.0",
         "consequence": [
           "INT"
         ],
@@ -393605,10 +393942,10 @@ const GENES = [
         },
         "alphamissense": null,
         "amClass": "likely_benign",
-        "qual": 41.0,
+        "qual": "0.2",
         "reads": {
-          "matching": 10,
-          "total": 36
+          "matching": "4",
+          "total": "4"
         },
         "acmgPm5": null,
         "acmgPs1": null,
@@ -416574,343 +416911,6 @@ const GENES = [
     "publications": []
   },
   {
-    "symbol": "SLC13A1",
-    "name": "SLC13A1",
-    "chromosome": "chr7:123173720",
-    "chrom": "chr7",
-    "pos": 123173720,
-    "organSystem": "Multisystem",
-    "ncbiGeneId": "0",
-    "omimGene": "100000",
-    "omimPhenotype": null,
-    "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr7:123168720-123178720",
-    "links": {
-      "ncbiGene": "https://www.ncbi.nlm.nih.gov/gene/?term=SLC13A1",
-      "omim": "https://omim.org/search?search=SLC13A1",
-      "genecards": "https://www.genecards.org/cgi-bin/carddisp.pl?gene=SLC13A1",
-      "clinvarGene": "https://www.ncbi.nlm.nih.gov/clinvar/?term=SLC13A1%5Bgene%5D"
-    },
-    "summary": "The SLC13A1 gene encodes an essential clinical protein.",
-    "associatedPathology": [],
-    "pli": 0.5,
-    "loeuf": 0.8,
-    "variantsDetected": 4,
-    "researchedVariants": 0,
-    "hpoTermCount": 0,
-    "goTermCount": 12,
-    "variants": [
-      {
-        "id": "rs17543132",
-        "gene": "SLC13A1",
-        "genotype": "G/A",
-        "zygosity": "Heterozygous",
-        "phase": "Unphased",
-        "vcfGt": "0/1",
-        "maf": 0.35869321995972253,
-        "coordinate": "chr7:123173720",
-        "chrom": "chr7",
-        "pos": 123173720,
-        "ref": "G",
-        "alt": "A",
-        "cchange": "c.229-1816C>T",
-        "achange": "",
-        "transcript": "ENST00000194130.7",
-        "vaf": "0.461538",
-        "consequence": [
-          "INT"
-        ],
-        "category": "uncategorized",
-        "tier": "Tier3",
-        "clinvar": "Not reviewed",
-        "clinvarRev": "criteria provided",
-        "clinvarId": null,
-        "revel": null,
-        "cadd": 3.195,
-        "spliceai": null,
-        "spliceaiDetails": {
-          "ag": null,
-          "al": null,
-          "dg": null,
-          "dl": null
-        },
-        "alphamissense": null,
-        "amClass": "likely_benign",
-        "qual": "39.2",
-        "reads": {
-          "matching": "12",
-          "total": "26"
-        },
-        "acmgPm5": null,
-        "acmgPs1": null,
-        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr7:123173220-123174220",
-        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr7:123173720:G%3EA&m=variant",
-        "isAlphaGenomeTarget": false,
-        "alphagenomeSubreason": "",
-        "aviPhred": null,
-        "aviPercentile": null,
-        "aviModality": null,
-        "aviStatus": null,
-        "lastEvaluated": "2026-08-27",
-        "studies": [
-          {
-            "title": "GWAS of Resistance to COVID-19 infection (Exposed negative vs positive) and Genetic Association at rs17543132",
-            "finding": "Genome-wide significant association with Resistance to COVID-19 infection (Exposed negative vs positive) (Odds Ratio / Beta: N/A, p-value: 6e-06)",
-            "description": "Carriers of the ? allele in SLC13A1 demonstrate statistical correlation with Resistance to COVID-19 infection (Exposed negative vs positive) across epidemiological cohorts.",
-            "condition": "Resistance to COVID-19 infection (Exposed negative vs positive)",
-            "oddsRatio": "N/A",
-            "pValue": 6e-06,
-            "riskAllele": "?",
-            "genotypeRelevance": "Allele: ?",
-            "evidenceLevel": 2,
-            "source": "GWAS Catalog (PMID: 36662838)",
-            "pmid": "36662838",
-            "url": "https://pubmed.ncbi.nlm.nih.gov/36662838/"
-          }
-        ]
-      },
-      {
-        "id": "rs2402635",
-        "gene": "SLC13A1",
-        "genotype": "G/A",
-        "zygosity": "Heterozygous",
-        "phase": "Unphased",
-        "vcfGt": "0/1",
-        "maf": 0.4101483257370182,
-        "coordinate": "chr7:123179825",
-        "chrom": "chr7",
-        "pos": 123179825,
-        "ref": "G",
-        "alt": "A",
-        "cchange": "c.228+1148C>T",
-        "achange": "",
-        "transcript": "ENST00000194130.7",
-        "vaf": "0.533333",
-        "consequence": [
-          "INT"
-        ],
-        "category": "uncategorized",
-        "tier": "Tier3",
-        "clinvar": "Not reviewed",
-        "clinvarRev": "criteria provided",
-        "clinvarId": null,
-        "revel": null,
-        "cadd": 0.011,
-        "spliceai": null,
-        "spliceaiDetails": {
-          "ag": null,
-          "al": null,
-          "dg": null,
-          "dl": null
-        },
-        "alphamissense": null,
-        "amClass": "likely_benign",
-        "qual": "33.8",
-        "reads": {
-          "matching": "16",
-          "total": "30"
-        },
-        "acmgPm5": null,
-        "acmgPs1": null,
-        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr7:123179325-123180325",
-        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr7:123179825:G%3EA&m=variant",
-        "isAlphaGenomeTarget": false,
-        "alphagenomeSubreason": "",
-        "aviPhred": null,
-        "aviPercentile": null,
-        "aviModality": null,
-        "aviStatus": null,
-        "lastEvaluated": "2026-08-27",
-        "studies": [
-          {
-            "title": "GWAS of Resistance to COVID-19 infection (Exposed negative vs positive) and Genetic Association at rs2402635",
-            "finding": "Genome-wide significant association with Resistance to COVID-19 infection (Exposed negative vs positive) (Odds Ratio / Beta: N/A, p-value: 1e-07)",
-            "description": "Carriers of the ? allele in SLC13A1 demonstrate statistical correlation with Resistance to COVID-19 infection (Exposed negative vs positive) across epidemiological cohorts.",
-            "condition": "Resistance to COVID-19 infection (Exposed negative vs positive)",
-            "oddsRatio": "N/A",
-            "pValue": 1e-07,
-            "riskAllele": "?",
-            "genotypeRelevance": "Allele: ?",
-            "evidenceLevel": 2,
-            "source": "GWAS Catalog (PMID: 36662838)",
-            "pmid": "36662838",
-            "url": "https://pubmed.ncbi.nlm.nih.gov/36662838/"
-          }
-        ]
-      },
-      {
-        "id": "rs58101626",
-        "gene": "SLC13A1",
-        "genotype": "A/G",
-        "zygosity": "Heterozygous",
-        "phase": "Unphased",
-        "vcfGt": "0/1",
-        "maf": 0.38168767599147346,
-        "coordinate": "chr7:123183189",
-        "chrom": "chr7",
-        "pos": 123183189,
-        "ref": "A",
-        "alt": "G",
-        "cchange": "c.100-2088T>C",
-        "achange": "",
-        "transcript": "ENST00000194130.7",
-        "vaf": "0.655172",
-        "consequence": [
-          "INT"
-        ],
-        "category": "uncategorized",
-        "tier": "Tier3",
-        "clinvar": "Not reviewed",
-        "clinvarRev": "criteria provided",
-        "clinvarId": null,
-        "revel": null,
-        "cadd": 2.337,
-        "spliceai": null,
-        "spliceaiDetails": {
-          "ag": null,
-          "al": null,
-          "dg": null,
-          "dl": null
-        },
-        "alphamissense": null,
-        "amClass": "likely_benign",
-        "qual": "44.3",
-        "reads": {
-          "matching": "19",
-          "total": "29"
-        },
-        "acmgPm5": null,
-        "acmgPs1": null,
-        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr7:123182689-123183689",
-        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr7:123183189:A%3EG&m=variant",
-        "isAlphaGenomeTarget": false,
-        "alphagenomeSubreason": "",
-        "aviPhred": null,
-        "aviPercentile": null,
-        "aviModality": null,
-        "aviStatus": null,
-        "lastEvaluated": "2026-08-27",
-        "studies": [
-          {
-            "title": "GWAS of Resistance to COVID-19 infection (Exposed negative vs positive) and Genetic Association at rs58101626",
-            "finding": "Genome-wide significant association with Resistance to COVID-19 infection (Exposed negative vs positive) (Odds Ratio / Beta: N/A, p-value: 2e-06)",
-            "description": "Carriers of the ? allele in SLC13A1 demonstrate statistical correlation with Resistance to COVID-19 infection (Exposed negative vs positive) across epidemiological cohorts.",
-            "condition": "Resistance to COVID-19 infection (Exposed negative vs positive)",
-            "oddsRatio": "N/A",
-            "pValue": 2e-06,
-            "riskAllele": "?",
-            "genotypeRelevance": "Allele: ?",
-            "evidenceLevel": 2,
-            "source": "GWAS Catalog (PMID: 36662838)",
-            "pmid": "36662838",
-            "url": "https://pubmed.ncbi.nlm.nih.gov/36662838/"
-          }
-        ]
-      },
-      {
-        "id": "rs10487976",
-        "gene": "SLC13A1",
-        "genotype": "G/C",
-        "zygosity": "Heterozygous",
-        "phase": "Unphased",
-        "vcfGt": "0/1",
-        "maf": 0.3469304373039513,
-        "coordinate": "chr7:123195971",
-        "chrom": "chr7",
-        "pos": 123195971,
-        "ref": "G",
-        "alt": "C",
-        "cchange": "c.99+3877C>G",
-        "achange": "",
-        "transcript": "ENST00000194130.7",
-        "vaf": "0.4375",
-        "consequence": [
-          "INT"
-        ],
-        "category": "uncategorized",
-        "tier": "Tier3",
-        "clinvar": "Not reviewed",
-        "clinvarRev": "criteria provided",
-        "clinvarId": null,
-        "revel": null,
-        "cadd": 2.89,
-        "spliceai": null,
-        "spliceaiDetails": {
-          "ag": null,
-          "al": null,
-          "dg": null,
-          "dl": null
-        },
-        "alphamissense": null,
-        "amClass": "likely_benign",
-        "qual": "37.2",
-        "reads": {
-          "matching": "14",
-          "total": "32"
-        },
-        "acmgPm5": null,
-        "acmgPs1": null,
-        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr7:123195471-123196471",
-        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr7:123195971:G%3EC&m=variant",
-        "isAlphaGenomeTarget": false,
-        "alphagenomeSubreason": "",
-        "aviPhred": null,
-        "aviPercentile": null,
-        "aviModality": null,
-        "aviStatus": null,
-        "lastEvaluated": "2026-08-27",
-        "studies": [
-          {
-            "title": "GWAS of Resistance to COVID-19 infection (Exposed negative vs positive) and Genetic Association at rs10487976",
-            "finding": "Genome-wide significant association with Resistance to COVID-19 infection (Exposed negative vs positive) (Odds Ratio / Beta: N/A, p-value: 2e-06)",
-            "description": "Carriers of the ? allele in SLC13A1 demonstrate statistical correlation with Resistance to COVID-19 infection (Exposed negative vs positive) across epidemiological cohorts.",
-            "condition": "Resistance to COVID-19 infection (Exposed negative vs positive)",
-            "oddsRatio": "N/A",
-            "pValue": 2e-06,
-            "riskAllele": "?",
-            "genotypeRelevance": "Allele: ?",
-            "evidenceLevel": 2,
-            "source": "GWAS Catalog (PMID: 36662838)",
-            "pmid": "36662838",
-            "url": "https://pubmed.ncbi.nlm.nih.gov/36662838/"
-          }
-        ]
-      }
-    ],
-    "hpoTerms": [],
-    "goBpo": [
-      "monoatomic ion transport",
-      "sodium ion transport",
-      "sodium ion transmembrane transport",
-      "transmembrane transport",
-      "monoatomic anion transmembrane transport",
-      "sulfate transmembrane transport"
-    ],
-    "goMfo": [
-      "secondary active sulfate transmembrane transporter activity",
-      "symporter activity",
-      "solute:sodium symporter activity",
-      "monoatomic anion:sodium symporter activity",
-      "sodium:sulfate symporter activity",
-      "transmembrane transporter activity"
-    ],
-    "goCco": [
-      "plasma membrane",
-      "membrane",
-      "apical plasma membrane"
-    ],
-    "publications": [
-      {
-        "pmid": "36662838",
-        "title": "Genome-wide association study of Resistance to COVID-19 infection (Exposed negative vs positive) (Risk allele: ?)",
-        "journal": "GWAS Catalog",
-        "year": 2023,
-        "authors": "GWAS Consortium",
-        "relevance": "Directly associates SLC13A1 with Resistance to COVID-19 infection (Exposed negative vs positive) (p=6e-06).",
-        "url": "https://pubmed.ncbi.nlm.nih.gov/36662838/"
-      }
-    ]
-  },
-  {
     "symbol": "SLC22A1",
     "name": "SLC22A1",
     "chromosome": "chr6:160153770",
@@ -434144,6 +434144,112 @@ const GENES = [
     "publications": []
   },
   {
+    "symbol": "TSHZ3",
+    "name": "TSHZ3",
+    "chromosome": "chr19:31306003",
+    "chrom": "chr19",
+    "pos": 31306003,
+    "organSystem": "Multisystem",
+    "ncbiGeneId": "0",
+    "omimGene": "100000",
+    "omimPhenotype": null,
+    "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr19:31301003-31311003",
+    "links": {
+      "ncbiGene": "https://www.ncbi.nlm.nih.gov/gene/?term=TSHZ3",
+      "omim": "https://omim.org/search?search=TSHZ3",
+      "genecards": "https://www.genecards.org/cgi-bin/carddisp.pl?gene=TSHZ3",
+      "clinvarGene": "https://www.ncbi.nlm.nih.gov/clinvar/?term=TSHZ3%5Bgene%5D"
+    },
+    "summary": "The TSHZ3 gene encodes an essential clinical protein.",
+    "associatedPathology": [],
+    "pli": 0.5,
+    "loeuf": 0.8,
+    "variantsDetected": 1,
+    "researchedVariants": 0,
+    "hpoTermCount": 0,
+    "goTermCount": 12,
+    "variants": [
+      {
+        "id": "rs117547046",
+        "gene": "TSHZ3",
+        "genotype": "G/A",
+        "zygosity": "Heterozygous",
+        "phase": "Unphased",
+        "vcfGt": "0/1",
+        "maf": 0.0021995193885992674,
+        "coordinate": "chr19:31306003",
+        "chrom": "chr19",
+        "pos": 31306003,
+        "ref": "G",
+        "alt": "A",
+        "cchange": "c.41-26251C>T",
+        "achange": "",
+        "transcript": "ENST00000240587.5",
+        "vaf": "0.4375",
+        "consequence": [
+          "INT"
+        ],
+        "category": "uncategorized",
+        "tier": "Tier3",
+        "clinvar": "Not reviewed",
+        "clinvarRev": "criteria provided",
+        "clinvarId": null,
+        "revel": null,
+        "cadd": 20.1,
+        "spliceai": null,
+        "spliceaiDetails": {
+          "ag": null,
+          "al": null,
+          "dg": null,
+          "dl": null
+        },
+        "alphamissense": null,
+        "amClass": "likely_benign",
+        "qual": "34.6",
+        "reads": {
+          "matching": "14",
+          "total": "32"
+        },
+        "acmgPm5": null,
+        "acmgPs1": null,
+        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr19:31305503-31306503",
+        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr19:31306003:G%3EA&m=variant",
+        "isAlphaGenomeTarget": false,
+        "alphagenomeSubreason": "",
+        "aviPhred": null,
+        "aviPercentile": null,
+        "aviModality": null,
+        "aviStatus": null,
+        "lastEvaluated": "2026-08-27",
+        "studies": []
+      }
+    ],
+    "hpoTerms": [],
+    "goBpo": [
+      "regulation of respiratory gaseous exchange by nervous system process",
+      "regulation of transcription by RNA polymerase II",
+      "regulation of gene expression",
+      "negative regulation of DNA-templated transcription",
+      "positive regulation of synaptic transmission, glutamatergic",
+      "long-term synaptic potentiation"
+    ],
+    "goMfo": [
+      "DNA-binding transcription factor activity, RNA polymerase II-specific",
+      "DNA binding",
+      "chromatin binding",
+      "protein binding",
+      "zinc ion binding",
+      "metal ion binding"
+    ],
+    "goCco": [
+      "chromatin",
+      "nucleus",
+      "nucleoplasm",
+      "growth cone"
+    ],
+    "publications": []
+  },
+  {
     "symbol": "TSKU",
     "name": "TSKU",
     "chromosome": "chr11:76784749",
@@ -437733,390 +437839,6 @@ const GENES = [
       "plasma membrane",
       "axon",
       "cation channel complex"
-    ],
-    "publications": []
-  },
-  {
-    "symbol": "USF3",
-    "name": "USF3",
-    "chromosome": "chr3:113657270",
-    "chrom": "chr3",
-    "pos": 113657270,
-    "organSystem": "Multisystem",
-    "ncbiGeneId": "0",
-    "omimGene": "100000",
-    "omimPhenotype": null,
-    "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr3:113652270-113662270",
-    "links": {
-      "ncbiGene": "https://www.ncbi.nlm.nih.gov/gene/?term=USF3",
-      "omim": "https://omim.org/search?search=USF3",
-      "genecards": "https://www.genecards.org/cgi-bin/carddisp.pl?gene=USF3",
-      "clinvarGene": "https://www.ncbi.nlm.nih.gov/clinvar/?term=USF3%5Bgene%5D"
-    },
-    "summary": "The USF3 gene encodes an essential clinical protein.",
-    "associatedPathology": [],
-    "pli": 0.5,
-    "loeuf": 0.8,
-    "variantsDetected": 1,
-    "researchedVariants": 0,
-    "hpoTermCount": 57,
-    "goTermCount": 6,
-    "variants": [
-      {
-        "id": "chr3:113657270",
-        "gene": "USF3",
-        "genotype": "TGC/-",
-        "zygosity": "Heterozygous",
-        "phase": "Unknown",
-        "vcfGt": "",
-        "maf": 0.0,
-        "coordinate": "chr3:113657270",
-        "chrom": "chr3",
-        "pos": 113657270,
-        "ref": "TGC",
-        "alt": "-",
-        "cchange": "c.4416_4418del",
-        "achange": "p.Gln1478del",
-        "transcript": "ENST00000316407.9",
-        "vaf": 0.3142857142857143,
-        "consequence": [
-          "IND",
-          "p.Gln1478del"
-        ],
-        "category": "uncategorized",
-        "tier": "Tier3",
-        "clinvar": "Not reviewed",
-        "clinvarRev": "criteria provided",
-        "clinvarId": null,
-        "revel": null,
-        "cadd": null,
-        "spliceai": null,
-        "spliceaiDetails": {
-          "ag": null,
-          "al": null,
-          "dg": null,
-          "dl": null
-        },
-        "alphamissense": null,
-        "amClass": "likely_benign",
-        "qual": 80.9,
-        "reads": {
-          "matching": 11,
-          "total": 35
-        },
-        "acmgPm5": null,
-        "acmgPs1": null,
-        "ucscUrl": "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr3:113656770-113657770",
-        "alphagenomeUrl": "https://deepmind.google.com/science/alphagenome/atlas?q=chr3:113657270:TGC%3E-&m=variant",
-        "isAlphaGenomeTarget": false,
-        "alphagenomeSubreason": "",
-        "aviPhred": null,
-        "aviPercentile": null,
-        "aviModality": null,
-        "aviStatus": "INDEL_NOT_SUPPORTED",
-        "lastEvaluated": "2026-08-27",
-        "studies": []
-      }
-    ],
-    "hpoTerms": [
-      {
-        "id": "HP:0001156",
-        "label": "Brachydactyly",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001250",
-        "label": "Seizure",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001251",
-        "label": "Ataxia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001249",
-        "label": "Intellectual disability",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001263",
-        "label": "Global developmental delay",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0008675",
-        "label": "Enlarged polycystic ovaries",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002516",
-        "label": "Increased intracranial pressure",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0012062",
-        "label": "Bone cyst",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000077",
-        "label": "Abnormality of the kidney",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0012032",
-        "label": "Lipoma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000036",
-        "label": "Abnormal penis morphology",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0007565",
-        "label": "Multiple cafe-au-lait spots",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002664",
-        "label": "Neoplasm",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002650",
-        "label": "Scoliosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001317",
-        "label": "Abnormal cerebellum morphology",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000158",
-        "label": "Macroglossia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001482",
-        "label": "Subcutaneous nodule",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0012114",
-        "label": "Endometrial carcinoma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000130",
-        "label": "Abnormality of the uterus",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0100543",
-        "label": "Cognitive impairment",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0100579",
-        "label": "Mucosal telangiectasiae",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0100780",
-        "label": "Conjunctival hamartoma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0009720",
-        "label": "Adenoma sebaceum",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0010614",
-        "label": "Fibroma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001053",
-        "label": "Hypopigmented skin patches",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001048",
-        "label": "Cavernous hemangioma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0200034",
-        "label": "Papule",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0200063",
-        "label": "Colorectal polyposis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0005595",
-        "label": "Generalized hyperkeratosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0005584",
-        "label": "Renal cell carcinoma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0004322",
-        "label": "Short stature",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0003002",
-        "label": "Breast carcinoma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0004390",
-        "label": "Hamartomatous polyposis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0100006",
-        "label": "Neoplasm of the central nervous system",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000771",
-        "label": "Gynecomastia",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0012733",
-        "label": "Macule",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0012740",
-        "label": "Papilloma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000767",
-        "label": "Pectus excavatum",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0100031",
-        "label": "Neoplasm of the thyroid gland",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000717",
-        "label": "Autism",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000853",
-        "label": "Goiter",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000820",
-        "label": "Abnormality of the thyroid gland",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000995",
-        "label": "Melanocytic nevus",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000982",
-        "label": "Palmoplantar keratoderma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0008069",
-        "label": "Neoplasm of the skin",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000256",
-        "label": "Macrocephaly",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002808",
-        "label": "Kyphosis",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000221",
-        "label": "Furrowed tongue",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000218",
-        "label": "High palate",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002861",
-        "label": "Melanoma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0002858",
-        "label": "Meningioma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0001508",
-        "label": "Failure to thrive",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000365",
-        "label": "Hearing impairment",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0005374",
-        "label": "Cellular immunodeficiency",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0006731",
-        "label": "Follicular thyroid carcinoma",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000518",
-        "label": "Cataract",
-        "evidence": "Curated HPO"
-      },
-      {
-        "id": "HP:0000545",
-        "label": "Myopia",
-        "evidence": "Curated HPO"
-      }
-    ],
-    "goBpo": [
-      "negative regulation of epithelial to mesenchymal transition",
-      "positive regulation of transcription by RNA polymerase II"
-    ],
-    "goMfo": [
-      "RNA polymerase II transcription regulatory region sequence-specific DNA binding",
-      "DNA-binding transcription activator activity, RNA polymerase II-specific",
-      "DNA binding",
-      "protein dimerization activity"
-    ],
-    "goCco": [
-      "nucleus"
     ],
     "publications": []
   },
@@ -447289,7 +447011,6 @@ const ONTOLOGIES = {
                       "UBTF",
                       "UNC80",
                       "UQCRQ",
-                      "USF3",
                       "USP8",
                       "VAMP1",
                       "VPS13B",
@@ -447795,7 +447516,6 @@ const ONTOLOGIES = {
                   "UBTF",
                   "UNC80",
                   "UQCRQ",
-                  "USF3",
                   "USP8",
                   "VAMP1",
                   "VPS13B",
@@ -448159,7 +447879,6 @@ const ONTOLOGIES = {
               "UBTF",
               "UNC80",
               "UQCRQ",
-              "USF3",
               "USP8",
               "VAMP1",
               "VPS13B",
@@ -448530,7 +448249,6 @@ const ONTOLOGIES = {
                       "UBTF",
                       "UNC80",
                       "UQCC2",
-                      "USF3",
                       "VAMP1",
                       "VDR",
                       "VPS13A",
@@ -448901,7 +448619,6 @@ const ONTOLOGIES = {
                   "UBTF",
                   "UNC80",
                   "UQCC2",
-                  "USF3",
                   "VAMP1",
                   "VDR",
                   "VPS13A",
@@ -449187,7 +448904,6 @@ const ONTOLOGIES = {
                       "TULP1",
                       "UBTF",
                       "UQCRQ",
-                      "USF3",
                       "VAMP1",
                       "VAPB",
                       "VPS13A",
@@ -449745,7 +449461,6 @@ const ONTOLOGIES = {
                   "UBTF",
                   "UNC80",
                   "UQCRQ",
-                  "USF3",
                   "USP8",
                   "VAMP1",
                   "VAPB",
@@ -450178,7 +449893,6 @@ const ONTOLOGIES = {
               "UNC80",
               "UQCC2",
               "UQCRQ",
-              "USF3",
               "USP8",
               "VAMP1",
               "VAPB",
@@ -450669,7 +450383,6 @@ const ONTOLOGIES = {
           "UNC80",
           "UQCC2",
           "UQCRQ",
-          "USF3",
           "USP8",
           "VAMP1",
           "VAPB",
@@ -451053,7 +450766,6 @@ const ONTOLOGIES = {
                       "TRPS1",
                       "TTC21B",
                       "UBE4B",
-                      "USF3",
                       "VPS35L",
                       "WAC",
                       "WDPCP",
@@ -451314,7 +451026,6 @@ const ONTOLOGIES = {
                   "UBE4B",
                   "UBR5",
                   "UNC80",
-                  "USF3",
                   "VKORC1",
                   "VPS13B",
                   "VPS35L",
@@ -451586,7 +451297,6 @@ const ONTOLOGIES = {
               "UBE4B",
               "UBR5",
               "UNC80",
-              "USF3",
               "VKORC1",
               "VPS13B",
               "VPS35L",
@@ -451842,7 +451552,6 @@ const ONTOLOGIES = {
                       "TTN",
                       "UBE4B",
                       "UNC80",
-                      "USF3",
                       "USP8",
                       "VDR",
                       "VEGFA",
@@ -452076,7 +451785,6 @@ const ONTOLOGIES = {
                   "TTN",
                   "UBE4B",
                   "UNC80",
-                  "USF3",
                   "USP8",
                   "VDR",
                   "VEGFA",
@@ -452310,7 +452018,6 @@ const ONTOLOGIES = {
               "TTN",
               "UBE4B",
               "UNC80",
-              "USF3",
               "USP8",
               "VDR",
               "VEGFA",
@@ -452665,7 +452372,6 @@ const ONTOLOGIES = {
           "UBE4B",
           "UBR5",
           "UNC80",
-          "USF3",
           "USP8",
           "VDR",
           "VEGFA",
@@ -453552,7 +453258,6 @@ const ONTOLOGIES = {
                       "TRPS1",
                       "UBE2A",
                       "UQCRH",
-                      "USF3",
                       "USP8",
                       "VAMP1",
                       "VAPB",
@@ -453760,7 +453465,6 @@ const ONTOLOGIES = {
                   "TRPS1",
                   "UBE2A",
                   "UQCRH",
-                  "USF3",
                   "USP8",
                   "VAMP1",
                   "VAPB",
@@ -453968,7 +453672,6 @@ const ONTOLOGIES = {
               "TRPS1",
               "UBE2A",
               "UQCRH",
-              "USF3",
               "USP8",
               "VAMP1",
               "VAPB",
@@ -454278,7 +453981,6 @@ const ONTOLOGIES = {
           "UBE2A",
           "UQCC2",
           "UQCRH",
-          "USF3",
           "USP8",
           "VAMP1",
           "VAPB",
@@ -454366,7 +454068,6 @@ const ONTOLOGIES = {
                   "SEMA3A",
                   "SPIDR",
                   "SPTBN1",
-                  "USF3",
                   "VEGFA",
                   "WRN",
                   "WWOX",
@@ -454421,7 +454122,6 @@ const ONTOLOGIES = {
               "SEMA3A",
               "SPIDR",
               "SPTBN1",
-              "USF3",
               "VEGFA",
               "WRN",
               "WWOX",
@@ -454479,7 +454179,6 @@ const ONTOLOGIES = {
                   "TLR2",
                   "TMEM67",
                   "TNF",
-                  "USF3",
                   "WDPCP",
                   "ZEB2"
                 ]
@@ -454874,7 +454573,6 @@ const ONTOLOGIES = {
               "TTR",
               "UBE4B",
               "UBR5",
-              "USF3",
               "VAMP1",
               "VAPB",
               "VPS13A",
@@ -455112,7 +454810,6 @@ const ONTOLOGIES = {
           "TTR",
           "UBE4B",
           "UBR5",
-          "USF3",
           "VAMP1",
           "VAPB",
           "VEGFA",
@@ -455395,7 +455092,6 @@ const ONTOLOGIES = {
                   "UBE2A",
                   "UBE4B",
                   "UQCC2",
-                  "USF3",
                   "USP8",
                   "VDR",
                   "VEGFA",
@@ -455663,7 +455359,6 @@ const ONTOLOGIES = {
               "UBE2A",
               "UBE4B",
               "UQCC2",
-              "USF3",
               "USP8",
               "VDR",
               "VEGFA",
@@ -455931,7 +455626,6 @@ const ONTOLOGIES = {
           "UBE2A",
           "UBE4B",
           "UQCC2",
-          "USF3",
           "USP8",
           "VDR",
           "VEGFA",
@@ -458106,6 +457800,7 @@ const ONTOLOGIES = {
                   "TRA2B",
                   "TRIP11",
                   "TRPS1",
+                  "TSHZ3",
                   "TSKU",
                   "TTC21B",
                   "TTN",
@@ -458409,6 +458104,7 @@ const ONTOLOGIES = {
               "TRA2B",
               "TRIP11",
               "TRPS1",
+              "TSHZ3",
               "TSKU",
               "TTC21B",
               "TTN",
@@ -458712,6 +458408,7 @@ const ONTOLOGIES = {
           "TRA2B",
           "TRIP11",
           "TRPS1",
+          "TSHZ3",
           "TSKU",
           "TTC21B",
           "TTN",
@@ -461092,7 +460789,6 @@ const ONTOLOGIES = {
                       "ULBP2",
                       "UQCC2",
                       "UQCRQ",
-                      "USF3",
                       "USP8",
                       "VAMP5",
                       "VAPB",
@@ -461491,7 +461187,6 @@ const ONTOLOGIES = {
                   "ULBP2",
                   "UQCC2",
                   "UQCRQ",
-                  "USF3",
                   "USP8",
                   "VAMP5",
                   "VAPB",
@@ -461890,7 +461585,6 @@ const ONTOLOGIES = {
               "ULBP2",
               "UQCC2",
               "UQCRQ",
-              "USF3",
               "USP8",
               "VAMP5",
               "VAPB",
@@ -463813,7 +463507,6 @@ const ONTOLOGIES = {
           "UQCC2",
           "UQCRH",
           "UQCRQ",
-          "USF3",
           "USP47",
           "USP8",
           "VAMP1",
@@ -466166,6 +465859,7 @@ const ONTOLOGIES = {
                       "TRPM4",
                       "TRPS1",
                       "TSC22D1",
+                      "TSHZ3",
                       "TSKU",
                       "TSPAN18",
                       "TST",
@@ -466185,7 +465879,6 @@ const ONTOLOGIES = {
                       "UNC5C",
                       "UQCC2",
                       "UQCRH",
-                      "USF3",
                       "USP47",
                       "USP8",
                       "VAMP1",
@@ -467191,6 +466884,7 @@ const ONTOLOGIES = {
                   "TRPM4",
                   "TRPS1",
                   "TSC22D1",
+                  "TSHZ3",
                   "TSKU",
                   "TSPAN18",
                   "TST",
@@ -467210,7 +466904,6 @@ const ONTOLOGIES = {
                   "UNC5C",
                   "UQCC2",
                   "UQCRH",
-                  "USF3",
                   "USP47",
                   "USP8",
                   "VAMP1",
@@ -468216,6 +467909,7 @@ const ONTOLOGIES = {
               "TRPM4",
               "TRPS1",
               "TSC22D1",
+              "TSHZ3",
               "TSKU",
               "TSPAN18",
               "TST",
@@ -468235,7 +467929,6 @@ const ONTOLOGIES = {
               "UNC5C",
               "UQCC2",
               "UQCRH",
-              "USF3",
               "USP47",
               "USP8",
               "VAMP1",
@@ -469871,6 +469564,7 @@ const ONTOLOGIES = {
           "TRPM4",
           "TRPS1",
           "TSC22D1",
+          "TSHZ3",
           "TSKU",
           "TSPAN18",
           "TST",
@@ -469892,7 +469586,6 @@ const ONTOLOGIES = {
           "UNC80",
           "UQCC2",
           "UQCRH",
-          "USF3",
           "USP47",
           "USP8",
           "VAMP1",
@@ -470580,13 +470273,13 @@ const ONTOLOGIES = {
                       "TRPC7",
                       "TRPS1",
                       "TSC22D1",
+                      "TSHZ3",
                       "TTC21B",
                       "TTN",
                       "UBE2A",
                       "UBE4B",
                       "UBR5",
                       "UBTF",
-                      "USF3",
                       "USP47",
                       "USP8",
                       "VAMP1",
@@ -471593,6 +471286,7 @@ const ONTOLOGIES = {
                   "TRPM4",
                   "TRPS1",
                   "TSC22D1",
+                  "TSHZ3",
                   "TST",
                   "TTC21B",
                   "TTN",
@@ -471607,7 +471301,6 @@ const ONTOLOGIES = {
                   "UQCC2",
                   "UQCRH",
                   "UQCRQ",
-                  "USF3",
                   "USP47",
                   "USP8",
                   "VAMP1",
@@ -472327,6 +472020,7 @@ const ONTOLOGIES = {
               "TRPM4",
               "TRPS1",
               "TSC22D1",
+              "TSHZ3",
               "TST",
               "TTC21B",
               "TTN",
@@ -472341,7 +472035,6 @@ const ONTOLOGIES = {
               "UQCC2",
               "UQCRH",
               "UQCRQ",
-              "USF3",
               "USP47",
               "USP8",
               "VAMP1",
@@ -476190,6 +475883,7 @@ const ONTOLOGIES = {
           "TRPM4",
           "TRPS1",
           "TSC22D1",
+          "TSHZ3",
           "TSKU",
           "TSPAN18",
           "TST",
@@ -476211,7 +475905,6 @@ const ONTOLOGIES = {
           "UQCC2",
           "UQCRH",
           "UQCRQ",
-          "USF3",
           "USP47",
           "USP8",
           "VAMP1",
@@ -478207,7 +477900,6 @@ const ONTOLOGIES = {
                   "TTR",
                   "UBTF",
                   "UQCRQ",
-                  "USF3",
                   "VAMP1",
                   "VAPB",
                   "VPS13A",
@@ -478567,7 +478259,6 @@ const ONTOLOGIES = {
                   "UBTF",
                   "UNC80",
                   "UQCRQ",
-                  "USF3",
                   "USP8",
                   "VAMP1",
                   "VPS13B",
@@ -478977,7 +478668,6 @@ const ONTOLOGIES = {
               "UBTF",
               "UNC80",
               "UQCRQ",
-              "USF3",
               "USP8",
               "VAMP1",
               "VAPB",
@@ -479351,7 +479041,6 @@ const ONTOLOGIES = {
                   "UBTF",
                   "UNC80",
                   "UQCC2",
-                  "USF3",
                   "VAMP1",
                   "VDR",
                   "VPS13A",
@@ -479704,7 +479393,6 @@ const ONTOLOGIES = {
               "UBTF",
               "UNC80",
               "UQCC2",
-              "USF3",
               "VAMP1",
               "VDR",
               "VPS13A",
@@ -480627,7 +480315,6 @@ const ONTOLOGIES = {
           "UNC80",
           "UQCC2",
           "UQCRQ",
-          "USF3",
           "USP8",
           "VAMP1",
           "VAPB",
@@ -481163,6 +480850,7 @@ const ONTOLOGIES = {
                   "TRPM1",
                   "TRPM4",
                   "TRPS1",
+                  "TSHZ3",
                   "TST",
                   "TTC21B",
                   "TTN",
@@ -481592,6 +481280,7 @@ const ONTOLOGIES = {
               "TRPM1",
               "TRPM4",
               "TRPS1",
+              "TSHZ3",
               "TSKU",
               "TST",
               "TTC21B",
@@ -482026,6 +481715,7 @@ const ONTOLOGIES = {
           "TRPM1",
           "TRPM4",
           "TRPS1",
+          "TSHZ3",
           "TSKU",
           "TST",
           "TTC21B",
@@ -482295,7 +481985,6 @@ const ONTOLOGIES = {
                   "TTN",
                   "UBE4B",
                   "UNC80",
-                  "USF3",
                   "USP8",
                   "VDR",
                   "VEGFA",
@@ -482529,7 +482218,6 @@ const ONTOLOGIES = {
               "TTN",
               "UBE4B",
               "UNC80",
-              "USF3",
               "USP8",
               "VDR",
               "VEGFA",
@@ -482775,7 +482463,6 @@ const ONTOLOGIES = {
                   "UBE4B",
                   "UBR5",
                   "UNC80",
-                  "USF3",
                   "VKORC1",
                   "VPS13B",
                   "VPS35L",
@@ -483005,7 +482692,6 @@ const ONTOLOGIES = {
               "UBE4B",
               "UBR5",
               "UNC80",
-              "USF3",
               "VKORC1",
               "VPS13B",
               "VPS35L",
@@ -483330,7 +483016,6 @@ const ONTOLOGIES = {
           "UBE4B",
           "UBR5",
           "UNC80",
-          "USF3",
           "USP8",
           "VDR",
           "VEGFA",
@@ -483871,7 +483556,6 @@ const ONTOLOGIES = {
                   "TRPS1",
                   "UBE2A",
                   "UQCRH",
-                  "USF3",
                   "USP8",
                   "VAMP1",
                   "VAPB",
@@ -484069,7 +483753,6 @@ const ONTOLOGIES = {
               "TRPS1",
               "UBE2A",
               "UQCRH",
-              "USF3",
               "USP8",
               "VAMP1",
               "VAPB",
@@ -484348,7 +484031,6 @@ const ONTOLOGIES = {
           "UBE2A",
           "UQCC2",
           "UQCRH",
-          "USF3",
           "USP8",
           "VAMP1",
           "VAPB",
@@ -484633,7 +484315,6 @@ const ONTOLOGIES = {
                   "UBE2A",
                   "UBE4B",
                   "UQCC2",
-                  "USF3",
                   "USP8",
                   "VDR",
                   "VEGFA",
@@ -484901,7 +484582,6 @@ const ONTOLOGIES = {
               "UBE2A",
               "UBE4B",
               "UQCC2",
-              "USF3",
               "USP8",
               "VDR",
               "VEGFA",
@@ -485169,7 +484849,6 @@ const ONTOLOGIES = {
           "UBE2A",
           "UBE4B",
           "UQCC2",
-          "USF3",
           "USP8",
           "VDR",
           "VEGFA",
@@ -486993,7 +486672,6 @@ const ONTOLOGIES = {
                   "UBE2A",
                   "UBE4B",
                   "UQCC2",
-                  "USF3",
                   "VAMP1",
                   "VCL",
                   "VDR",
@@ -487251,7 +486929,6 @@ const ONTOLOGIES = {
               "UBE2A",
               "UBE4B",
               "UQCC2",
-              "USF3",
               "VAMP1",
               "VCL",
               "VDR",
@@ -487509,7 +487186,6 @@ const ONTOLOGIES = {
           "UBE2A",
           "UBE4B",
           "UQCC2",
-          "USF3",
           "VAMP1",
           "VCL",
           "VDR",
@@ -489142,6 +488818,13 @@ const REPORT = {
       "uncertain": 1
     },
     {
+      "symbol": "ANO1",
+      "variantsDetected": 1,
+      "pathogenicOrLP": 0,
+      "protective": 0,
+      "uncertain": 1
+    },
+    {
       "symbol": "APOL1",
       "variantsDetected": 1,
       "pathogenicOrLP": 0,
@@ -489192,13 +488875,6 @@ const REPORT = {
     },
     {
       "symbol": "CACNA1D",
-      "variantsDetected": 1,
-      "pathogenicOrLP": 0,
-      "protective": 0,
-      "uncertain": 1
-    },
-    {
-      "symbol": "CACNA1E",
       "variantsDetected": 1,
       "pathogenicOrLP": 0,
       "protective": 0,
