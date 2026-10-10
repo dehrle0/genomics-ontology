@@ -88,6 +88,11 @@ def parse_args():
         help="Skip PDF generation"
     )
     parser.add_argument(
+        "--run-vep",
+        action="store_true",
+        help="Pre-annotate input VCF with VEP and AlphaGenome Atlas AVI plugin"
+    )
+    parser.add_argument(
         "--local-only",
         action="store_true",
         help="Skip syncing to Google Drive"
@@ -400,6 +405,21 @@ def main():
     raw_db, vcf_path = resolve_input(args.input, sample_name, local_outdir, args.phased_vcf)
     print(f"[Stage 1] Resolved Database : {raw_db}")
     print(f"[Stage 1] Resolved VCF File : {vcf_path or 'None (will use DB attributes)'}")
+
+    # 1.1 Optional VEP + AlphaGenome Pre-Annotation
+    if getattr(args, "run_vep", False) and vcf_path:
+        vep_script = "/data/vep/bin/run_vep_alphagenome.sh"
+        if os.path.exists(vep_script):
+            vcf_parts = [v.strip() for v in vcf_path.split(",") if v.strip()]
+            if vcf_parts and os.path.exists(vcf_parts[0]):
+                primary_vcf = vcf_parts[0]
+                annotated_vcf = os.path.join(local_outdir, f"{sample_name}_vep_avi.vcf.gz")
+                if not os.path.exists(annotated_vcf):
+                    print(f"\n[VEP Annotation Engine] Running VEP + AlphaGenome Atlas on {primary_vcf} -> {annotated_vcf}...")
+                    subprocess.run([vep_script, "-i", primary_vcf, "-o", annotated_vcf], check=True)
+                vcf_parts[0] = annotated_vcf
+                vcf_path = ",".join(vcf_parts)
+                print(f"[VEP Annotation Engine] VCF wired to pipeline: {vcf_path}")
 
     base_prefix = sample_name
     schema_json = os.path.join(local_outdir, f"{base_prefix}_schema.json")

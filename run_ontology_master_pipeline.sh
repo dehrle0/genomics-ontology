@@ -22,6 +22,7 @@ usage() {
     echo "  -v VCF         Phased VCF(s) comma-separated (e.g. SNVs, SVs)"
     echo "  -g GDRIVE_DIR  Google Drive base directory (default: ~/Google Drive/My Drive/Ontology)"
     echo "  -l             Local only (skip Google Drive sync)"
+    echo "  -a             Pre-annotate VCF with VEP and AlphaGenome Atlas AVI"
     echo "  -h             Show this help message"
     echo ""
     echo "Examples:"
@@ -36,13 +37,15 @@ CONFIG="$SCRIPT_DIR/config/ontology_domains.yaml"
 GDRIVE_DIR="$HOME/Google Drive/My Drive/Ontology"
 LOCAL_ONLY=""
 VCF_ARG=""
+VEP_ARG=""
 
-while getopts ":c:v:g:lh" opt; do
+while getopts ":c:v:g:lah" opt; do
     case "$opt" in
         c) CONFIG="$OPTARG" ;;
         v) VCF_ARG="--vcf $OPTARG" ;;
         g) GDRIVE_DIR="$OPTARG" ;;
         l) LOCAL_ONLY="--local-only" ;;
+        a) VEP_ARG="--run-vep" ;;
         h) usage ;;
         *) usage ;;
     esac
@@ -62,4 +65,5 @@ python3 "$SCRIPT_DIR/run_ontology_pipeline.py" \
     --config "$CONFIG" \
     --gdrive-dir "$GDRIVE_DIR" \
     $VCF_ARG \
-    $LOCAL_ONLY
+    $LOCAL_ONLY \
+    $VEP_ARG
