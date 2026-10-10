@@ -912,3 +912,86 @@ a:hover {
     page-break-inside: avoid;
   }
 }
+
+/* =========================================================================
+   SCALE TOGGLE (LINEAR / LOG10) & PIE SLICES LEGEND
+   ========================================================================= */
+.scale-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--line);
+  border-radius: 12px;
+  padding: 1.5px;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.scale-btn {
+  background: transparent;
+  border: none;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--slate);
+  transition: all 0.15s ease;
+}
+
+.scale-btn.active {
+  background: #ffffff;
+  color: var(--teal-dark);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.pie-slices-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+  margin-top: 6px;
+  border-top: 1px dashed var(--line);
+  width: 100%;
+  justify-content: center;
+}
+
+.pie-slice-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10.5px;
+  color: var(--ink);
+  transition: all 0.1s ease;
+}
+
+.pie-slice-pill:hover {
+  border-color: var(--teal);
+  background: var(--panel-muted);
+}
+
+.pie-slice-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pie-slice-name {
+  color: var(--slate);
+  font-weight: 500;
+}
+
+.pie-slice-pct {
+  color: var(--teal-dark);
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+.pie-slice-fraction {
+  color: var(--slate-light);
+  font-size: 9.5px;
+}

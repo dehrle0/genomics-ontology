@@ -53,31 +53,56 @@ def process_patient(json_path, patient_id, patient_name):
     total_genes = len(genes_list)
 
     # -------------------------------------------------------------------------
-    # ROW 1: ONTOLOGY (HPO Clinical Domains)
+    # ROW 1: ONTOLOGY (HPO Clinical Domains) — Multi-Ontology Incrementing
     # -------------------------------------------------------------------------
-    # Define standardized clinical presentation categories matching reference image
-    hpo_domain_defs = [
-        ("Neurology", ["nervous", "seizure", "epilepsy", "encephal", "brain", "neuropath", "ataxia", "dementia", "cns", "intellectual", "cntn1", "c19orf12"]),
-        ("Metabolic", ["metabol", "inborn", "acid", "peroxis", "mitochon", "glycogen", "storage", "cblif", "hfe", "mthfr", "diabetes"]),
-        ("Cardiovascular", ["cardio", "vascular", "heart", "arrhythm", "channelopath", "cardiomyopath", "scn5a", "apob", "ldlr", "long qt", "brugada"]),
-        ("GI / Liver", ["gastro", "liver", "hepat", "digest", "intest", "bowel", "colon", "pancrea"]),
-        ("Heme / Immune", ["immune", "autoimmun", "hematolog", "anemia", "coagulat", "leuk", "lymph", "platelet", "thromb", "hla", "ptpn22", "f5"]),
-        ("Morphogenesis", ["skelet", "bone", "cranio", "dysmorphism", "syndrom", "connect", "collagen", "ehlers", "marfan"]),
-        ("Neoplasm", ["neoplasm", "cancer", "tumor", "carcinoma", "lynch", "brca", "pms2", "rad51"]),
-        ("Renal / Urinary", ["urin", "renal", "kidney", "nephr", "glomerul"]),
-        ("Other / Multisystem", [])
+    hpo_groups = data.get("ontologies", {}).get("hpo", {}).get("groups", [])
+    gene_to_domains = defaultdict(set)
+
+    canonical_domains = [
+        ("HP:0001626", "Cardiovascular"),
+        ("HP:0000707", "Neurology"),
+        ("HP:0001939", "Metabolic"),
+        ("HP:0002715", "Immune / Autoimmunity"),
+        ("HP:0000924", "Skeletal / Morphogenesis"),
+        ("HP:0002086", "Respiratory"),
+        ("HP:0000079", "Renal / Urinary"),
+        ("HP:0002664", "Neoplasm / Oncology"),
+        ("HP:0001871", "Hematology / Coagulation")
+    ]
+    domain_map = dict(canonical_domains)
+
+    for hg in hpo_groups:
+        hid = hg.get("id")
+        hlabel = domain_map.get(hid, hg.get("label"))
+        for sym in hg.get("genes", []):
+            gene_to_domains[sym].add(hlabel)
+
+    # Keyword rules for augmenting domain mapping from pathology and gene symbols
+    hpo_keyword_rules = [
+        ("Neurology", ["nervous", "seizure", "epilepsy", "brain", "neuropath", "ataxia", "dementia", "cntn1", "c19orf12"]),
+        ("Metabolic", ["metabol", "inborn", "aciduria", "peroxis", "mitochon", "glycogen", "cblif", "hfe", "mthfr", "diabetes"]),
+        ("Cardiovascular", ["cardio", "vascular", "heart", "arrhythm", "channelopath", "scn5a", "apob", "ldlr", "long qt", "brugada"]),
+        ("Immune / Autoimmunity", ["immune", "autoimmun", "arthritis", "lupus", "hla", "ptpn22"]),
+        ("Hematology / Coagulation", ["hematolog", "anemia", "coagulat", "thromb", "f5", "platelet"]),
+        ("Skeletal / Morphogenesis", ["skelet", "bone", "cranio", "connect", "collagen", "marfan", "ehlers"]),
+        ("Neoplasm / Oncology", ["neoplasm", "cancer", "tumor", "carcinoma", "lynch", "brca", "pms2", "rad51"]),
+        ("Renal / Urinary", ["urin", "renal", "kidney", "nephr"]),
+        ("Respiratory", ["respirat", "lung", "ciliary", "dnah7"])
     ]
 
-    def get_variant_hpo_domain(gene_sym, gene_name, v):
-        text = f"{gene_sym} {gene_name} {' '.join(v.get('consequence', []))} {v.get('cchange', '')} {v.get('achange', '')} {v.get('clinvar', '')}".lower()
-        for domain, kws in hpo_domain_defs[:-1]:
-            if any(kw in text for kw in kws):
-                return domain
-        return "Other / Multisystem"
-
     hpo_domain_counts = defaultdict(lambda: {"total": 0, "actionable": 0})
+    unmapped_variant_count = 0
+
     for g, v in flat_records:
-        domain = get_variant_hpo_domain(g.get("symbol", ""), g.get("name", ""), v)
+        sym = g.get("symbol", "")
+        matched = set(gene_to_domains.get(sym, set()))
+
+        # Supplement with pathology and gene text keywords if needed
+        full_text = f"{sym} {g.get('name', '')} {g.get('organSystem', '')} {' '.join(str(p.get('name', '')) for p in g.get('associatedPathology', []))}".lower()
+        for dom, kws in hpo_keyword_rules:
+            if any(kw in full_text for kw in kws):
+                matched.add(dom)
+
         is_actionable = (
             v.get("tier") in ["Tier1", "Tier2"] or
             v.get("category") in ["concern", "protective"] or
@@ -85,12 +110,26 @@ def process_patient(json_path, patient_id, patient_name):
             (v.get("aviPhred") is not None and float(v.get("aviPhred")) >= 20.0) or
             (v.get("cadd") is not None and float(v.get("cadd")) >= 25.0)
         )
-        hpo_domain_counts[domain]["total"] += 1
-        if is_actionable:
-            hpo_domain_counts[domain]["actionable"] += 1
 
-    # Format Row 1 Stacked Bar
-    ordered_domains = ["Neurology", "Metabolic", "Cardiovascular", "GI / Liver", "Heme / Immune", "Morphogenesis", "Neoplasm", "Renal / Urinary", "Other / Multisystem"]
+        if not matched:
+            unmapped_variant_count += 1
+            hpo_domain_counts["Other / Multisystem"]["total"] += 1
+            if is_actionable:
+                hpo_domain_counts["Other / Multisystem"]["actionable"] += 1
+        else:
+            # Multi-ontology increment: increment EVERY matched ontology for this variant
+            for dom in matched:
+                hpo_domain_counts[dom]["total"] += 1
+                if is_actionable:
+                    hpo_domain_counts[dom]["actionable"] += 1
+
+    # Format Row 1 Stacked Bar:
+    # Rule: if Other / Multisystem > 30%, drop it so specific ontologies show clearly
+    other_fraction = unmapped_variant_count / total_variants if total_variants else 0
+    ordered_domains = [c[1] for c in canonical_domains]
+    if other_fraction <= 0.30 and hpo_domain_counts["Other / Multisystem"]["total"] > 0:
+        ordered_domains.append("Other / Multisystem")
+
     row1_bar = []
     for d in ordered_domains:
         tot = hpo_domain_counts[d]["total"]
@@ -106,37 +145,39 @@ def process_patient(json_path, patient_id, patient_name):
             "ratePct": rate
         })
 
-    # Row 1 Pie B (Presentation Prior to RGS)
+    # Row 1 Pie B (Presentation Prior to RGS) & Pie C (Diagnosis Category After RGS)
+    # Exclude "Other / Multisystem" from pie charts to reflect 100% normalized clinical disease presentations
+    defined_pie_domains = [c[1] for c in canonical_domains if hpo_domain_counts[c[1]]["total"] > 0]
+    tot_pie_prior = sum(hpo_domain_counts[d]["total"] for d in defined_pie_domains) or 1
+    tot_pie_post = sum(hpo_domain_counts[d]["actionable"] for d in defined_pie_domains) or 1
+
+    colors_palette = ["#B3261E", "#17222B", "#1C5B5E", "#B5722A", "#0284C7", "#475569", "#047857", "#6D28D9", "#94A3B8"]
+
     row1_pie_prior = []
-    colors_palette = ["#17222B", "#B3261E", "#475569", "#64748B", "#94A3B8", "#B5722A", "#1C5B5E", "#0284C7", "#CBD5E1"]
-    tot_all_hpo = sum(hpo_domain_counts[d]["total"] for d in ordered_domains) or 1
-    for i, d in enumerate(ordered_domains):
+    for i, d in enumerate(defined_pie_domains):
         cnt = hpo_domain_counts[d]["total"]
-        pct = round(cnt / tot_all_hpo * 100, 1)
+        pct = round(cnt / tot_pie_prior * 100, 1)
         row1_pie_prior.append({
             "label": d,
             "count": cnt,
-            "total": tot_all_hpo,
+            "total": tot_pie_prior,
             "pct": pct,
-            "callout": f"{d} {pct}%, {cnt}/{tot_all_hpo}",
+            "callout": f"{d} {pct}%, {cnt}/{tot_pie_prior}",
             "color": colors_palette[i % len(colors_palette)]
         })
 
-    # Row 1 Pie C (Diagnosis Category After RGS - Confirmed Actionable Findings)
-    tot_act_hpo = sum(hpo_domain_counts[d]["actionable"] for d in ordered_domains) or 1
     row1_pie_post = []
-    diag_colors = ["#B3261E", "#17222B", "#1C5B5E", "#B5722A", "#0284C7", "#475569", "#047857", "#6D28D9", "#94A3B8"]
-    for i, d in enumerate(ordered_domains):
+    for i, d in enumerate(defined_pie_domains):
         cnt = hpo_domain_counts[d]["actionable"]
         if cnt > 0:
-            pct = round(cnt / tot_act_hpo * 100, 1)
+            pct = round(cnt / tot_pie_post * 100, 1)
             row1_pie_post.append({
                 "label": d,
                 "count": cnt,
-                "total": tot_act_hpo,
+                "total": tot_pie_post,
                 "pct": pct,
-                "callout": f"{d} {pct}%, {cnt}/{tot_act_hpo}",
-                "color": diag_colors[i % len(diag_colors)]
+                "callout": f"{d} {pct}%, {cnt}/{tot_pie_post}",
+                "color": colors_palette[i % len(colors_palette)]
             })
 
     # -------------------------------------------------------------------------
@@ -220,7 +261,7 @@ def process_patient(json_path, patient_id, patient_name):
                 "total": tot_act_org,
                 "pct": pct,
                 "callout": f"{short_lbl} {pct}%, {cnt}/{tot_act_org}",
-                "color": diag_colors[i % len(diag_colors)]
+                "color": colors_palette[i % len(colors_palette)]
             })
 
     # -------------------------------------------------------------------------

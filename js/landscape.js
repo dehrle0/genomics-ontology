@@ -13,6 +13,7 @@
     currentReport: "visual_explorer",
     searchTerm: "",
     categoryFilter: null,
+    barScale: "linear", // "linear" or "log10"
     openGenes: new Set(),
     openVariants: new Set(),
     cachedNcbiSummaries: {}
@@ -77,17 +78,17 @@
   // ---------------------------------------------------------------------------
   function renderAllLandscapeCharts(charts) {
     // Row 1: Ontology
-    renderStackedBar("chart-row1-bar", charts.row1_ontology.bar, "Diagnostic vs Secondary by HPO Domain", "Variants");
+    renderStackedBar("chart-row1-bar", charts.row1_ontology.bar, "Diagnostic vs Secondary by HPO Domain", "Variants", true);
     renderPieChart("chart-row1-pie-prior", charts.row1_ontology.piePrior, "Presentation prior to RGS");
     renderPieChart("chart-row1-pie-post", charts.row1_ontology.piePost, "Diagnosis Category after RGS");
 
     // Row 2: Organ System
-    renderStackedBar("chart-row2-bar", charts.row2_organ.bar, "Actionability by Anatomical Organ System", "Variants");
+    renderStackedBar("chart-row2-bar", charts.row2_organ.bar, "Actionability by Anatomical Organ System", "Variants", true);
     renderPieChart("chart-row2-pie-prior", charts.row2_organ.piePrior, "Organ Signals prior to Resolution");
     renderPieChart("chart-row2-pie-post", charts.row2_organ.piePost, "Primary Confirmed Organ Attribution");
 
     // Row 3: Pharma
-    renderStackedBar("chart-row3-bar", charts.row3_pharma.bar, "Actionability by Therapeutic Drug Class", "Drug Cards");
+    renderStackedBar("chart-row3-bar", charts.row3_pharma.bar, "Actionability by Therapeutic Drug Class", "Drug Cards", false);
     renderPieChart("chart-row3-pie-prior", charts.row3_pharma.piePrior, "Metabolizer Phenotypes");
     renderPieChart("chart-row3-pie-post", charts.row3_pharma.piePost, "Clinical Action Categories");
   }
@@ -96,41 +97,68 @@
    * Pure SVG Stacked Bar Chart (Panel A)
    * Matches reference image: Black (Secondary/Non-diagnostic), Red (Actionable/Diagnostic)
    * Displays fraction (e.g. 19/52) above bars, tilted category labels at bottom.
+   * Supports Linear & Log10 scaling.
    */
-  function renderStackedBar(containerId, data, title, yUnit) {
+  function renderStackedBar(containerId, data, title, yUnit, allowScaleToggle = false) {
     const mount = $(containerId);
     if (!mount) return;
     mount.innerHTML = "";
 
+    const isLog = state.barScale === "log10";
     const W = 520;
     const H = 270;
-    const top = 38;
-    const bottom = 68;
+    const top = 40;
+    const bottom = 72;
     const left = 50;
     const right = 20;
     const chartW = W - left - right;
     const chartH = H - top - bottom;
 
-    const maxVal = Math.max(...data.map((d) => d.total), 1) * 1.15;
+    const maxRaw = Math.max(...data.map((d) => d.total), 1);
+    const toScale = (v) => (isLog ? (v > 0 ? Math.log10(v + 1) : 0) : v);
+    const maxScaled = toScale(maxRaw) * 1.15;
+
     const n = data.length;
     const colW = chartW / n;
     const barW = Math.max(colW * 0.58, 14);
 
+    let html = "";
+
+    // Optional Log10 Toggle Toolbar
+    if (allowScaleToggle) {
+      html += `
+        <div style="display:flex;justify-content:flex-end;width:100%;margin-bottom:4px;">
+          <div class="scale-toggle">
+            <button class="scale-btn ${!isLog ? "active" : ""}" data-scale-target="linear">Linear</button>
+            <button class="scale-btn ${isLog ? "active" : ""}" data-scale-target="log10">Log₁₀</button>
+          </div>
+        </div>
+      `;
+    }
+
     let svg = `<svg viewBox="0 0 ${W} ${H}" class="chart-svg" xmlns="http://www.w3.org/2000/svg">`;
 
     // Horizontal Gridlines & Y-Axis Ticks
-    const numTicks = 5;
-    for (let i = 0; i <= numTicks; i++) {
-      const val = Math.round((maxVal / numTicks) * i);
-      const y = top + chartH - (val / maxVal) * chartH;
-      svg += `<line x1="${left}" y1="${y}" x2="${left + chartW}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />`;
-      svg += `<text x="${left - 8}" y="${y + 3.5}" text-anchor="end" font-size="10" font-family="system-ui" fill="#64748b">${val}</text>`;
+    if (!isLog) {
+      const numTicks = 5;
+      for (let i = 0; i <= numTicks; i++) {
+        const val = Math.round((maxRaw / numTicks) * i);
+        const y = top + chartH - (val / (maxRaw * 1.15)) * chartH;
+        svg += `<line x1="${left}" y1="${y}" x2="${left + chartW}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />`;
+        svg += `<text x="${left - 8}" y="${y + 3.5}" text-anchor="end" font-size="10" font-family="system-ui" fill="#64748b">${val}</text>`;
+      }
+    } else {
+      const logTicks = [1, 10, 50, 100, 250, 500, 1000].filter((t) => t <= maxRaw * 1.2);
+      logTicks.forEach((t) => {
+        const y = top + chartH - (toScale(t) / maxScaled) * chartH;
+        svg += `<line x1="${left}" y1="${y}" x2="${left + chartW}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />`;
+        svg += `<text x="${left - 8}" y="${y + 3.5}" text-anchor="end" font-size="9.5" font-family="system-ui" fill="#64748b">${t}</text>`;
+      });
     }
 
-    // Y-Axis line
+    // Y-Axis line & label
     svg += `<line x1="${left}" y1="${top}" x2="${left}" y2="${top + chartH}" stroke="#17222b" stroke-width="1.5" />`;
-    // Y-Axis label
-    svg += `<text transform="translate(14, ${top + chartH / 2}) rotate(-90)" text-anchor="middle" font-size="10.5" font-weight="600" fill="#475569">${yUnit}</text>`;
+    svg += `<text transform="translate(14, ${top + chartH / 2}) rotate(-90)" text-anchor="middle" font-size="10.5" font-weight="600" fill="#475569">${yUnit} ${isLog ? "(Log₁₀)" : ""}</text>`;
 
     // X-Axis baseline
     svg += `<line x1="${left}" y1="${top + chartH}" x2="${left + chartW}" y2="${top + chartH}" stroke="#17222b" stroke-width="1.5" />`;
@@ -138,15 +166,15 @@
     // Bars
     data.forEach((d, i) => {
       const barX = left + i * colW + (colW - barW) / 2;
-      const totalH = (d.total / maxVal) * chartH;
-      const actH = (d.actionable / maxVal) * chartH;
-      const secH = totalH - actH;
+      const totalH = (toScale(d.total) / maxScaled) * chartH;
+      const actH = (toScale(d.actionable) / maxScaled) * chartH;
+      const secH = Math.max(totalH - actH, 0);
 
       const actY = top + chartH - totalH;
       const secY = top + chartH - secH;
 
       // Fraction text above bar
-      svg += `<text x="${barX + barW / 2}" y="${actY - 6}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#17222b">${d.fraction}</text>`;
+      svg += `<text x="${barX + barW / 2}" y="${actY - 6}" text-anchor="middle" font-size="10" font-weight="700" fill="#17222b">${d.fraction}</text>`;
 
       // Stacked Bar: Red portion (top = Actionable)
       if (actH > 0) {
@@ -166,7 +194,7 @@
       const lblX = barX + barW / 2;
       const lblY = top + chartH + 12;
       const shortCat = d.category.length > 14 ? d.category.slice(0, 13) + "…" : d.category;
-      svg += `<text transform="translate(${lblX}, ${lblY}) rotate(-35)" text-anchor="end" font-size="10.5" font-weight="600" fill="#334155" style="cursor:pointer;" data-category="${d.category}">${shortCat}</text>`;
+      svg += `<text transform="translate(${lblX}, ${lblY}) rotate(-35)" text-anchor="end" font-size="10" font-weight="600" fill="#334155" style="cursor:pointer;" data-category="${d.category}">${shortCat}</text>`;
     });
 
     // Bottom Legend
@@ -181,7 +209,7 @@
     `;
 
     svg += `</svg>`;
-    mount.innerHTML = svg;
+    mount.innerHTML = html + svg;
 
     // Attach click filters
     mount.querySelectorAll("[data-category]").forEach((el) => {
@@ -190,11 +218,24 @@
         setCategoryFilter(cat);
       });
     });
+
+    // Attach scale toggle handlers
+    mount.querySelectorAll("[data-scale-target]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const sc = btn.getAttribute("data-scale-target");
+        if (state.barScale !== sc) {
+          state.barScale = sc;
+          const pData = window.COHORT_DATA[state.currentPatient];
+          if (pData) renderAllLandscapeCharts(pData.charts);
+        }
+      });
+    });
   }
 
   /**
-   * Pure SVG Pie Chart with Angular Callout Lines & Rectangles (Panels B & C)
+   * Pure SVG Pie Chart with Collision-Avoidance Callouts & All-Slice Breakdown Strip
    * Matches reference image panels B and C with white callout cards pointing to slices.
+   * Guarantees every single slice displays its exact percentage (.%).
    */
   function renderPieChart(containerId, slices, title) {
     const mount = $(containerId);
@@ -202,10 +243,10 @@
     mount.innerHTML = "";
 
     const W = 380;
-    const H = 270;
+    const H = 265;
     const cx = 190;
-    const cy = 138;
-    const radius = 75;
+    const cy = 132;
+    const radius = 72;
 
     const total = slices.reduce((acc, s) => acc + s.count, 0) || 1;
 
@@ -213,8 +254,8 @@
 
     let currentAngle = -Math.PI / 2; // Start from 12 o'clock
 
-    // First pass: Draw slices
-    const callouts = [];
+    // First pass: Draw slices and gather raw callout positions
+    const rawCallouts = [];
     slices.forEach((s) => {
       if (s.count <= 0) return;
       const sliceAngle = (s.count / total) * 2 * Math.PI;
@@ -234,46 +275,100 @@
         <title>${s.label}: ${s.pct}% (${s.count}/${total})</title>
       </path>`;
 
-      // Prepare callout if significant
-      if (s.pct >= 3.5 || slices.length <= 5) {
-        const midAngle = startAngle + sliceAngle / 2;
-        callouts.push({
-          slice: s,
-          midAngle: midAngle,
-          innerX: cx + radius * Math.cos(midAngle),
-          innerY: cy + radius * Math.sin(midAngle),
-          outerX: cx + (radius + 18) * Math.cos(midAngle),
-          outerY: cy + (radius + 18) * Math.sin(midAngle)
-        });
-      }
+      // All slices with count > 0 receive a callout anchor
+      const midAngle = startAngle + sliceAngle / 2;
+      rawCallouts.push({
+        slice: s,
+        midAngle: midAngle,
+        innerX: cx + radius * Math.cos(midAngle),
+        innerY: cy + radius * Math.sin(midAngle),
+        outerX: cx + (radius + 16) * Math.cos(midAngle),
+        outerY: cy + (radius + 16) * Math.sin(midAngle)
+      });
     });
 
-    // Second pass: Draw callout lines & badges
-    callouts.forEach((c) => {
-      const isRight = Math.cos(c.midAngle) >= 0;
-      const boxW = 86;
-      const boxH = 26;
-      const elbowX = isRight ? c.outerX + 16 : c.outerX - 16;
-      const elbowY = c.outerY;
+    // Second pass: Collision Avoidance for Callouts (separate left and right)
+    const rightSide = rawCallouts.filter((c) => Math.cos(c.midAngle) >= 0);
+    const leftSide = rawCallouts.filter((c) => Math.cos(c.midAngle) < 0);
 
-      const boxX = isRight ? elbowX : elbowX - boxW;
-      const boxY = elbowY - boxH / 2;
+    rightSide.sort((a, b) => a.outerY - b.outerY);
+    leftSide.sort((a, b) => a.outerY - b.outerY);
+
+    function relaxVerticalPositions(list, boxH, gap, minY, maxY) {
+      if (list.length === 0) return;
+      const minStep = boxH + gap;
+
+      // Downward spacing pass
+      for (let i = 1; i < list.length; i++) {
+        if (list[i].outerY < list[i - 1].outerY + minStep) {
+          list[i].outerY = list[i - 1].outerY + minStep;
+        }
+      }
+      // Upward adjustment if bottom overflows
+      if (list[list.length - 1].outerY > maxY) {
+        list[list.length - 1].outerY = maxY;
+        for (let i = list.length - 2; i >= 0; i--) {
+          if (list[i].outerY > list[i + 1].outerY - minStep) {
+            list[i].outerY = list[i + 1].outerY - minStep;
+          }
+        }
+      }
+      // Top boundary clamp
+      if (list[0].outerY < minY) {
+        list[0].outerY = minY;
+        for (let i = 1; i < list.length; i++) {
+          if (list[i].outerY < list[i - 1].outerY + minStep) {
+            list[i].outerY = list[i - 1].outerY + minStep;
+          }
+        }
+      }
+    }
+
+    const boxW = 88;
+    const boxH = 24;
+    relaxVerticalPositions(rightSide, boxH, 4, 18, H - 22);
+    relaxVerticalPositions(leftSide, boxH, 4, 18, H - 22);
+
+    const adjustedCallouts = [...rightSide, ...leftSide];
+
+    // Third pass: Draw callout lines & cards with exact .%
+    adjustedCallouts.forEach((c) => {
+      const isRight = Math.cos(c.midAngle) >= 0;
+      const elbowX = isRight ? c.outerX + 14 : c.outerX - 14;
+      const boxX = isRight ? elbowX + 2 : elbowX - boxW - 2;
+      const boxY = c.outerY - boxH / 2;
 
       // Pointer polyline
-      svg += `<polyline points="${c.innerX},${c.innerY} ${c.outerX},${c.outerY} ${elbowX},${elbowY}" stroke="#64748b" stroke-width="1" fill="none" />`;
+      svg += `<polyline points="${c.innerX},${c.innerY} ${c.outerX},${c.outerY} ${elbowX},${c.outerY}" stroke="#64748b" stroke-width="1" fill="none" />`;
 
       // Callout card
       svg += `<g style="cursor:pointer;" data-label="${c.slice.label}">`;
       svg += `<rect x="${boxX}" y="${boxY}" width="${boxW}" height="${boxH}" fill="#ffffff" stroke="#94a3b8" stroke-width="0.8" rx="3" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))" />`;
-      
+
       const lblText = c.slice.label.length > 13 ? c.slice.label.slice(0, 12) + "…" : c.slice.label;
-      svg += `<text x="${boxX + boxW / 2}" y="${boxY + 11}" text-anchor="middle" font-size="9" font-weight="700" fill="#1e293b">${lblText}</text>`;
-      svg += `<text x="${boxX + boxW / 2}" y="${boxY + 21}" text-anchor="middle" font-size="8.5" font-weight="500" fill="#64748b">${c.slice.pct}%, ${c.slice.count}/${total}</text>`;
+      svg += `<text x="${boxX + boxW / 2}" y="${boxY + 10}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#1e293b">${lblText}</text>`;
+      svg += `<text x="${boxX + boxW / 2}" y="${boxY + 20}" text-anchor="middle" font-size="8.5" font-weight="600" fill="#0f766e">${c.slice.pct}%, <tspan fill="#64748b">${c.slice.count}</tspan></text>`;
       svg += `</g>`;
     });
 
     svg += `</svg>`;
-    mount.innerHTML = svg;
+
+    // Fourth pass: Append All-Slices Breakdown Strip below SVG (guarantees every slice percentage is readable)
+    let legendHtml = `<div class="pie-slices-legend">`;
+    slices.forEach((s) => {
+      if (s.count <= 0) return;
+      legendHtml += `
+        <span class="pie-slice-pill" style="cursor:pointer;" data-label="${s.label}">
+          <span class="pie-slice-dot" style="background:${s.color};"></span>
+          <span class="pie-slice-name">${s.label}:</span>
+          <strong class="pie-slice-pct">${s.pct}%</strong>
+          <span class="pie-slice-fraction mono">(${s.count})</span>
+        </span>
+      `;
+    });
+    legendHtml += `</div>`;
+
+    mount.innerHTML = svg + legendHtml;
 
     // Attach click filters
     mount.querySelectorAll("[data-label]").forEach((el) => {
