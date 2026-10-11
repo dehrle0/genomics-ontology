@@ -54,10 +54,70 @@ def format_var_key(chrom: str, pos: Any, ref: str, alt: str) -> str:
     return f"{c}:{pos}:{ref}>{alt}"
 
 
+OFFLINE_TABIX_TABLE = "/data/vep/data/alphagenome/avi_scores.tsv.gz"
+
+
 def is_snv(ref: str, alt: str) -> bool:
     r = str(ref or "").strip().upper()
     a = str(alt or "").strip().upper()
     return len(r) == 1 and len(a) == 1 and r in "ACGT" and a in "ACGT"
+
+
+def query_offline_tabix(variants: List[str], table_path: str = OFFLINE_TABIX_TABLE) -> Dict[str, Dict[str, Any]]:
+    if not variants or not os.path.exists(table_path):
+        return {}
+
+    tabix_bin = shutil.which("tabix") or "/data/vep/env/bin/tabix"
+    if not (shutil.which(tabix_bin) or os.path.exists(tabix_bin)):
+        return {}
+
+    results = {}
+    chunk_size = 500
+    for i in range(0, len(variants), chunk_size):
+        chunk = variants[i:i + chunk_size]
+        regions = []
+        lookup = {}
+        for v in chunk:
+            parts = v.split(":")
+            if len(parts) != 3:
+                continue
+            c = parts[0]
+            try:
+                p = int(parts[1])
+            except ValueError:
+                continue
+            alts = parts[2].split(">")
+            if len(alts) != 2:
+                continue
+            ref, alt = alts[0], alts[1]
+            regions.append(f"{c}:{p}-{p}")
+            lookup[(c, p, ref, alt)] = v
+
+        if not regions:
+            continue
+
+        cmd = [tabix_bin, table_path] + regions
+        try:
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            if res.returncode == 0:
+                for line in res.stdout.splitlines():
+                    fields = line.strip().split("\t")
+                    if len(fields) >= 6:
+                        c, p, r, a = fields[0], int(fields[1]), fields[2], fields[3]
+                        raw = float(fields[4]) if fields[4] != "." else None
+                        phred = float(fields[5]) if fields[5] != "." else None
+                        if (c, p, r, a) in lookup:
+                            vk = lookup[(c, p, r, a)]
+                            results[vk] = {
+                                "supported": True,
+                                "avi_phred": phred,
+                                "avi_raw": raw,
+                                "source": "offline_tabix"
+                            }
+        except Exception as e:
+            print(f"[AlphaGenome Enrich Warning] Tabix offline lookup error: {e}")
+
+    return results
 
 
 def query_alphagenome_batch(variants: List[str], chunk_size: int = 100, cache_ref: Dict[str, Any] = None, cache_path: str = None) -> List[Dict[str, Any]]:
@@ -205,6 +265,16 @@ def main():
     print(f"[AlphaGenome Enrich] Existing Cache Hits       : {cached_hits}")
     print(f"[AlphaGenome Enrich] Indels/Non-SNV Skipped    : {skipped_indels}")
     print(f"[AlphaGenome Enrich] Unique Variants to Query  : {len(to_query)}")
+
+    if to_query and os.path.exists(OFFLINE_TABIX_TABLE):
+        print(f"[AlphaGenome Enrich] Querying offline Tabix database for {len(to_query)} variants...")
+        tabix_hits = query_offline_tabix(to_query, OFFLINE_TABIX_TABLE)
+        print(f"[AlphaGenome Enrich] Offline Tabix Hits: {len(tabix_hits)}/{len(to_query)}")
+        for vk, hit in tabix_hits.items():
+            cache[vk] = hit
+        save_cache(cache, args.cache)
+        to_query = [v for v in to_query if v not in cache]
+        print(f"[AlphaGenome Enrich] Remaining to query via API: {len(to_query)}")
 
     if to_query:
         batch_results = query_alphagenome_batch(to_query, cache_ref=cache, cache_path=args.cache)
