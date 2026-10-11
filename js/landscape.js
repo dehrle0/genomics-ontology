@@ -77,20 +77,28 @@
   // 2. SVG CHART ENGINE (PANEL A: STACKED BAR | PANELS B & C: PIE WITH CALLOUTS)
   // ---------------------------------------------------------------------------
   function renderAllLandscapeCharts(charts) {
-    // Row 1: Ontology
-    renderStackedBar("chart-row1-bar", charts.row1_ontology.bar, "Diagnostic vs Secondary by HPO Domain", "Variants", true);
-    renderPieChart("chart-row1-pie-prior", charts.row1_ontology.piePrior, "Presentation prior to RGS");
-    renderPieChart("chart-row1-pie-post", charts.row1_ontology.piePost, "Diagnosis Category after RGS");
+    if (!charts) return;
 
-    // Row 2: Organ System
-    renderStackedBar("chart-row2-bar", charts.row2_organ.bar, "Actionability by Anatomical Organ System", "Variants", true);
-    renderPieChart("chart-row2-pie-prior", charts.row2_organ.piePrior, "Organ Signals prior to Resolution");
-    renderPieChart("chart-row2-pie-post", charts.row2_organ.piePost, "Primary Confirmed Organ Attribution");
+    // Groupings by Ontology
+    if (charts.row1_ontology) {
+      renderStackedBar("chart-row1-bar", charts.row1_ontology.bar, "Diagnostic vs Secondary by HPO Domain", "Variants", true);
+      renderPieChart("chart-row1-pie-prior", charts.row1_ontology.piePrior, "Presentation prior to RGS");
+      renderPieChart("chart-row1-pie-post", charts.row1_ontology.piePost, "Diagnosis Category after RGS");
+    }
 
-    // Row 3: Pharma
-    renderStackedBar("chart-row3-bar", charts.row3_pharma.bar, "Actionability by Therapeutic Drug Class", "Drug Cards", false);
-    renderPieChart("chart-row3-pie-prior", charts.row3_pharma.piePrior, "Metabolizer Phenotypes");
-    renderPieChart("chart-row3-pie-post", charts.row3_pharma.piePost, "Clinical Action Categories");
+    // Groupings by Organ System (only if present in DOM)
+    if ($("chart-row2-bar") && charts.row2_organ) {
+      renderStackedBar("chart-row2-bar", charts.row2_organ.bar, "Actionability by Anatomical Organ System", "Variants", true);
+      renderPieChart("chart-row2-pie-prior", charts.row2_organ.piePrior, "Organ Signals prior to Resolution");
+      renderPieChart("chart-row2-pie-post", charts.row2_organ.piePost, "Primary Confirmed Organ Attribution");
+    }
+
+    // Groupings by Pharmacogenomics
+    if (charts.row3_pharma) {
+      renderStackedBar("chart-row3-bar", charts.row3_pharma.bar, "Actionability by Therapeutic Drug Class", "Drug Cards", false);
+      renderPieChart("chart-row3-pie-prior", charts.row3_pharma.piePrior, "Metabolizer Phenotypes");
+      renderPieChart("chart-row3-pie-post", charts.row3_pharma.piePost, "Clinical Action Categories");
+    }
   }
 
   /**

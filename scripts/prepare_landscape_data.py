@@ -460,19 +460,19 @@ def process_patient(json_path, patient_id, patient_name):
         },
         "charts": {
             "row1_ontology": {
-                "title": "Row 1 — Groupings by Ontology (HPO Disease Classification)",
+                "title": "Groupings by Ontology (HPO Disease Classification)",
                 "bar": row1_bar,
                 "piePrior": row1_pie_prior,
                 "piePost": row1_pie_post
             },
             "row2_organ": {
-                "title": "Row 2 — Groupings by Organ System (9 Anatomical Systems & Risk Tiers)",
+                "title": "Groupings by Organ System (9 Anatomical Systems & Risk Tiers)",
                 "bar": row2_bar,
                 "piePrior": row2_pie_prior,
                 "piePost": row2_pie_post
             },
             "row3_pharma": {
-                "title": "Row 3 — Groupings by Pharmacogenomics (CPIC / DPWG Clinical Actionability)",
+                "title": "Groupings by Pharmacogenomics (CPIC / DPWG Clinical Actionability)",
                 "bar": row3_bar,
                 "piePrior": row3_pie_pheno,
                 "piePost": row3_pie_action
