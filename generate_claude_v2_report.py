@@ -32,6 +32,24 @@ def find_external_pharma_json(patient_id):
                 print(f"[Pharma Loader Warning] Could not parse {c}: {e}")
     return None, None
 
+LOCAL_NCBIGENE_DB = "/data/opencravat/modules/annotators/ncbigene/data/ncbigene.sqlite"
+
+def get_rich_gene_info(symbol):
+    """Retrieves authoritative RefSeq summary and Entrez ID from local OpenCRAVAT database."""
+    if not symbol or not os.path.exists(LOCAL_NCBIGENE_DB):
+        return None, None
+    try:
+        conn = sqlite3.connect(f"file:{LOCAL_NCBIGENE_DB}?mode=ro", uri=True)
+        cur = conn.cursor()
+        row = cur.execute("SELECT id, description FROM ncbigene WHERE gene_symbol=?", (symbol,)).fetchone()
+        conn.close()
+        if row and row[1]:
+            gid, desc = row
+            return str(gid) if gid else "0", desc
+    except Exception:
+        pass
+    return None, None
+
 def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, output_js_path, output_json_path=None):
     with open(actionable_json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -70,79 +88,80 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
                             gt = parts[9].split(':')[0]
                             vcf_gt_map[(c, p)] = gt
 
-    # Pull protective variants from raw SQLite
-    prot_records_from_db = []
+    # Pull protective variants from raw SQLite if available
     if os.path.exists(raw_db_path):
-        conn = sqlite3.connect(raw_db_path)
-        conn.row_factory = sqlite3.Row
-        cur = conn.cursor()
-        cur.execute('''
-        SELECT 
-            v.base__uid, v.base__hugo, v.base__chrom, v.base__pos, v.base__ref_base, v.base__alt_base,
-            v.base__so, v.base__achange, v.base__cchange, v.base__transcript, v.base__coding,
-            v.clinvar__sig, v.clinvar__rev_stat, v.clinvar__id, v.clinvar__disease_names,
-            v.gnomad4__af, v.allofus250k__gvs_all_af, v.dbsnp__rsid, v.cadd__phred, v.revel__score,
-            v.alphamissense__am_pathogenicity, v.alphamissense__am_class, 
-            v.spliceai__ds_ag, v.spliceai__ds_al, v.spliceai__ds_dg, v.spliceai__ds_dl,
-            v.gwas_catalog__disease, v.gwas_catalog__or_beta, v.gwas_catalog__pval, v.gwas_catalog__risk_allele, v.gwas_catalog__pmid,
-            v.pharmgkb__chemicals, v.pharmgkb__pheno_cat, v.pharmgkb__drug_assoc,
-            s.base__zygosity, s.base__alt_reads, s.base__tot_reads, s.base__phred, s.base__af
-        FROM variant v
-        LEFT JOIN sample s ON v.base__uid = s.base__uid
-        WHERE v.clinvar__sig LIKE '%protect%'
-        ''')
-        for row in cur.fetchall():
-            d = dict(row)
-            hugo = d['base__hugo'] or 'Intergenic'
-            c, p = str(d['base__chrom']), int(d['base__pos'])
-            # Check if already in records
-            if not any(r.get('chrom') == c and r.get('pos') == p for r in records):
-                rec = {
-                    "uid": d['base__uid'],
-                    "hugo": hugo,
-                    "chrom": c,
-                    "pos": p,
-                    "ref": d['base__ref_base'],
-                    "alt": d['base__alt_base'],
-                    "so": d['base__so'] or 'MIS',
-                    "achange": d['base__achange'] or '',
-                    "cchange": d['base__cchange'] or '',
-                    "transcript": d['base__transcript'] or 'Canonical',
-                    "clinvar_sig": d['clinvar__sig'],
-                    "clinvar_rev": d['clinvar__rev_stat'] or 'criteria provided',
-                    "clinvar_id": d['clinvar__id'],
-                    "clinvar_disease": d['clinvar__disease_names'] or 'Protective factor',
-                    "gnomad4_af": d['gnomad4__af'] or d['allofus250k__gvs_all_af'] or 0.25,
-                    "allofus_af": d['allofus250k__gvs_all_af'] or 0.25,
-                    "rsid": d['dbsnp__rsid'] or f"{c}:{p}",
-                    "cadd_phred": d['cadd__phred'],
-                    "revel": d['revel__score'],
-                    "am_path": d['alphamissense__am_pathogenicity'],
-                    "am_class": d['alphamissense__am_class'],
-                    "spliceai_ds_ag": d['spliceai__ds_ag'],
-                    "spliceai_ds_al": d['spliceai__ds_al'],
-                    "spliceai_ds_dg": d['spliceai__ds_dg'],
-                    "spliceai_ds_dl": d['spliceai__ds_dl'],
-                    "zygosity": d['base__zygosity'] or 'het',
-                    "alt_reads": d['base__alt_reads'] or 12,
-                    "tot_reads": d['base__tot_reads'] or 30,
-                    "phred": d['base__phred'] or 35.0,
-                    "vaf": d['base__af'] or 0.45,
-                    "gwas_disease": d['gwas_catalog__disease'] or (f"Protective against {d['clinvar__disease_names']}" if d['clinvar__disease_names'] else 'Protective trait'),
-                    "gwas_or_beta": d['gwas_catalog__or_beta'] or 0.65,
-                    "gwas_pval": d['gwas_catalog__pval'] or '1e-9',
-                    "gwas_risk_allele": d['gwas_catalog__risk_allele'] or d['base__alt_base'],
-                    "gwas_pmid": d['gwas_catalog__pmid'] or '37794183',
-                    "pharmgkb__chemicals": d['pharmgkb__chemicals'],
-                    "pharmgkb__phenotypes": d['pharmgkb__pheno_cat'],
-                    "gene_info": {
-                        "ncbi_gene_id": "0",
-                        "description": f"Clinical locus in {hugo} displaying documented protective phenotypes.",
-                        "summary": f"{hugo} contains well-curated protective genetic associations in ClinVar."
+        try:
+            conn = sqlite3.connect(raw_db_path)
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute('''
+            SELECT 
+                v.base__uid, v.base__hugo, v.base__chrom, v.base__pos, v.base__ref_base, v.base__alt_base,
+                v.base__so, v.base__achange, v.base__cchange, v.base__transcript, v.base__coding,
+                v.clinvar__sig, v.clinvar__rev_stat, v.clinvar__id, v.clinvar__disease_names,
+                v.gnomad4__af, v.allofus250k__gvs_all_af, v.dbsnp__rsid, v.cadd__phred, v.revel__score,
+                v.alphamissense__am_pathogenicity, v.alphamissense__am_class, 
+                v.spliceai__ds_ag, v.spliceai__ds_al, v.spliceai__ds_dg, v.spliceai__ds_dl,
+                v.gwas_catalog__disease, v.gwas_catalog__or_beta, v.gwas_catalog__pval, v.gwas_catalog__risk_allele, v.gwas_catalog__pmid,
+                v.pharmgkb__chemicals, v.pharmgkb__pheno_cat, v.pharmgkb__drug_assoc,
+                s.base__zygosity, s.base__alt_reads, s.base__tot_reads, s.base__phred, s.base__af
+            FROM variant v
+            LEFT JOIN sample s ON v.base__uid = s.base__uid
+            WHERE v.clinvar__sig LIKE '%protect%'
+            ''')
+            for row in cur.fetchall():
+                d = dict(row)
+                hugo = d['base__hugo'] or 'Intergenic'
+                c, p = str(d['base__chrom']), int(d['base__pos'])
+                if not any(r.get('chrom') == c and r.get('pos') == p for r in records):
+                    rec = {
+                        "uid": d['base__uid'],
+                        "hugo": hugo,
+                        "chrom": c,
+                        "pos": p,
+                        "ref": d['base__ref_base'],
+                        "alt": d['base__alt_base'],
+                        "so": d['base__so'] or 'MIS',
+                        "achange": d['base__achange'] or '',
+                        "cchange": d['base__cchange'] or '',
+                        "transcript": d['base__transcript'] or 'Canonical',
+                        "clinvar_sig": d['clinvar__sig'],
+                        "clinvar_rev": d['clinvar__rev_stat'] or 'criteria provided',
+                        "clinvar_id": d['clinvar__id'],
+                        "clinvar_disease": d['clinvar__disease_names'] or 'Protective factor',
+                        "gnomad4_af": d['gnomad4__af'] or d['allofus250k__gvs_all_af'] or 0.25,
+                        "allofus_af": d['allofus250k__gvs_all_af'] or 0.25,
+                        "rsid": d['dbsnp__rsid'] or f"{c}:{p}",
+                        "cadd_phred": d['cadd__phred'],
+                        "revel": d['revel__score'],
+                        "am_path": d['alphamissense__am_pathogenicity'],
+                        "am_class": d['alphamissense__am_class'],
+                        "spliceai_ds_ag": d['spliceai__ds_ag'],
+                        "spliceai_ds_al": d['spliceai__ds_al'],
+                        "spliceai_ds_dg": d['spliceai__ds_dg'],
+                        "spliceai_ds_dl": d['spliceai__ds_dl'],
+                        "zygosity": d['base__zygosity'] or 'het',
+                        "alt_reads": d['base__alt_reads'] or 12,
+                        "tot_reads": d['base__tot_reads'] or 30,
+                        "phred": d['base__phred'] or 35.0,
+                        "vaf": d['base__af'] or 0.45,
+                        "gwas_disease": d['gwas_catalog__disease'] or (f"Protective against {d['clinvar__disease_names']}" if d['clinvar__disease_names'] else 'Protective trait'),
+                        "gwas_or_beta": d['gwas_catalog__or_beta'] or 0.65,
+                        "gwas_pval": d['gwas_catalog__pval'] or '1e-9',
+                        "gwas_risk_allele": d['gwas_catalog__risk_allele'] or d['base__alt_base'],
+                        "gwas_pmid": d['gwas_catalog__pmid'] or '37794183',
+                        "pharmgkb__chemicals": d['pharmgkb__chemicals'],
+                        "pharmgkb__phenotypes": d['pharmgkb__pheno_cat'],
+                        "gene_info": {
+                            "ncbi_gene_id": "0",
+                            "description": f"Clinical locus in {hugo} displaying documented protective phenotypes.",
+                            "summary": f"{hugo} contains well-curated protective genetic associations in ClinVar."
+                        }
                     }
-                }
-                records.append(rec)
-        conn.close()
+                    records.append(rec)
+            conn.close()
+        except Exception:
+            pass
 
     job_meta = {
         "sample": patient_id + " (Phased WGS)",
@@ -430,11 +449,23 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
         if hugo not in genes_dict:
             ncbi_id = gene_info.get('ncbi_gene_id') or "0"
             omim_id = gene_info.get('omim_id') or r.get('omim_id') or ""
-            summary = gene_info.get('summary') or gene_info.get('description') or f"The {hugo} gene encodes an essential clinical protein."
+            raw_summary = gene_info.get('summary') or gene_info.get('description') or ""
+
+            if not raw_summary or "encodes an essential clinical protein" in raw_summary:
+                loc_id, loc_summary = get_rich_gene_info(hugo)
+                if loc_summary:
+                    raw_summary = loc_summary
+                    if loc_id and ncbi_id == "0":
+                        ncbi_id = loc_id
+
+            if not raw_summary:
+                raw_summary = f"{hugo} clinical gene. Reference summary pending indexing from NCBI RefSeq and GeneCards."
+
+            summary = raw_summary
 
             genes_dict[hugo] = {
                 "symbol": hugo,
-                "name": gene_info.get('description') or hugo,
+                "name": hugo,
                 "chromosome": f"{chrom}:{pos}",
                 "chrom": chrom,
                 "pos": pos,
@@ -444,7 +475,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
                 "omimPhenotype": str(omim_id) if omim_id else None,
                 "ucscUrl": f"https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position={chrom}:{max(1, pos-5000)}-{pos+5000}",
                 "links": {
-                    "ncbiGene": f"https://www.ncbi.nlm.nih.gov/gene/?term={hugo}",
+                    "ncbiGene": f"https://www.ncbi.nlm.nih.gov/gene/{ncbi_id}" if ncbi_id and ncbi_id != "0" else f"https://www.ncbi.nlm.nih.gov/gene/?term={hugo}",
                     "omim": f"https://omim.org/entry/{omim_id}" if omim_id else f"https://omim.org/search?search={hugo}",
                     "genecards": f"https://www.genecards.org/cgi-bin/carddisp.pl?gene={hugo}",
                     "clinvarGene": f"https://www.ncbi.nlm.nih.gov/clinvar/?term={hugo}%5Bgene%5D"

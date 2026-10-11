@@ -43,6 +43,26 @@ def process_patient(json_path, patient_id, patient_name):
     if isinstance(genes_list, dict):
         genes_list = list(genes_list.values())
 
+    # Ensure rich gene summaries (RefSeq / NCBI)
+    local_ncbigene_db = "/data/opencravat/modules/annotators/ncbigene/data/ncbigene.sqlite"
+    if os.path.exists(local_ncbigene_db):
+        try:
+            import sqlite3
+            conn = sqlite3.connect(f"file:{local_ncbigene_db}?mode=ro", uri=True)
+            cur = conn.cursor()
+            for g in genes_list:
+                sym = g.get("symbol")
+                s = g.get("summary") or ""
+                if not s or "encodes an essential clinical protein" in s:
+                    row = cur.execute("SELECT id, description FROM ncbigene WHERE gene_symbol=?", (sym,)).fetchone()
+                    if row and row[1]:
+                        g["summary"] = row[1]
+                        if not g.get("ncbiGeneId") or g.get("ncbiGeneId") == "0":
+                            g["ncbiGeneId"] = str(row[0])
+            conn.close()
+        except Exception:
+            pass
+
     # Build flat variant list
     flat_records = []
     for g in genes_list:

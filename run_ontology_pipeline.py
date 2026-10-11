@@ -481,7 +481,7 @@ def main():
             "--in-json", act_json,
             "--cache", enrich_cache,
             "--genes"
-        ], timeout=45)
+        ], timeout=300)
     except Exception as e:
         print(f"[Enrichment Note] Completed / Cached fallback applied: {e}")
 

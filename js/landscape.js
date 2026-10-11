@@ -693,9 +693,12 @@
         <div class="gene-summary-strip">
           <span class="gene-summary-strip__icon">📖</span>
           <div class="gene-summary-text" id="gene-summary-${gene.symbol}">
-            ${summaryText ? summaryText : `<span style="color:var(--slate);font-style:italic;">NCBI gene summary indexing in progress…</span>`}
-            ${gene.ncbiGeneId ? `<a href="https://www.ncbi.nlm.nih.gov/gene/${gene.ncbiGeneId}" target="_blank" rel="noopener" style="margin-left:6px;font-size:11px;">NCBI Gene #${gene.ncbiGeneId} ↗</a>` : ""}
-            ${gene.omimGene ? `<a href="https://omim.org/entry/${gene.omimGene}" target="_blank" rel="noopener" style="margin-left:6px;font-size:11px;">OMIM #${gene.omimGene} ↗</a>` : ""}
+            ${summaryText ? summaryText : `<span style="color:var(--slate);font-style:italic;">NCBI RefSeq gene summary indexing in progress…</span>`}
+            <span style="display:inline-block;margin-left:8px;font-size:11px;">
+              ${gene.omimGene && gene.omimGene !== "100000" ? `<a href="https://omim.org/entry/${gene.omimGene}" target="_blank" rel="noopener" style="margin-right:8px;color:#7c3aed;font-weight:600;">OMIM #${gene.omimGene} ↗</a>` : `<a href="https://omim.org/search?search=${gene.symbol}" target="_blank" rel="noopener" style="margin-right:8px;color:#7c3aed;font-weight:600;">OMIM ↗</a>`}
+              ${gene.ncbiGeneId && gene.ncbiGeneId !== "0" ? `<a href="https://www.ncbi.nlm.nih.gov/gene/${gene.ncbiGeneId}" target="_blank" rel="noopener" style="margin-right:8px;color:#0f766e;font-weight:600;">NCBI RefSeq #${gene.ncbiGeneId} ↗</a>` : `<a href="https://www.ncbi.nlm.nih.gov/gene/?term=${gene.symbol}" target="_blank" rel="noopener" style="margin-right:8px;color:#0f766e;font-weight:600;">NCBI Gene ↗</a>`}
+              <a href="https://www.genecards.org/cgi-bin/carddisp.pl?gene=${gene.symbol}" target="_blank" rel="noopener" style="color:#b45309;font-weight:600;">GeneCards ↗</a>
+            </span>
           </div>
         </div>
 
@@ -950,27 +953,32 @@
    * Asynchronously queries NCBI Entrez e-utilities if a gene description is missing
    */
   async function resolveEmptyNcbiSummaries(genes) {
-    const emptyGenes = genes.filter((g) => (!g.summary || g.summary.trim().length === 0) && !state.cachedNcbiSummaries[g.symbol]);
+    const emptyGenes = genes.filter((g) => (!g.summary || g.summary.trim().length === 0 || g.summary.includes("encodes an essential clinical protein")) && !state.cachedNcbiSummaries[g.symbol]);
     if (emptyGenes.length === 0) return;
 
-    for (const g of emptyGenes.slice(0, 10)) { // Batch limit
+    for (const g of emptyGenes.slice(0, 20)) { // Batch limit
       try {
         let geneId = g.ncbiGeneId;
-        if (!geneId) {
+        if (!geneId || geneId === "0") {
           const searchRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=gene&term=${encodeURIComponent(g.symbol)}[sym]+AND+human[orgn]&retmode=json`);
           const searchData = await searchRes.json();
           const idList = searchData?.esearchresult?.idlist || [];
           if (idList.length > 0) geneId = idList[0];
         }
 
-        if (geneId) {
+        if (geneId && geneId !== "0") {
           const sumRes = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=gene&id=${geneId}&retmode=json`);
           const sumData = await sumRes.json();
           const desc = sumData?.result?.[geneId]?.summary || sumData?.result?.[geneId]?.description || "";
           if (desc) {
             state.cachedNcbiSummaries[g.symbol] = desc;
             const el = $(`gene-summary-${g.symbol}`);
-            if (el) el.innerHTML = `${desc} <a href="https://www.ncbi.nlm.nih.gov/gene/${geneId}" target="_blank" rel="noopener" style="margin-left:6px;font-size:11px;">NCBI Gene #${geneId} ↗</a>`;
+            if (el) {
+              const omimLink = (g.omimGene && g.omimGene !== "100000") ? `<a href="https://omim.org/entry/${g.omimGene}" target="_blank" rel="noopener" style="margin-right:8px;color:#7c3aed;font-weight:600;">OMIM #${g.omimGene} ↗</a>` : `<a href="https://omim.org/search?search=${g.symbol}" target="_blank" rel="noopener" style="margin-right:8px;color:#7c3aed;font-weight:600;">OMIM ↗</a>`;
+              const ncbiLink = `<a href="https://www.ncbi.nlm.nih.gov/gene/${geneId}" target="_blank" rel="noopener" style="margin-right:8px;color:#0f766e;font-weight:600;">NCBI RefSeq #${geneId} ↗</a>`;
+              const gcLink = `<a href="https://www.genecards.org/cgi-bin/carddisp.pl?gene=${g.symbol}" target="_blank" rel="noopener" style="color:#b45309;font-weight:600;">GeneCards ↗</a>`;
+              el.innerHTML = `${desc} <span style="display:inline-block;margin-left:8px;font-size:11px;">${omimLink} ${ncbiLink} ${gcLink}</span>`;
+            }
           }
         }
       } catch (err) {

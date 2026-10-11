@@ -1,29 +1,3 @@
-import sqlite3
-
-LOCAL_NCBIGENE_DB = "/data/opencravat/modules/annotators/ncbigene/data/ncbigene.sqlite"
-
-def local_ncbigene_info(symbol):
-    """Fallback lookup in local OpenCRAVAT ncbigene.sqlite database."""
-    if not symbol or not os.path.exists(LOCAL_NCBIGENE_DB):
-        return None
-    try:
-        conn = sqlite3.connect(f"file:{LOCAL_NCBIGENE_DB}?mode=ro", uri=True)
-        cur = conn.cursor()
-        row = cur.execute("SELECT id, description FROM ncbigene WHERE gene_symbol=?", (symbol,)).fetchone()
-        conn.close()
-        if row:
-            gid, desc = row
-            return {
-                "ncbi_gene_id": str(gid) if gid else None,
-                "description": desc,
-                "summary": desc,
-                "map_location": None,
-                "aliases": None,
-            }
-    except Exception:
-        pass
-    return None
-
 #!/usr/bin/env python3
 """
 enrich_report.py
@@ -59,10 +33,35 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+import sqlite3
 
 USER_AGENT = "ontology_report/1.0 (+research; genomics domain pipeline)"
 NCBI_EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 GWAS_API = "https://www.ebi.ac.uk/gwas/rest/api"
+LOCAL_NCBIGENE_DB = "/data/opencravat/modules/annotators/ncbigene/data/ncbigene.sqlite"
+
+
+def local_ncbigene_info(symbol):
+    """Primary local lookup in OpenCRAVAT ncbigene.sqlite database (153k genes)."""
+    if not symbol or not os.path.exists(LOCAL_NCBIGENE_DB):
+        return None
+    try:
+        conn = sqlite3.connect(f"file:{LOCAL_NCBIGENE_DB}?mode=ro", uri=True)
+        cur = conn.cursor()
+        row = cur.execute("SELECT id, description FROM ncbigene WHERE gene_symbol=?", (symbol,)).fetchone()
+        conn.close()
+        if row and row[1]:
+            gid, desc = row
+            return {
+                "ncbi_gene_id": str(gid) if gid else None,
+                "description": desc,
+                "summary": desc,
+                "map_location": None,
+                "aliases": None,
+            }
+    except Exception:
+        pass
+    return None
 
 # Cache schema version — bump if the stored record shape changes.
 CACHE_VERSION = 1
@@ -144,12 +143,14 @@ def gene_info(fetcher, symbol):
     ck = f"gene:{symbol}"
     if ck in fetcher.cache and "ok" in fetcher.cache[ck]:
         return fetcher.cache[ck]["ok"]
-    if fetcher.offline and ck not in fetcher.cache:
-        loc = local_ncbigene_info(symbol)
-        if loc:
-            fetcher.cache[ck] = {"ok": loc, "ts": int(time.time())}
-            return loc
-        return None
+    # 1. Primary: Fast local OpenCRAVAT RefSeq database (153k genes)
+    loc = local_ncbigene_info(symbol)
+    if loc and loc.get("summary"):
+        fetcher.cache[ck] = {"ok": loc, "ts": int(time.time())}
+        return loc
+
+    if fetcher.offline:
+        return loc
 
     term = urllib.parse.quote(f"{symbol}[sym] AND Homo sapiens[orgn]")
     search_url = fetcher._ncbi_key(

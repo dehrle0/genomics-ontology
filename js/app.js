@@ -744,9 +744,11 @@
                   '</div>' +
                   '<div class="variant-gene-desc">' + (g.summary || 'Essential clinical genomic locus.') + '</div>' +
                 '</div>' +
-                '<div style="flex-shrink:0;display:flex;gap:6px;">' +
+                '<div style="flex-shrink:0;display:flex;gap:6px;align-items:center;">' +
+                  (g.links && g.links.omim ? '<a class="ref-link" href="' + g.links.omim + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;color:#7c3aed;font-weight:600;">OMIM ↗</a>' : '<a class="ref-link" href="https://omim.org/search?search=' + sym + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;color:#7c3aed;font-weight:600;">OMIM ↗</a>') +
+                  '<a class="ref-link" href="' + (g.links ? g.links.ncbiGene : 'https://www.ncbi.nlm.nih.gov/gene/?term=' + sym) + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;color:#0f766e;font-weight:600;">NCBI ↗</a>' +
+                  (g.links && g.links.genecards ? '<a class="ref-link" href="' + g.links.genecards + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;color:#b45309;font-weight:600;">GeneCards ↗</a>' : '<a class="ref-link" href="https://www.genecards.org/cgi-bin/carddisp.pl?gene=' + sym + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;color:#b45309;font-weight:600;">GeneCards ↗</a>') +
                   '<a class="ref-link" href="' + (g.ucscUrl || 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38') + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;">UCSC ↗</a>' +
-                  '<a class="ref-link" href="' + (g.links ? g.links.ncbiGene : 'https://www.ncbi.nlm.nih.gov/gene/?term=' + sym) + '" target="_blank" rel="noopener" style="font-size:11px;padding:3px 8px;">NCBI ↗</a>' +
                 '</div>' +
               '</div>' +
               '<div class="data-table-wrap">' +
