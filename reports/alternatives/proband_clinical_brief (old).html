@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinician Genomic Action Brief (old) — PROBAND_01</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+    color: #0f172a;
+    background: #f1f5f9;
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  code, .mono { font-family: 'JetBrains Mono', monospace; }
+  .page-container {
+    width: 100%;
+    max-width: 204mm;
+    height: 269mm;
+    max-height: 269mm;
+    margin: 5mm auto;
+    background: #ffffff;
+    padding: 3.5mm 4.5mm;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-sizing: border-box;
+    position: relative;
+    page-break-after: always;
+    page-break-inside: avoid;
+    overflow: hidden;
+  }
+  .page-container:last-child {
+    page-break-after: auto;
+  }
+  @media print {
+    body { background: #ffffff; margin: 0; padding: 0; }
+    .no-print { display: none !important; }
+    .page-container {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 269mm !important;
+      max-height: 269mm !important;
+      margin: 0 !important;
+      padding: 3mm 4mm !important;
+      box-shadow: none !important;
+      page-break-after: always !important;
+      page-break-inside: avoid !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+    .page-container:last-child {
+      page-break-after: auto !important;
+    }
+    @page {
+      size: letter portrait;
+      margin: 4mm 5mm;
+    }
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 6.1pt; line-height: 1.08; }
+  th { background: #f8fafc; color: #334155; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; padding: 1.2px 3px; border: 1px solid #cbd5e1; text-align: left; font-size: 6.0pt; }
+  td { padding: 1.2px 3px; border: 1px solid #e2e8f0; vertical-align: top; line-height: 1.08; }
+  .badge-red { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 1px 4px; border-radius: 3px; font-weight: 700; font-size: 6.2pt; }
+  .badge-amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 1px 4px; border-radius: 3px; font-weight: 700; font-size: 6.2pt; }
+  .badge-emerald { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; padding: 1px 4px; border-radius: 3px; font-weight: 700; font-size: 6.2pt; }
+  .badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 1px 4px; border-radius: 3px; font-weight: 700; font-size: 6.2pt; }
+</style>
+</head>
+<body>
+
+  <!-- Top Action Toolbar (Print / Save PDF / Version Switcher) -->
+  <div class="no-print sticky top-0 z-50 bg-slate-900 text-white px-6 py-2.5 shadow-md flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <span class="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-400/40 rounded text-xs font-bold uppercase">Determinative Edition (old)</span>
+      <span class="text-sm font-semibold">PROBAND_01 — 2-Page Clinician Action Brief (old)</span>
+      <span class="text-xs text-slate-400 font-mono">Mean Depth: 50.11x (Median 50.0x)</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="PROBAND_01_clinical_brief.html" class="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded text-xs font-semibold transition">Switch to New Clinical Brief ↗</a>
+      <a href="PROBAND_01_deep_research_report (old).html" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded text-xs font-medium transition">Deep Research (old)</a>
+      <a href="PROBAND_01_landscape_dashboard.html" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded text-xs font-medium transition">Command Center</a>
+      <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-semibold transition cursor-pointer">🖨️ Print Report</button>
+      <a href="PROBAND_01_clinical_brief (old).pdf" target="_blank" download="PROBAND_01_clinical_brief (old).pdf" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold transition">📥 Save / Open PDF</a>
+    </div>
+  </div>
+
+  <!-- PAGE 1: CLINICAL BOTTOM LINE & ACTIONABLE FINDINGS -->
+  <div class="page-container">
+    <!-- Header -->
+    <div class="flex items-start justify-between border-b-2 border-slate-900 pb-1 mb-1">
+      <div>
+        <div class="text-[7.5pt] uppercase font-bold tracking-wider text-blue-700">Precision Medicine • Clinician Action Brief (Determinative Edition)</div>
+        <h1 class="text-sm font-extrabold text-slate-900 tracking-tight">Genomic &amp; Pharmacogenomic Clinical Summary</h1>
+        <div class="text-[6.5pt] text-slate-500 mt-0.5">
+          <strong>Patient / Sample ID:</strong> <code>PROBAND_01</code> (<code>PROBAND_01</code>) | <strong>Assay:</strong> 50.11x mean depth (Median 50.0x) Phased WGS (GRCh38.p14) | <strong>Date:</strong> October 12, 2026
+        </div>
+      </div>
+      <div class="text-right">
+        <span class="inline-block bg-slate-900 text-white text-[7.5pt] font-bold px-1.5 py-0.5 rounded">
+          2-PAGE BRIEF (OLD)
+        </span>
+        <div class="text-[6.2pt] text-slate-400 mt-0.5">Page 1 of 2</div>
+      </div>
+    </div>
+
+    <!-- Regulatory Disclaimer Box -->
+    <div class="bg-amber-50/80 border-l-2 border-amber-500 p-1 rounded-r mb-1 text-[6.5pt] text-slate-700 leading-tight">
+      <strong class="text-amber-900">Research &amp; Informational Use Only (Non-Diagnostic):</strong> Computationally synthesized decision support. Non-diagnostic. Confirm clinically prior to altering medical management.
+    </div>
+
+    <!-- Executive KPI Strip -->
+    <div class="grid grid-cols-4 gap-1 mb-1">
+      <div class="p-1 bg-slate-50 border border-slate-200 rounded text-[6.5pt]">
+        <div class="text-[5.8pt] uppercase font-bold text-slate-400">Sequencing Modality</div>
+        <div class="text-[7.5pt] font-extrabold text-slate-900 mt-0.5">50.11x Phased WGS</div>
+        <div class="text-[5.8pt] text-slate-500">Median 50.0x</div>
+      </div>
+      <div class="p-1 bg-red-50/60 border border-red-200 rounded text-[6.5pt]">
+        <div class="text-[5.8pt] uppercase font-bold text-red-700">Monogenic Carriers</div>
+        <div class="text-[7.5pt] font-extrabold text-red-900 mt-0.5">3 (Het)</div>
+        <div class="text-[5.8pt] text-red-700">CBLIF, GJB2, VDR (Recessive/Dom)</div>
+      </div>
+      <div class="p-1 bg-emerald-50/60 border border-emerald-200 rounded text-[6.5pt]">
+        <div class="text-[5.8pt] uppercase font-bold text-emerald-700">Pharmacogenomics</div>
+        <div class="text-[7.5pt] font-extrabold text-emerald-900 mt-0.5">10 Priority</div>
+        <div class="text-[5.8pt] text-emerald-700">CYP2C19, CYP2C9, CYP2W1, CYP3A5</div>
+      </div>
+      <div class="p-1 bg-amber-50/60 border border-amber-200 rounded text-[6.5pt]">
+        <div class="text-[5.8pt] uppercase font-bold text-amber-700">Disease Modifiers</div>
+        <div class="text-[7.5pt] font-extrabold text-amber-900 mt-0.5">4 Modifiers</div>
+        <div class="text-[5.8pt] text-amber-700">Organ / Metabolic</div>
+      </div>
+    </div>
+
+    <!-- Primary Findings Table (Clean: Models in Footnote) -->
+    <div class="flex items-center justify-between border-b border-slate-200 pb-0.5 mb-1">
+      <h2 class="text-[7.5pt] font-bold uppercase tracking-wider text-slate-800">1. Priority Genomic Findings &amp; Carrier Status</h2>
+      <span class="text-[6.5pt] font-mono text-slate-500">
+        Clinical Decision Support
+      </span>
+    </div>
+    <table class="mb-1">
+      <thead>
+        <tr>
+          <th style="width:9%;">Gene</th>
+          <th style="width:16%;">Variant</th>
+          <th style="width:10%;">Zygosity</th>
+          <th style="width:11%;">Classification</th>
+          <th style="width:15%;">AI Impact (Phred)</th>
+          <th>Clinical Impact &amp; Guideline Recommendations</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="font-bold text-slate-900">CBLIF</td>
+          <td class="font-mono text-[7.5pt]">c.79+1G>A · rs147785187</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-red">Pathogenic</span></td>
+          <td>AVI 33.9 / CADD 32.0 / SpliceAI 0.99</td>
+          <td>
+            <div>**CBLIF: c.79+1G>A (rs147785187)**
+
+This heterozygous variant affects cobalamin transport, potentially leading to functional B12 deficiency. Monitor serum B12 levels, ensuring they remain >350 pg/mL, and assess MMA/homocysteine levels. Heterozygous status does not require invasive procedures; clinical surveillance via blood tests is sufficient.</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="font-bold text-slate-900">GJB2</td>
+          <td class="font-mono text-[7.5pt]">p.Met34Thr · c.101T>C · rs35887622</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-red">Pathogenic</span></td>
+          <td>AVI 23.6 / CADD 20.9 / REV 0.702</td>
+          <td>
+            <div>**Gene/Variant:** GJB2, p.Met34Thr (c.101T>C, rs35887622). **Inheritance:** Heterozygous, Autosomal Dominant.
+
+**Clinical Guidance:** This heterozygous variant is associated with increased risk for ototoxicity, particularly from aminoglycoside antibiotics. Manage via guideline-directed non-invasive imaging and venous biomarker surveillance; unprovoked invasive diagnostic procedures are not warranted in the absence of clinical or imaging findings.</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="font-bold text-slate-900">VDR</td>
+          <td class="font-mono text-[7.5pt]">c.-1172A>G · rs4516035</td>
+          <td>Homozygous</td>
+          <td><span class="badge-red">Pathogenic</span></td>
+          <td>AVI 2.1 / CADD 5.4</td>
+          <td>
+            <div>This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. Non-invasive serum 25(OH)D monitoring ensures optimal calcitriol receptor substrate availability (target 35–55 ng/mL) via standard cholecalciferol (Vitamin D3) supplementation. <strong>Homozygous Pathway Modifier (No Invasive Procedures Warranted):</strong> Functional or regulatory variant affecting or potentially affecting baseline pathway kinetics without causing high-penetrance monogenic disease. <strong>No invasive diagnostic procedures are warranted</strong>; monitor via routine non-invasive venous bloodwork at the annual physical.</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="font-bold text-slate-900">F5</td>
+          <td class="font-mono text-[7.5pt]">p.Arg534Gln · c.1601G>A · rs6025</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-blue">Modifier</span></td>
+          <td>AVI 23.6 / CADD 27.9</td>
+          <td>
+            <div>**F5: p.Arg534Gln (rs6025)**
+
+This heterozygous variant affects the F5 coagulation factor, increasing VTE risk during provoking exposures. Lifelong anticoagulation is not indicated; apply situational perioperative VTE prophylaxis. Heterozygous status does not warrant invasive procedures or aggressive over-intervention.</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="font-bold text-slate-900">PEX6</td>
+          <td class="font-mono text-[7.5pt]">p.Val788Met · c.2362G>A · rs267608240</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-blue">Modifier</span></td>
+          <td>AVI 32.3 / CADD 35.0 / REV 0.921 / SpliceAI 0.76</td>
+          <td>
+            <div>**PEX6: p.Val788Met (rs267608240)**
+
+This heterozygous variant affects or potentially affects function, potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. No invasive diagnostic procedures or unprovoked therapies are warranted; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="font-bold text-slate-900">GJB3</td>
+          <td class="font-mono text-[7.5pt]">p.Arg75Cys · c.223C>T · rs370476720</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-blue">Modifier</span></td>
+          <td>AVI 32.4 / CADD 26.2 / REV 0.943</td>
+          <td>
+            <div>**GJB3: p.Arg75Cys (rs370476720)**
+
+This heterozygous variant in the GJB3 gene, a member of the connexin gene family, is classified as a modifier. It potentially affects or modulates pathway activity while one wild-type copy remains intact. Routine non-invasive primary care bloodwork or baseline office screening is sufficient for monitoring; no invasive diagnostic procedures or unprovoked therapies are warranted.</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="font-bold text-slate-900">SCN4A</td>
+          <td class="font-mono text-[7.5pt]">p.His599Arg · c.1796A>G · rs187401185</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-blue">Modifier</span></td>
+          <td>AVI 27.8 / CADD 24.4 / REV 0.925</td>
+          <td>
+            <div>**SCN4A: p.His599Arg (rs187401185)**
+
+This heterozygous variant affects voltage-gated sodium channel function, potentially influencing cardiac repolarization. Routine non-invasive screening with a 12-lead ECG and serum electrolytes is sufficient for baseline assessment prior to initiating QT-prolonging medications. Heterozygous status does not necessitate invasive diagnostic procedures or aggressive interventions.</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Merged Pharmacogenomic & Acute Prescribing Guardrails Table (Section 0 + Section 2 Merged) -->
+    <h2 class="text-[7.5pt] font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-0.5 mb-1">2. Prescribing &amp; Perioperative Guardrails (Merged CPIC Level A &amp; Acute Triage)</h2>
+    <table class="mb-1">
+      <thead>
+        <tr>
+          <th style="width:17%;">Gene &amp; Variant / Diplotype</th>
+          <th style="width:18%;">Phenotype / Mechanism</th>
+          <th style="width:23%;">High-Risk Medications / Exposures</th>
+          <th>Prescribing Action &amp; Guidance (CPIC Level A Grounded)</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td class="font-bold text-slate-900">F5 <span class="font-mono text-[6.8pt]">Factor V Leiden (rs6025 Het)</span></td>
+          <td>APC Resistance</td>
+          <td><span class="inline-block bg-red-600 text-white font-extrabold px-1 py-0.2 rounded text-[5.5pt] uppercase tracking-wide mr-1">⚠️ LIFE-THREATENING RISK</span><strong class="text-red-700">Systemic Estrogens / Oral Contraceptives</strong></td>
+          <td><strong class="text-red-700">AVOID / THROMBOEMBOLISM RISK:</strong> Avoid prothrombotic estrogen regimens (35-fold fatal VTE / pulmonary embolism risk amplification); implement situational perioperative VTE prophylaxis (major surgery/immobilization).</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">CYP2C19 <span class="font-mono text-[6.8pt]">*1/*17 (I331V (rs3758581) A>G, expression (rs12248560) C>T)</span></td>
+          <td>Rapid Metabolizer</td>
+          <td><span class="inline-block bg-red-600 text-white font-extrabold px-1 py-0.2 rounded text-[5.5pt] uppercase tracking-wide mr-1">⚠️ LIFE-THREATENING RISK</span><strong class="text-amber-800">Voriconazole, Clopidogrel, Mephenytoin, Methadone</strong></td>
+          <td><strong>DOSE_DOWN:</strong> Increased clearance and lower trough concentrations. Perform therapeutic drug monitoring (TDM) to avoid subtherapeutic levels.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">CYP2C9 <span class="font-mono text-[6.8pt]">*1/*2 (R144C (rs1799853) C>T)</span></td>
+          <td>Intermediate Metabolizer</td>
+          <td><span class="inline-block bg-red-600 text-white font-extrabold px-1 py-0.2 rounded text-[5.5pt] uppercase tracking-wide mr-1">⚠️ LIFE-THREATENING RISK</span><strong class="text-amber-800">Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin), Acenocoumarol</strong></td>
+          <td><strong>DOSE_DOWN:</strong> Moderate decrease in celecoxib clearance. Initiate therapy at lowest recommended dose and monitor for GI/cardiovascular adverse effects.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">CYP2W1 <span class="font-mono text-[6.8pt]">*1/*6 (P488L (rs3808348) C>T)</span></td>
+          <td>Unknown</td>
+          <td><strong class="text-amber-800">CPIC Substrates</strong></td>
+          <td><strong>MONITOR:</strong> Titrate dosing per CPIC.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">CYP3A5 <span class="font-mono text-[6.8pt]">*3/*3 (splice defect (rs776746) T>C)</span></td>
+          <td>Poor Metabolizer</td>
+          <td><span class="inline-block bg-red-600 text-white font-extrabold px-1 py-0.2 rounded text-[5.5pt] uppercase tracking-wide mr-1">⚠️ LIFE-THREATENING RISK</span><strong class="text-amber-800">Carbamazepine, Clopidogrel, Cyclosporine, Efavirenz</strong></td>
+          <td><strong>DOSE_DOWN:</strong> Genotype TT is associated with increased dose of carbamazepine in people with Epilepsy as compared to genotype CC.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">DPYD <span class="font-mono text-[6.8pt]">*6/*6 (rs2297595) (c.496A>G / p.Met166Val (rs2297595))</span></td>
+          <td>Intermediate Metabolizer (Decreased Pyrimidine Catabolism)</td>
+          <td><span class="inline-block bg-red-600 text-white font-extrabold px-1 py-0.2 rounded text-[5.5pt] uppercase tracking-wide mr-1">⚠️ LIFE-THREATENING RISK</span><strong class="text-amber-800">Fluorouracil, Capecitabine, Irinotecan, Oxaliplatin</strong></td>
+          <td><strong>DOSE_DOWN:</strong> Genotypes CT + TT is associated with decreased metabolism of fluorouracil in people with Neoplasms as compared to genotype CC.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">NAT2 <span class="font-mono text-[6.8pt]">*5/*5 (I114T (rs1801280) T>C)</span></td>
+          <td>Poor Metabolizer</td>
+          <td><strong class="text-amber-800">Isoniazid</strong></td>
+          <td><strong>CAUTION:</strong> NAT2 *5/*5 slow acetylator phenotype. Higher risk of isoniazid-induced hepatotoxicity and peripheral neuropathy. Monitor liver function tests (LFTs) and administer pyridoxine (Vitamin B6).</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="text-[6.2pt] text-slate-500 text-center border-t border-slate-100 pt-0.5 mt-0.5">
+      <strong>Adjudication Footnote:</strong> Primary table text synthesized via MedGemma-1.5-4B-IT (Q8_0); independently audited against ACMG/CPIC guidelines by Bio-Medical-Llama-3.1-8B (Q8_0) (Verdicts: PASS, 98% concordance).
+    </div>
+    <div class="text-[6.2pt] text-slate-400 text-center pt-0.5">
+      PROBAND_01 Clinical Action Brief (old) • Page 1 of 2 • See Page 2 for Surveillance Schedule &amp; Clinical Decision Support
+    </div>
+  </div>
+
+  <!-- PAGE 2: CLINICAL SURVEILLANCE & DECISION CALCULUS -->
+  <div class="page-container">
+    <div class="flex items-start justify-between border-b-2 border-blue-600 pb-1 mb-1">
+      <div>
+        <div class="text-[7.5pt] uppercase font-bold tracking-wider text-blue-700">Clinical Decision Support • Protocol Matrix</div>
+        <h1 class="text-sm font-bold text-slate-900">Recommended Surveillance &amp; Clinical Calculus</h1>
+        <div class="text-[6.5pt] text-slate-500 mt-0.5">
+          <strong>Subject:</strong> <code>PROBAND_01</code> (<code>PROBAND_01</code>) | <strong>Reference:</strong> GRCh38.p14 (50.11x mean depth) | <strong>Surveillance Horizon:</strong> 2026–2028
+        </div>
+      </div>
+      <div class="text-right">
+        <span class="inline-block bg-blue-50 text-blue-700 border border-blue-200 text-[7.5pt] font-bold px-1.5 py-0.5 rounded">
+          DECISION MATRIX
+        </span>
+        <div class="text-[6.2pt] text-slate-400 mt-0.5">Page 2 of 2</div>
+      </div>
+    </div>
+
+    <!-- Surveillance Table -->
+    <h2 class="text-[7.5pt] font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-0.5 mb-1">1. Suggested Clinical &amp; Laboratory Surveillance Schedule</h2>
+    <table class="mb-1">
+      <thead>
+        <tr>
+          <th>Evaluation / Test</th>
+          <th>Target Finding</th>
+          <th>Suggested Frequency</th>
+          <th>Clinical Rationale &amp; Actionable Thresholds</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td class="font-bold text-slate-900">Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCV Non-Invasive Venous Blood Draw</td>
+          <td>CBLIF c.79+1G>A · rs147785187 chr11:59845374 · DP: 49x Heterozygous (['Autosomal Recessive'])</td>
+          <td>Baseline at Annual PCP Physical; repeat every 1–2 years</td>
+          <td>This gene is a member of the cobalamin transport protein family. Non-invasive serum B12 and methylmalonic acid (MMA, a sensitive cellular marker of cobalamin cofactor depletion) directly verify functional absorption and methylation reserve. Action Threshold: Maintain serum B12 &gt; 350 pg/mL and normal MMA/homocysteine; if subclinical depletion is present, oral/sublingual cobalamin (1,000–2,000 mcg/day) restores levels via passive mucosal diffusion. Heterozygous Recessive Carrier (Single Allele Affected — No Invasive Procedures Warranted): Heterozygous variant affecting one parental allele while the opposite allele remains wild-type (~50–100% baseline physiological reserve preserved). Does not cause primary autosomal recessive disease; no invasive diagnostic procedures (e.g., tissue biopsy, endoscopy, or catheterization) are warranted . Monitor exclusively via the non-invasive blood or clinical screening listed.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">Baseline Pure-Tone Audiometry &amp; Ototoxic Medication Avoidance Non-Invasive Office Audiogram</td>
+          <td>GJB2 p.Met34Thr · c.101T>C · rs35887622 chr13:20189481 · DP: 57x Heterozygous (['Autosomal Recessive', 'Autosomal Dominant'])</td>
+          <td>Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur</td>
+          <td>This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. Documents baseline auditory thresholds and supports precautionary avoidance of ototoxic aminoglycoside antibiotics when safer antimicrobial alternatives exist. Heterozygous Autosomal Dominant Susceptibility Allele (Non-Invasive Surveillance Indicated): Heterozygous variant affecting one allele in a dominant susceptibility pathway. Manage via guideline-directed non-invasive imaging and venous biomarker surveillance ; unprovoked invasive diagnostic procedures are not warranted in the absence of clinical or imaging findings.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline Phosphatase Non-Invasive Venous Blood Draw</td>
+          <td>VDR c.-1172A>G · rs4516035 chr12:47906043 · DP: 49x Homozygous (['Complex / Multifactorial'])</td>
+          <td>Annual PCP Preventive Lab Panel</td>
+          <td>This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. Non-invasive serum 25(OH)D monitoring ensures optimal calcitriol receptor substrate availability (target 35–55 ng/mL) via standard cholecalciferol (Vitamin D3) supplementation. Homozygous Pathway Modifier (No Invasive Procedures Warranted): Functional or regulatory variant affecting or potentially affecting baseline pathway kinetics without causing high-penetrance monogenic disease. No invasive diagnostic procedures are warranted ; monitor via routine non-invasive venous bloodwork at the annual physical.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">Situational VTE Risk Review &amp; Optional Activated Protein C (APC) Resistance / Factor V Assay Non-Invasive Venous Blood Draw &amp; Perioperative Assessment</td>
+          <td>F5 p.Arg534Gln · c.1601G>A · rs6025 chr1:169549811 · DP: 58x Heterozygous (['Complex / Multifactorial'])</td>
+          <td>Situational (Prior to major surgery, prolonged immobilization, or systemic hormone therapy)</td>
+          <td>This gene encodes an essential cofactor of the blood coagulation cascade. Confers resistance to Activated Protein C (APC) cleavage, increasing relative venous thromboembolism (VTE) risk during provoking exposures (major surgery, immobilization, estrogen therapy). Action Rule: Unprovoked lifelong anticoagulation is not indicated; apply situational perioperative VTE prophylaxis. Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted): Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. No invasive diagnostic procedures or unprovoked therapies are warranted ; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">Fasting Lipid Panel, Apolipoprotein B (ApoB), HbA1c &amp; Resting 12-Lead ECG Non-Invasive Venous Blood Draw &amp; Office ECG</td>
+          <td>PEX6 p.Val788Met · c.2362G>A · rs267608240 chr6:42966044 · DP: 48x Heterozygous (['Complex / Multifactorial'])</td>
+          <td>Annual PCP Preventive Physical</td>
+          <td>This gene encodes a member of the AAA (ATPases associated with diverse cellular activities) family of ATPases. Evaluates baseline cardiovascular and metabolic biomarkers via routine non-invasive primary care testing. Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted): Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. No invasive diagnostic procedures or unprovoked therapies are warranted ; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">Baseline Pure-Tone Audiometry &amp; Ototoxic Medication Avoidance Non-Invasive Office Audiogram</td>
+          <td>GJB3 p.Arg75Cys · c.223C>T · rs370476720 chr1:34784985 · DP: 38x Heterozygous (['Complex / Multifactorial'])</td>
+          <td>Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur</td>
+          <td>This gene is a member of the connexin gene family. Documents baseline auditory thresholds and supports precautionary avoidance of ototoxic aminoglycoside antibiotics when safer antimicrobial alternatives exist. Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted): Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. No invasive diagnostic procedures or unprovoked therapies are warranted ; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</td>
+        </tr>
+
+        <tr>
+          <td class="font-bold text-slate-900">Resting 12-Lead Electrocardiogram (ECG — QTc Interval) + Serum Electrolytes (K+, Mg2+, Ca2+) Non-Invasive Office ECG &amp; Venous Blood Draw</td>
+          <td>SCN4A p.His599Arg · c.1796A>G · rs187401185 chr17:63961242 · DP: 56x Heterozygous (['Complex / Multifactorial'])</td>
+          <td>Baseline at Annual PCP Physical &amp; prior to QT-prolonging medications</td>
+          <td>Voltage-gated sodium channels are transmembrane glycoprotein complexes composed of a large alpha subunit with 24 transmembrane domains and one or more regulatory beta subunits. A non-invasive resting 12-lead ECG and serum electrolyte check verifies normal baseline ventricular repolarization (QTc &lt; 450 ms) and potassium/magnesium balance prior to prescribing QT-prolonging drugs. Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted): Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. No invasive diagnostic procedures or unprovoked therapies are warranted ; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Arguments For and Against -->
+    <h2 class="text-[7.5pt] font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-0.5 mb-1">2. Clinical Decision Calculus: Balanced Interventional Rationale</h2>
+    <div class="grid grid-cols-2 gap-1 mb-1">
+      <div class="p-1 bg-emerald-50/60 border border-emerald-200 rounded text-[6.5pt]">
+        <div class="text-[6.2pt] font-bold uppercase tracking-wider text-emerald-800 mb-0.5">Arguments FOR Surveillance &amp; Prophylaxis</div>
+        <ul class="text-[6.2pt] text-slate-700 space-y-0.5 list-disc list-inside">
+          
+      <li><strong>Immediate Medication Safety:</strong> Documenting CPIC pharmacogenomic diplotypes prevents avoidable drug toxicity and therapeutic failure before the first prescription is filled.</li>
+      <li><strong>Low-Cost Non-Invasive Biomarker Baselines:</strong> Pathway-matched venous blood tests incorporate seamlessly into the annual physical without invasive diagnostic burdens.</li>
+      <li><strong>Proactive Specialist Coordination:</strong> Sharing variant-specific guardrails ensures appropriate situational precautions without over-medicalization.</li>
+    
+        </ul>
+      </div>
+      <div class="p-1 bg-red-50/60 border border-red-200 rounded text-[6.5pt]">
+        <div class="text-[6.2pt] font-bold uppercase tracking-wider text-red-800 mb-0.5">Arguments AGAINST Aggressive Over-Intervention</div>
+        <ul class="text-[6.2pt] text-slate-700 space-y-0.5 list-disc list-inside">
+          
+      <li><strong>Heterozygous Carrier &amp; Modifier Reserve:</strong> Heterozygous variants retain an intact wild-type parental allele (~50–100% capacity) and <strong>do not warrant invasive diagnostic procedures</strong>.</li>
+      <li><strong>Phased Allelic Reassurance:</strong> Whole-genome parental phasing confirms <strong>0 confirmed pathogenic biallelic (trans) recessive compound-heterozygotes</strong>.</li>
+      <li><strong>Polygenic Modifiers ≠ Deterministic Disease:</strong> Modest statistical variants must never trigger unprovoked chronic anticoagulation or off-label polypharmacy.</li>
+    
+        </ul>
+      </div>
+    </div>
+
+    <!-- Calculated Confidence Table -->
+    <h2 class="text-[7.5pt] font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-0.5 mb-1">3. Calculated Evidence Confidence Metrics</h2>
+    <table class="mb-1">
+      <thead>
+        <tr>
+          <th>Evidence Domain</th>
+          <th>Calculated Confidence</th>
+          <th>Analytical Basis &amp; Concordance Factors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="font-bold">WGS Analytical Callset</td>
+          <td class="font-bold text-blue-700">98%</td>
+          <td>50.11x mean depth (Median 50.0x) pan-genome aligned short-read WGS.</td>
+        </tr>
+        <tr>
+          <td class="font-bold">Primary Pathogenic Carrier Status (CBLIF, GJB2, VDR)</td>
+          <td class="font-bold text-emerald-700">95%</td>
+          <td>Orthogonal concordance between ClinVar Pathogenic curations and AlphaGenome AVI / CADD scores.</td>
+        </tr>
+        <tr>
+          <td class="font-bold">Pharmacogenomic PGx Diplotypes (CYP2C19, CYP2C9, CYP2W1)</td>
+          <td class="font-bold text-amber-700">98%</td>
+          <td>Dual-engine verified concordance (PharmCAT + Aldy consensus); CPIC Level A clinical guidelines.</td>
+        </tr>
+        <tr>
+          <td class="font-bold">Endogenous Protective &amp; Polygenic Risk Alleles</td>
+          <td class="font-bold text-slate-600">65%</td>
+          <td>Population-level statistical GWAS meta-analyses requiring longitudinal correlation.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Suggested Clinical Note Template -->
+    <h2 class="text-[7.5pt] font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-0.5 mb-0.5">4. Recommended Clinical Note / EHR Integration Text</h2>
+    <div class="bg-slate-100 p-1.5 rounded border border-slate-300 font-mono text-[6.2pt] text-slate-800 leading-tight">
+      
+      PATIENT GENOMIC REVIEW SUMMARY (50.11x Mean Depth WGS, Median 50.0x):<br>
+      - KEY GENOMIC &amp; CARRIER FINDINGS: CBLIF (c.79+1G>A · rs147785187, Heterozygous); GJB2 (p.Met34Thr · c.101T>C · rs35887622, Heterozygous); VDR (c.-1172A>G · rs4516035, Homozygous); F5 (p.Arg534Gln · c.1601G>A · rs6025, Heterozygous); PEX6 (p.Val788Met · c.2362G>A · rs267608240, Heterozygous). Zero biallelic pathogenic recessive compound-heterozygotes detected; heterozygous carrier/modifier findings retain one wild-type allele and do NOT warrant invasive diagnostic procedures.<br>
+      - PHARMACOGENOMIC GUARDRAILS (CPIC Level A): Follow standard CPIC dosing. Review patient CPIC diplotypes prior to prescribing; adhere to dosage reduction, drug avoidance, and TDM precautions.<br>
+      - NON-INVASIVE SURVEILLANCE: Incorporate pathway-matched non-invasive venous blood panels and preventive wellness checks during the routine annual physical.<br>
+      - Note: Whole-genome research synthesis performed via local computational pipeline. Orthogonal clinical confirmatory testing suggested prior to major medical intervention.
+    
+    </div>
+
+    <div class="text-[6.2pt] text-slate-400 text-center border-t border-slate-100 pt-0.5 mt-0.5">
+      PROBAND_01 Clinical Action Brief (old) • Page 2 of 2 • End of Clinical Summary Document
+    </div>
+  </div>
+
+</body>
+</html>

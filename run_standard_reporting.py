@@ -402,6 +402,27 @@ def run_standard_pipeline(
     with open(old_deep_html_path, "w", encoding="utf-8") as f:
         f.write(bound_old_deep_html)
 
+    # Also keep de-identified PROBAND_01 deliverables in reports/alternatives/ synced
+    if target_key == "de":
+        alt_dir = os.path.join(reports_dir, "alternatives")
+        os.makedirs(alt_dir, exist_ok=True)
+        for alt_fname, raw_doc in [
+            ("proband_clinical_brief.html", bound_clinic),
+            ("proband_clinical_brief (old).html", bound_old_clinic),
+            ("proband_deep_dossier.md", bound_deep_md),
+            ("proband_deep_dossier.html", bound_deep_html),
+            ("proband_deep_dossier (old).md", bound_old_deep_md),
+            ("proband_deep_dossier (old).html", bound_old_deep_html),
+        ]:
+            deid_doc = (
+                raw_doc.replace(patient_name, "PROBAND_01")
+                .replace(patient_id, "PROBAND_01")
+                .replace("Daniel", "Proband")
+                .replace("Ehrle", "Subject")
+            )
+            with open(os.path.join(alt_dir, alt_fname), "w", encoding="utf-8") as af:
+                af.write(deid_doc)
+
     # Deliverable 5: Dashboard Tier-1 & Top-N Digest (HTML + MHTML + PDF across all 8 Dashboard Views)
     dash_topn_html_path = os.path.join(sample_dir, f"{patient_id}_dashboard_tier1_topn_report.html")
     dash_topn_mhtml_path = os.path.join(sample_dir, f"{patient_id}_dashboard_tier1_topn_report.mhtml")
