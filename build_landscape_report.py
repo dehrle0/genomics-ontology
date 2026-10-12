@@ -81,6 +81,7 @@ def build_standalone_dual_cohort_html(de_json, me_json, out_html_path):
 
     de_data = pld.process_patient(de_json, "Daniel_Ehrle", "Daniel Ehrle")
     me_data = pld.process_patient(me_json, "Melinda_Ehrle", "Melinda Ehrle")
+    shared_data = pld.build_shared_concordance(de_data, me_data)
 
     template_path = os.path.join(SCRIPT_DIR, "landscape_clinical_dashboard.html")
     css_path = os.path.join(SCRIPT_DIR, "css", "landscape.css")
@@ -95,7 +96,8 @@ def build_standalone_dual_cohort_html(de_json, me_json, out_html_path):
 
     cohort_payload = {
         "Daniel_Ehrle": de_data,
-        "Melinda_Ehrle": me_data
+        "Melinda_Ehrle": me_data,
+        "Shared_Concordance": shared_data
     }
     data_js_inline = f"window.COHORT_DATA = {json.dumps(cohort_payload)};\n"
 
@@ -134,6 +136,14 @@ def main():
     if patient_id.lower() in ["dual", "both", "all"]:
         out_path = args.out or os.path.join(SCRIPT_DIR, "reports", "landscape_clinical_dashboard_standalone.html")
         build_standalone_dual_cohort_html(de_json, me_json, out_path)
+        gdrive_ont = "/home/daniel-ehrle/Google Drive/My Drive/Ontology"
+        gdrive_gen = "/home/daniel-ehrle/Google Drive/My Drive/Genomics Reports"
+        if os.path.exists(gdrive_ont):
+            import shutil
+            shutil.copy2(out_path, os.path.join(gdrive_ont, os.path.basename(out_path)))
+        if os.path.exists(os.path.dirname(gdrive_gen)):
+            from run_standard_reporting import _sync_to_genomics_reports_with_retention
+            _sync_to_genomics_reports_with_retention([out_path], gdrive_gen, max_iterations=5)
         return
 
     if not args.json:

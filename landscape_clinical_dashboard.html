@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clinical Genomics Landscape Dashboard — Dual Cohort Explorer</title>
+<title>Genomic Command Center &amp; Variant Atlas — Multi-Cohort Precision Medicine Portal</title>
 <link rel="stylesheet" href="css/landscape.css" />
 </head>
 <body>
@@ -32,22 +32,33 @@
 <header class="topbar">
   <div class="topbar__left">
     <div class="topbar__brand">
-      <div class="topbar__logo">GO</div>
-      <span>Genomic Clinical Dashboard</span>
+      <div class="topbar__logo">GC</div>
+      <div>
+        <div>Genomic Command Center &amp; Variant Atlas</div>
+        <div class="topbar__audience-pill" id="topbar-audience">Audience: Molecular Geneticist · Clinical Bioinformatician · Precision Medicine MD</div>
+      </div>
     </div>
-    <div class="topbar__tagline">Landscape Visualizations & Multidimensional Variant Reports</div>
 
-    <!-- Cohort Switcher (Daniel vs Melinda) -->
+    <!-- Cohort Switcher (Daniel vs Melinda vs Shared Couple Concordance) -->
     <div class="cohort-switch" role="group" aria-label="Patient Cohort Switcher">
-      <span class="cohort-switch__label">Patient:</span>
+      <span class="cohort-switch__label">Cohort:</span>
       <button class="cohort-btn active" data-patient="Daniel_Ehrle" id="cohort-de">Daniel Ehrle</button>
       <button class="cohort-btn" data-patient="Melinda_Ehrle" id="cohort-me">Melinda Ehrle</button>
+      <button class="cohort-btn" data-patient="Shared_Concordance" id="cohort-shared" title="Compare Shared Loci &amp; Couple Carrier Overlap (DE ∩ ME)">Shared (DE ∩ ME)</button>
     </div>
   </div>
 
   <div class="topbar__right">
     <div class="topbar__meta mono" id="topbar-meta">Loading cohort telemetry…</div>
-    <button class="btn-icon" onclick="window.print()" title="Print Dashboard to PDF">
+    <select id="topbar-report-pulldown" class="report-dropdown" aria-label="Select Clinical, Deep Research, or Dashboard Top-N Report" style="max-width:265px;font-size:11.5px;padding:4px 8px;background:#1e293b;color:#f8fafc;border:1px solid #475569;border-radius:5px;">
+      <option value="">📄 Clinical, Deep &amp; Top-N Reports…</option>
+      <option value="dashboard_topn">📊 Dashboard Tier-1 &amp; Top-N Digest (.mhtml/.pdf)</option>
+      <option value="ai_clinical">📋 Clinical Brief (New — 4-Page Landscape)</option>
+      <option value="ai_clinical_old">📋 Clinical Brief (old — 2-Page Dual-AI)</option>
+      <option value="ai_deep">📄 Deep Research Report (New)</option>
+      <option value="ai_deep_old">📄 Deep Research Report (old)</option>
+    </select>
+    <button class="btn-icon" onclick="window.print()" title="Print Command Center to PDF">
       <span>🖨️</span> Print PDF
     </button>
   </div>
@@ -56,22 +67,28 @@
 <!-- ============================== MAIN CONTAINER ============================== -->
 <main class="app-container">
 
+  <!-- ============================== EXECUTIVE WISDOM RIBBON (SCREEN 1) ============================== -->
+  <section class="wisdom-section" aria-label="Executive Clinical Wisdom &amp; Epistemic Synthesis">
+    <div id="wisdom-ribbon-mount"></div>
+    <div id="wisdom-matrix-mount"></div>
+  </section>
+
   <!-- ============================== 3-ROW LANDSCAPE CHARTS ============================== -->
   <section class="landscape-rows" aria-label="Genomic Clinical Breakdowns">
 
-    <!-- ONTOLOGY (HPO Clinical Domains) -->
+    <!-- ROW 1: ONTOLOGY (HPO Clinical Domains) -->
     <div class="chart-row-card">
       <div class="chart-row-card__head">
         <div class="chart-row-card__title">
-          <span>🧬 Groupings by Ontology (HPO Clinical Domains & Phenotypes)</span>
+          <span>🧬 Row 1 · Groupings by Ontology (HPO Clinical Domains &amp; Phenotypes)</span>
         </div>
-        <div class="chart-row-card__pill">Level 1 HPO Disease Categories</div>
+        <div class="chart-row-card__pill">Level 1 HPO Disease Categories (Click any bar or slice to filter below)</div>
       </div>
       <div class="chart-panels-grid">
         <div class="chart-panel">
           <div class="chart-panel__title">
             <span class="chart-panel__letter">A</span>
-            <span>Diagnostic & Actionable Rate by Clinical Presentation (non-ICU)</span>
+            <span>Diagnostic &amp; Actionable Rate by Clinical Presentation (non-ICU)</span>
           </div>
           <div class="chart-panel__mount" id="chart-row1-bar"></div>
         </div>
@@ -92,13 +109,46 @@
       </div>
     </div>
 
-    <!-- PHARMACOGENOMICS (CPIC / DPWG Clinical Actionability) -->
+    <!-- ROW 2: ANATOMICAL ORGAN SYSTEMS (Restored) -->
     <div class="chart-row-card">
       <div class="chart-row-card__head">
         <div class="chart-row-card__title">
-          <span>💊 Groupings by Pharmacogenomics (CPIC / DPWG Clinical Actionability)</span>
+          <span>🫀 Row 2 · Groupings by Anatomical Organ System (Physiological Attribution)</span>
         </div>
-        <div class="chart-row-card__pill">Drug-Gene Interactions</div>
+        <div class="chart-row-card__pill">Organ System Prior Burden vs. Confirmed Actionable Resolution</div>
+      </div>
+      <div class="chart-panels-grid">
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">A</span>
+            <span>Actionable vs. Secondary Variant Burden by Organ System</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row2-bar"></div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">B</span>
+            <span>Organ System Signals prior to Molecular Resolution</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row2-pie-prior"></div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-panel__title">
+            <span class="chart-panel__letter">C</span>
+            <span>Primary Confirmed Organ System Attribution post-RGS</span>
+          </div>
+          <div class="chart-panel__mount" id="chart-row2-pie-post"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: PHARMACOGENOMICS (CPIC / DPWG Clinical Actionability) -->
+    <div class="chart-row-card">
+      <div class="chart-row-card__head">
+        <div class="chart-row-card__title">
+          <span>💊 Row 3 · Groupings by Pharmacogenomics (CPIC / DPWG Clinical Actionability)</span>
+        </div>
+        <div class="chart-row-card__pill">Drug-Gene Interactions &amp; Metabolizer Phenotypes</div>
       </div>
       <div class="chart-panels-grid">
         <div class="chart-panel">
@@ -131,41 +181,93 @@
   <section class="explorer-section" aria-label="Genomic Variant Explorer">
     
     <div class="report-controls-toolbar">
-      <!-- Report Dropdown -->
       <div class="report-selector-wrap">
-        <label for="report-selector" class="report-selector-label">Select Report View:</label>
+        <button id="btn-toggle-sidebar" class="btn-secondary btn-sidebar-toggle" title="Toggle Collapsible A–Z Gene Index Column">
+          <span>☰</span> Gene Index (A–Z)
+        </button>
+        <label for="report-selector" class="report-selector-label">Report View:</label>
         <select id="report-selector" class="report-dropdown">
           <option value="visual_explorer">Visual Explorer — Master Genomic Catalog</option>
           <option value="rare">Rare Variants (gnomAD AF ≤ 1%)</option>
-          <option value="clinvar">ClinVar Pathogenicity & Clinical Curation</option>
+          <option value="clinvar">ClinVar Pathogenicity &amp; Clinical Curation</option>
           <option value="cadd">CADD Deleteriousness Ranking (Phred ≥ 15)</option>
           <option value="spliceai">SpliceAI Deep Learning Splicing Disruption (Δ ≥ 0.10)</option>
-          <option value="atlas">DeepMind AlphaGenome Atlas (AVI Phred Score)</option>
-          <option value="alphamissense">AlphaMissense Structural Pathogenicity</option>
-          <option value="revel">REVEL Ensembled Missense Pathogenicity (Score ≥ 0.5)</option>
-          <option value="ai_deep">AI Deep Summary — Clinical Research Dossier (Alt B)</option>
-          <option value="ai_clinical">AI Clinical Action Brief (Alt C 3-Page Brief)</option>
+          <option value="atlas">DeepMind AlphaGenome Atlas (AVI Phred &amp; 18-Modality Drivers)</option>
+          <option value="alphamissense">AlphaMissense 3D Structural Pathogenicity</option>
+          <option value="revel">REVEL Ensembled Missense Pathogenicity (Score ≥ 0.20)</option>
+          <option value="dashboard_topn">📊 Dashboard Tier-1 &amp; Top-N Digest (8-View MHTML / PDF / HTML)</option>
+          <option value="ai_clinical">📋 AI 4-Page Clinic Brief (New) — Attending &amp; PCP Action Guardrails</option>
+          <option value="ai_clinical_old">📋 AI 2-Page Clinic Brief (old) — Determinative Edition (Dual-AI Guided)</option>
+          <option value="ai_deep">📄 AI Deep Research Report (New) — Mechanistic &amp; Epistemic Dossier</option>
+          <option value="ai_deep_old">📄 AI Deep Research Report (old) — Determinative Evidence Dossier</option>
+        </select>
+        <select id="gene-scope-selector" class="report-dropdown" title="Filter Dashboard Report to Tier-1 Variants or Top-N Ranked Genes" style="min-width:195px;border-color:#0f766e;font-weight:600;">
+          <option value="all">📚 Scope: All Matching Genes</option>
+          <option value="tier1_top15">🎯 Scope: Tier-1 + Top 15 Genes</option>
+          <option value="tier1_only">🔥 Scope: Tier-1 / Pathogenic Only</option>
+          <option value="top10">🏆 Scope: Top 10 Genes</option>
+          <option value="top15">🏆 Scope: Top 15 Genes</option>
+          <option value="top25">🏆 Scope: Top 25 Genes</option>
         </select>
       </div>
 
       <!-- Real-Time Search -->
       <div class="search-filter-wrap">
-        <input type="text" id="search-input" class="search-input" placeholder="Search by gene symbol, rsID, coordinate, consequence, disease…" />
+        <input type="text" id="search-input" class="search-input" placeholder="Search gene symbol, rsID, coordinate, HGVS, consequence, organ…" />
       </div>
 
       <!-- Toolbar Buttons -->
       <div class="toolbar-actions">
-        <button id="btn-expand-all" class="btn-secondary">Expand All Genes</button>
-        <button id="btn-collapse-all" class="btn-secondary">Collapse All</button>
+        <button id="btn-expand-all" class="btn-secondary" title="Expand all gene headers in the active view">Expand All Genes</button>
+        <button id="btn-expand-tier1-vars" class="btn-secondary btn-accent-outline" title="Expand all Tier-1 and ClinVar Pathogenic variant drawers without DOM lag">Expand Tier-1 / Pathogenic Variants</button>
+        <button id="btn-collapse-all" class="btn-secondary" title="Collapse all open genes and variant drawers">Collapse All</button>
       </div>
     </div>
 
-    <!-- Active Report Content Mount -->
-    <div id="explorer-content-mount"></div>
+    <!-- 2-Column Workspace: Collapsible Left Gene Navigator + Main Explorer Mount -->
+    <div class="explorer-workspace" id="explorer-workspace">
+      <aside class="gene-sidebar-rail" id="gene-sidebar-rail" aria-label="Alphabetical and Impact Gene Navigator">
+        <div class="gene-sidebar__head">
+          <div class="gene-sidebar__title">
+            <span>🧬 Gene Index</span>
+            <span class="gene-sidebar__count mono" id="sidebar-gene-count">0</span>
+          </div>
+          <div class="gene-sidebar__sort" role="group" aria-label="Sort Gene Index">
+            <button class="sidebar-sort-btn active" data-sort="alpha" id="sort-alpha" title="Alphabetical Order (A–Z)">A–Z</button>
+            <button class="sidebar-sort-btn" data-sort="score" id="sort-score" title="Rank by Clinical / AI Impact Score">Impact</button>
+          </div>
+        </div>
+        <div class="gene-sidebar__filter">
+          <input type="text" id="sidebar-gene-search" class="sidebar-search-input" placeholder="Quick jump gene (e.g. BRCA, CYP)…" />
+        </div>
+        <div class="gene-sidebar__az-bar" id="sidebar-az-bar"></div>
+        <div class="gene-sidebar__list" id="sidebar-gene-list"></div>
+      </aside>
+
+      <!-- Active Report Content Mount -->
+      <div class="explorer-main-col" id="explorer-content-mount"></div>
+    </div>
 
   </section>
 
 </main>
+
+<!-- ============================== INTERACTIVE GENE NETWORK MODAL ============================== -->
+<div class="network-modal-backdrop" id="gene-network-modal" aria-hidden="true" style="display:none;">
+  <div class="network-modal-card" role="dialog" aria-modal="true" aria-labelledby="network-modal-title">
+    <div class="network-modal__head">
+      <div>
+        <h3 id="network-modal-title">🕸️ Gene Relationship &amp; Co-Mutated Pathway Network</h3>
+        <div class="network-modal__subtitle" id="network-modal-subtitle">Interactive SVG Systems Biology Graph · Patient Co-Mutated Partners &amp; Curated Interactome</div>
+      </div>
+      <button class="btn-secondary" id="btn-close-network-modal">✕ Close</button>
+    </div>
+    <div class="network-modal__body">
+      <div class="network-svg-stage" id="network-svg-mount"></div>
+      <div class="network-side-panel" id="network-info-mount"></div>
+    </div>
+  </div>
+</div>
 
 <!-- Cohort Data Bundle -->
 <script src="data/cohort_landscape_data.js"></script>

@@ -48,17 +48,19 @@ def personalize_file(filepath, proband_token, patient_name, patient_id):
     return True
 
 def recompile_pdf(html_path, pdf_path):
+    from pathlib import Path
     chrome_bin = shutil.which("google-chrome") or shutil.which("chromium-browser") or shutil.which("chromium")
     if not chrome_bin:
         print("[Warning] Chrome not found for local PDF compilation.")
         return False
+    file_uri = Path(os.path.abspath(html_path)).as_uri()
     cmd = [
         chrome_bin,
         "--headless=new",
         "--disable-gpu",
-        f"--print-to-pdf={pdf_path}",
+        f"--print-to-pdf={os.path.abspath(pdf_path)}",
         "--no-pdf-header-footer",
-        f"file://{os.path.abspath(html_path)}"
+        file_uri
     ]
     res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     return res.returncode == 0 and os.path.exists(pdf_path)
@@ -78,10 +80,17 @@ def main():
 
     # Recompile PDF if HTML exists
     if not args.no_pdf:
-        for fname in os.listdir(report_dir):
-            if fname.endswith("_deep_research_report.html"):
+        pdf_suffixes = (
+            "_deep_research_report.html",
+            "_deep_research_report (old).html",
+            "_clinical_brief.html",
+            "_clinical_brief (old).html",
+            "_dashboard_tier1_topn_report.html",
+        )
+        for fname in sorted(os.listdir(report_dir)):
+            if any(fname.endswith(sfx) for sfx in pdf_suffixes):
                 html_path = os.path.join(report_dir, fname)
-                pdf_path = html_path.replace(".html", ".pdf")
+                pdf_path = html_path[:-5] + ".pdf"
                 if recompile_pdf(html_path, pdf_path):
                     print(f"  [PDF Recompiled] {os.path.basename(pdf_path)} ({os.path.getsize(pdf_path)/1024:.1f} KB)")
 

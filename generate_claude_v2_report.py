@@ -347,6 +347,46 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
         # UCSC Genome Browser Link
         ucsc_url = f"https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position={chrom}:{max(1, pos-500)}-{pos+500}"
 
+        # Extract full AlphaGenome cache attributes if present
+        ev_dict = r.get('evidence', {}) or {}
+        ag_data = ev_dict.get('alphagenome_data', {}) or {}
+        ag_features_raw = ag_data.get('features', {}) or {}
+        MODALITY_LABELS = {
+            "fi_MERGED_SPLICING": "Splicing",
+            "fi_ALPHAMISSENSE": "AlphaMissense",
+            "fi_MAX_ABS_RNA_SEQ": "RNA-seq Expr",
+            "fi_CACTUS_241_WAY": "Cactus 241-Way",
+            "fi_PHASTCONS_470_WAY": "PhastCons 470-Way",
+            "fi_MAX_ABS_CHIP_TF": "ChIP-TF Binding",
+            "fi_MAX_ABS_DNASE": "DNase Chromatin",
+            "fi_MAX_ABS_ATAC": "ATAC Chromatin",
+            "fi_MAX_ABS_CHIP_HISTONE": "ChIP-Histone",
+            "fi_MAX_ABS_CONTACT_MAPS": "3D Contact Map",
+            "fi_MAX_ABS_CAGE": "CAGE Promoter",
+            "fi_MAX_ABS_PROCAP": "PRO-cap",
+            "fi_MAX_ABS_POLYADENYLATION": "Polyadenylation",
+            "fi_PROTEIN_TERMINATION": "Protein Term",
+            "fi_START_LOST": "Start Lost",
+            "fi_STOP_LOST": "Stop Lost"
+        }
+        top_ag_features = []
+        if ag_features_raw:
+            pos_feats = [(MODALITY_LABELS.get(k, k.replace("fi_", "")), float(v_f)) for k, v_f in ag_features_raw.items() if v_f is not None and float(v_f) > 0]
+            pos_feats.sort(key=lambda x: x[1], reverse=True)
+            tot_fi = sum(x[1] for x in pos_feats) or 1.0
+            for lbl, val in pos_feats[:4]:
+                top_ag_features.append({
+                    "modality": lbl,
+                    "weight": round(val, 4),
+                    "pct": round((val / tot_fi) * 100, 1)
+                })
+
+        chr_tag = chrom if chrom.startswith('chr') else f"chr{chrom}"
+        ref_b = str(r.get('ref') or '')
+        alt_b = str(r.get('alt') or '')
+        ag_var_url = f"https://deepmind.google.com/science/alphagenome/atlas?q={chr_tag}:{pos}:{ref_b}%3E{alt_b}&m=variant&lItems=avi,section:RNA_SEQ,section:DNASE,section:CHIP_TF"
+        ag_tp_url = f"https://deepmind.google.com/science/alphagenome/atlas/track-predictions?q={chr_tag}:{pos}:{ref_b}%3E{alt_b}&m=variant&i={chr_tag}:{max(1, pos-5000)}-{pos+5000}&md=RNA_SEQ"
+
         var_obj = {
             "id": r.get('rsid') or f"{chrom}:{pos}",
             "gene": hugo,
@@ -354,6 +394,7 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
             "zygosity": zyg,
             "phase": phase,
             "vcfGt": vcf_gt,
+            "hapBlock": r.get('hap_block') or ev_dict.get('hap_block') or None,
             "maf": r.get('gnomad4_af') or r.get('allofus_af') or 0.0,
             "coordinate": f"{chrom}:{pos}",
             "chrom": chrom,
@@ -381,16 +422,19 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
             "acmgPm5": r.get('clinvar_acmg_pm5'),
             "acmgPs1": r.get('clinvar_acmg_ps1'),
             "ucscUrl": ucsc_url,
-            "alphagenomeUrl": (r.get('evidence', {}) or {}).get('alphagenome_url') or f"https://deepmind.google.com/science/alphagenome/atlas?q={(chrom if chrom.startswith('chr') else 'chr' + chrom)}:{pos}:{r.get('ref')}%3E{r.get('alt')}&m=variant",
-            "isAlphaGenomeTarget": "RESCUE_ALPHAGENOME_TARGET" in (r.get('reason_codes') or []) or (r.get('evidence', {}) or {}).get('is_alphagenome_candidate', False),
-            "alphagenomeSubreason": (r.get('evidence', {}) or {}).get('alphagenome_subreason') or "",
-            "aviPhred": (r.get('evidence', {}) or {}).get('avi_phred'),
-            "aviPercentile": (r.get('evidence', {}) or {}).get('avi_percentile'),
-            "aviModality": (r.get('evidence', {}) or {}).get('avi_modality'),
-            "ref": r.get('ref'),
-            "alt": r.get('alt'),
-            "aviStatus": (r.get('evidence', {}) or {}).get('avi_status') or ("INDEL_NOT_SUPPORTED" if (len(str(r.get('ref','')))+len(str(r.get('alt',''))) > 2 or str(r.get('ref','')) == '-' or str(r.get('alt','')) == '-') else None),
-            "lastEvaluated": "2026-08-27",
+            "alphagenomeUrl": ev_dict.get('alphagenome_url') or ag_var_url,
+            "alphagenomeTrackPredUrl": ag_tp_url,
+            "isAlphaGenomeTarget": "RESCUE_ALPHAGENOME_TARGET" in (r.get('reason_codes') or []) or ev_dict.get('is_alphagenome_candidate', False),
+            "alphagenomeSubreason": ev_dict.get('alphagenome_subreason') or "",
+            "aviPhred": ev_dict.get('avi_phred'),
+            "aviRaw": ev_dict.get('avi_raw') or ag_data.get('avi_raw'),
+            "aviQuantile": ag_data.get('avi_quantile'),
+            "aviPercentile": ev_dict.get('avi_percentile'),
+            "aviModality": ev_dict.get('avi_modality'),
+            "aviTopImportance": ag_data.get('top_feature_importance'),
+            "aviTopFeatures": top_ag_features,
+            "aviStatus": ev_dict.get('avi_status') or ("INDEL_NOT_SUPPORTED" if (len(ref_b)+len(alt_b) > 2 or ref_b == '-' or alt_b == '-') else None),
+            "lastEvaluated": "2026-10-11",
             "studies": studies
         }
 

@@ -11,7 +11,7 @@ description: >-
 
 # Deep Genomic Research & Evidence Synthesis Skill
 
-This skill governs the automated generation of concise, high-yield, 1-to-4 page Clinical Genomics Evidence Synthesis Reports for whole-genome sequencing (WGS) cohorts. It establishes an evidence reconciliation framework that cross-references monogenic disease databases with deep-learning biological foundation models to produce actionable clinical dossiers without factual extrapolation.
+This skill governs the automated generation of concise, high-yield, 1-to-4 page Clinical Genomics Evidence Synthesis Reports and 3-Page Clinician Action Briefs for whole-genome sequencing (WGS) cohorts. It establishes an evidence reconciliation framework that cross-references monogenic disease databases with deep-learning biological foundation models to produce actionable clinical dossiers without factual extrapolation or cross-sample leakage.
 
 ---
 
@@ -24,60 +24,53 @@ All agents and programs executing under this skill must adhere to the following 
    * **Multimodal Engine Support:** `medgemma-1.5-4b-it` is the designated fast (~18-60 tokens/s), low-memory (~4GB) multimodal model equipped with medical vision projector (`mmproj-F32.gguf`) for joint analysis of clinical genomics, MRI/CT neuroimaging, echocardiograms, and genomic tracks. `medgemma-27b` serves as the high-parameter textual reasoning engine.
    * **Absolute Network Egress Prohibition:** No prompt containing sample identifiers, real names, or raw identifiable callsets may be transmitted to external cloud LLMs or remote internet endpoints.
 2. **Local Model Lifecycle Management (Existence, Loading & Unloading):**
-   * **Existence Check:** The runner checks for `medgemma-1.5-4b-it-Q8_0.gguf` + `mmproj-F32.gguf` (in `~/.lmstudio/models/unsloth/medgemma-1.5-4b-it-GGUF/`) and `medgemma-27b-text-it-Q4_K_M.gguf` (in `~/.lmstudio/models/lmstudio-community/`).
+   * **Existence Check:** The runner checks for `medgemma-1.5-4b-it-Q8_0.gguf` + `mmproj-F32.gguf` and `medgemma-27b-text-it-Q4_K_M.gguf`.
    * **Load On-Demand:** The model is launched with Vulkan/AVX2 acceleration and up to 16,384 token context window.
    * **Mandatory Unload Post-Use:** Immediately after synthesis completion, the server process must be terminated to reclaim RAM/VRAM for high-throughput WGS bioinformatics pipelines.
-3. **Strict Zero PII / PHI Transmission & Genomic Privacy Broker (Chaffing & Winnowing):**
-   * **Zero Identity Knowledge:** External models and AI assistants must remain completely blind to real patient names, sample IDs (e.g. `DE`, `ME`), and local user filesystem paths (`/home/daniel-ehrle/...`).
-   * **Genomic Differential Privacy (Chaffing & Winnowing):** To prevent genomic re-identification attacks when interacting with cloud or distributed agents, the `GenomicPrivacyBroker` (`lib/genomic_privacy_broker.py`) injects realistic decoy SNVs (chaff) with local cryptographic HMAC signatures, partitions variants into orthogonal blocks, and winnows/discards decoys locally before reassembling the genuine report.
-   * **Public Benchmark Testing Only:** All developer pipeline testing, prompt validation, and automated testing by AI assistants must strictly execute on public reference standards (e.g. **GIAB HG002 / HG003** in `/data/Genomes/HG002/`). Agents are strictly forbidden from inspecting, querying, or reporting on private family callsets (`DE`, `ME`).
+3. **Strict Zero PII / PHI Transmission & Zero Specific Variant Hardcoding:**
+   * **Zero Identity Knowledge:** External models, skills, and AI assistants must remain completely blind to real patient names, personal sample IDs, and specific private variant strings.
+   * **Zero Specific Variant Information in Skills or Templates:** No skill file, prompt template, or reporting engine may hardcode sample-specific gene lists, variant coordinates, HGVS changes, or rsIDs. All variant selection and clinical mapping must derive 100% dynamically from the single active sample's input JSON callset and ontology metadata.
+   * **Public Benchmark Testing Only:** All developer pipeline testing, prompt validation, and automated testing by AI assistants must strictly execute on public reference standards (e.g. **GIAB HG002 / HG003** in `/data/Genomes/HG002/`).
 4. **ACMG BA1 Stand-Alone Benign & Synonymous Gating (Anti-False Reporting Guardrail):**
-   * Any variant with population allele frequency $> 1.0\%$ in gnomAD (`gnomad4_af > 0.01`) or in silico consensus of neutrality ($\text{CADD} < 15.0$, $\text{REVEL} < 0.25$, AlphaMissense `likely_benign`) is **strictly disqualified from being elevated as a Primary Finding, pathogenic driver, or protective contraindication** (e.g. preventing false reporting of *APOB* `p.Ala4481Thr`).
-   * **Synonymous Variant Filter:** Silent synonymous variants (`so == "SYN"`) without severe splice alteration (`SpliceAI < 0.2`) are strictly gated from primary findings and pharmacogenomic contraindication dossiers (e.g. preventing false lomitapide contraindications for benign synonymous *APOB* `p.Leu1060=`).
+   * Any variant with population allele frequency $> 1.0\%$ in gnomAD (`gnomad4_af > 0.01`) or in silico consensus of neutrality ($\text{CADD} < 15.0$, $\text{REVEL} < 0.25$, AlphaMissense `likely_benign`) is **strictly disqualified from being elevated as a Primary Monogenic Finding or pathogenic driver**.
+   * **Synonymous Variant Filter:** Silent synonymous variants (`so == "SYN"`) without severe splice alteration (`SpliceAI < 0.2`) are strictly gated from primary findings and pharmacogenomic contraindication dossiers.
+   * **Wild-Type Reference Pharmacogene Filter:** Pharmacogenomic drug cards where the sample carries a wild-type reference diplotype (`*1/*1` or `reference/reference` with `Normal Metabolizer` status and no defining variant hits) must be excluded from actionable `AVOID` / `DOSE_DOWN` / `DOSE_UP` guardrails to prevent cross-sample or false-positive alerts.
    * Gene-level ClinGen "Definitive" assertions cannot elevate a variant whose ClinVar classification is `Conflicting` or `VUS`.
 5. **Zero Invention / Zero Factual Extrapolation (Strict Grounding):**
    * The model and report generator are strictly prohibited from inventing, extrapolating, or hallucinating variants, gene associations, clinical recommendations, or pharmacological indications.
-   * Every statement in the report must map directly to supplied data (exact ClinVar accession numbers `RCV`/`VCV`, OMIM morbid IDs, CPIC guidelines, or published PMIDs).
+   * Every statement in the report must map directly to supplied data (exact ClinVar accession numbers `RCV`/`VCV`, OMIM morbid IDs, CPIC guidelines, or published PMIDs) from the active sample only.
 6. **Mandatory Calculated Numerical Confidence Scores in Tables (0.00–1.00):**
-   * Tables (Primary Findings, Cardiovascular/Hematologic Surveillance, and Clinical Decision Calculus) must include an explicit **Calculated Confidence** column.
-   * Confidence scores must be objectively calculated based on orthogonal evidence: ClinVar review stars, CPIC level, in silico deleteriousness consensus (CADD >= 20, REVEL >= 0.5, AlphaGenome AVI), and 40x WGS sequencing depth/allelic balance.
-7. **Strict Grounding: Exact Callset Variant Match Across ALL Pipeline Models (Especially QwQ-32B & Mistral-Small 24B):**
-   * **Universal Callset Grounding Across All Models:** The requirement of an exact variant match with the source JSON callset (`{sample}_master_actionable.json`) applies strictly to ALL models in the multi-model pipeline: Gemma 2B (Router/Supervisor), MedGemma 27B (Track 1A & 2B), Bio-Medical-Llama 8B (Track 1B), Baichuan-M2 32B (Track 2A), and most critically the final two models in the pipeline:
-     1. **QwQ-32B (Adversarial Review & Adjudication Engine):** Must adversarially audit and reject any variant not present in the source JSON callset. Every entry in the adjudicated JSON payload (`primary_genomic_findings`, `secondary_modifiers`, `pharmacogenomic_directives`, `decision_calculus`) must match a source JSON record verbatim (exact gene, HGVS `c.` and `p.`, rsID, and coordinates).
-     2. **Mistral-Small 3.2 24B (Publication Report Writer):** Must restrict report synthesis strictly to the exact variants present in the source callset. Under no circumstances may it introduce uncalled variants, unlisted alleles, phantom genes, or extrapolate ungrounded disease mechanisms.
-   * **Exact Nomenclature & Metadata Match:** Every gene symbol, HGVS notation (`c.` and `p.`), dbSNP rsID, and genomic coordinate referenced anywhere in model outputs, tables, dossiers, surveillance sections, narrative, and appendices must match the source JSON callset verbatim.
-   * **Multi-Allelic Gene Disambiguation (e.g. F5):** When a proband carries multiple distinct variants in the same gene (such as *F5* carrying both *p.Thr295Ala* rs371760153 and *p.Arg534Gln* rs6025), BOTH variants must be explicitly identified and listed in the appropriate tables with their exact protein changes, rsIDs, and coordinates. Reports must never mention a variant in narrative without tabulating it, nor conflate their clinical mechanisms.
-   * **Automated Two-Stage Programmatic Validation:**
-     - Stage 1 (Adjudication Audit): Programmatically audits the QwQ-32B JSON payload against the source callset, instantly purging any ungrounded variants or hallucinated alleles.
-     - Stage 2 (Synthesis Audit): Programmatically audits the final Markdown report to verify that every variant discussed or tabulated matches the source JSON callset with zero extraneous alleles.
+   * Tables (Primary Findings, Non-Invasive Surveillance, and Clinical Decision Calculus) must include an explicit **Calculated Confidence** metric.
+   * Confidence scores must be objectively calculated based on orthogonal evidence: ClinVar review stars, CPIC level, in silico deleteriousness consensus (CADD >= 20, REVEL >= 0.5, AlphaGenome AVI), and empirical WGS sequencing depth/allelic balance.
+7. **Strict Grounding: Exact Single-Sample Callset Variant Match Across ALL Pipeline Models:**
+   * **Universal Single-Sample Grounding:** Every gene symbol, HGVS notation (`c.` and `p.`), dbSNP rsID, and genomic coordinate referenced anywhere in model outputs, tables, dossiers, surveillance sections, narrative, and appendices must match the active sample's source JSON callset verbatim.
+   * **Multi-Allelic Gene Disambiguation:** When a sample carries multiple distinct variants in the same gene, only the exact variant(s) present in that specific sample's callset may be tabulated or discussed, with their exact protein changes, rsIDs, and coordinates.
 8. **Clean Slate Memory Purge & Pre-Execution Archival Directive (Zero Cross-Contamination):**
-   * **Mandatory Memory & Cache Purge Prior to Run:** At the start of every synthesis run, all running local inference server instances must be forcefully terminated, KV-caches wiped clean, memory unmapped from host RAM, and stale `/tmp/llama_server_*.log` files purged so that no residual context or prompt tokens linger between runs.
-   * **Artifact Archival:** Prior synthesis reports (`*.md`, `*.html`, `*.pdf`, `*_adjudicated.json`) must be archived into a timestamped directory inside `archive/` prior to execution.
-   * **Zero Retrospective Cross-Contamination:** The pipeline and report generation engines are strictly prohibited from ingesting, reading, or referencing prior synthesis runs, draft files, or conversational memory. Fresh synthesis must derive exclusively and cleanly from the verified primary `{sample}_master_actionable.json` dataset.
-   * **Active Resident Router & Supervisor:** The local Google Gemma 2B model (`gemma-2b`) operates resident on port 7005 as the active pipeline supervisor and routing auditor.
+   * **Mandatory Memory & Cache Purge Prior to Run:** At the start of every synthesis run, all running local inference server instances must be forcefully terminated, KV-caches wiped clean, Python `__pycache__` / in-memory module caches cleared, and stale `/tmp/llama_server_*.log` files purged so that no residual context or prompt tokens linger between runs.
+   * **Zero Retrospective Cross-Contamination:** The pipeline and report generation engines are strictly prohibited from ingesting, reading, or referencing prior synthesis runs, legacy HTML templates, draft files, or other samples' directories. Fresh synthesis must derive exclusively and cleanly from the verified primary `{sample}_ontology_pharma_alphagenome.json` and `{sample}_pharma.json` datasets of the single target sample.
 
 ---
 
 ## 2. Architectural Overview & Evidence Stack
 
-The synthesis engine bridges primary callsets with curated scientific databases and deep neural transformer scores:
+The synthesis engine bridges primary single-sample callsets with curated scientific databases and deep neural transformer scores:
 
 ```mermaid
 flowchart TD
-    subgraph Genomic_Inputs["Genomic Data Sources (Local Ext4 NVMe)"]
-        DB["Actionable SQLite (variant, panel_gene)"]
-        JSON["Master Actionable JSON (evidence, phased alleles)"]
+    subgraph Genomic_Inputs["Single-Sample Genomic Data Sources (Local Ext4 NVMe)"]
+        JSON["Active Sample Master JSON (evidence, phased alleles)"]
+        PGX["Active Sample Dedicated Pharma JSON (CPIC / DPWG)"]
         AG_CACHE["AlphaGenome Master Cache (data/alphagenome_cache.json)"]
     end
 
-    subgraph ACMG_Gating["ACMG BA1 & In Silico Gating Gate"]
-        GATE["((Filter: gnomAD AF > 1% & Benign Scores))<br/>Blocks False APOB / Polymorphism Elevation"]
+    subgraph ACMG_Gating["ACMG BA1, Synonymous & Wild-Type Reference Gate"]
+        GATE["((Filter: gnomAD AF > 1%, Benign/Conflicting & WT *1/*1))"]
     end
 
     subgraph Evidence_Layer["Curated Clinical Evidence (Ground Truth)"]
         CV["NCBI ClinVar (RCV / VCV Accessions & Review Status)"]
         OMIM["OMIM Phenotypic & Clinical Synopsis (MIM IDs)"]
-        CLINGEN["ClinGen Gene-Disease Clinical Validity Curations"]
+        CPIC["CPIC & DPWG Pharmacogenomic Dosing Guidelines"]
         GWAS["EBI GWAS Catalog (Traits & PubMed IDs)"]
     end
 
@@ -89,130 +82,54 @@ flowchart TD
         SPL["SpliceAI (Cryptic splice donor/acceptor delta)"]
     end
 
-    subgraph Local_LM_Lifecycle["Airgapped LM Lifecycle (LM Studio / llama-server)"]
-        CHECK_DL["1. Check / Download medgemma-27b"] --> LOAD_LM["2. Load medgemma-27b on-demand"]
-        LOAD_LM --> INFER["3. Zero-PII In-Memory Synthesis"]
-        INFER --> UNLOAD_LM["4. Mandatory Post-Use Unload (Reclaim RAM)"]
-    end
-
     Genomic_Inputs --> GATE
-    GATE & Evidence_Layer & AI_Ensemble --> Local_LM_Lifecycle
-    Local_LM_Lifecycle --> OUT_MD["{Sample}_deep_research_report.md"]
-    OUT_MD --> OUT_HTML["{Sample}_deep_research_report.html (Print CSS)"]
-    OUT_HTML --> OUT_PDF["{Sample}_deep_research_report.pdf (Headless Chrome)"]
+    GATE & Evidence_Layer & AI_Ensemble --> OUT_BRIEF["{Sample}_clinical_brief.html"]
+    GATE & Evidence_Layer & AI_Ensemble --> OUT_MD["{Sample}_deep_research_report.md / .html"]
 ```
 
 ---
 
-## 3. Universal Trait-Driven Evidence Triage
+## 3. Universal Trait-Driven Evidence Triage (Zero Hardcoded Genes)
 
-All variants are evaluated and prioritized using principled, domain-agnostic criteria without bespoke gene-specific branching:
+All variants are evaluated and prioritized using principled, domain-agnostic criteria based strictly on the active sample's own callset metadata:
 
 ### Category 1: Primary Monogenic & Clinically Actionable Findings
 * **Inclusion Criteria:**
-  1. ClinVar status `Pathogenic` or `Likely Pathogenic` without conflicting/uncertain submissions in a coding- or splice-altering variant with gnomAD $\text{AF} \le 0.01$.
-  2. ClinGen `Definitive` variants with high-penetrance pharmacogenomic contraindications or thrombophilia risks (e.g. *F5* Factor V Leiden).
-  3. Disqualified: Any variant with gnomAD $\text{AF} > 1.0\%$ or in silico benign concordance is pruned from Category 1.
-* **Clinical Reporting:** Structured narrative Evidence Dossier detailing molecular consequence, multi-engine in silico consensus (CADD, REVEL, AlphaMissense, AlphaGenome AVI score/modality/percentile), ClinGen validity, OMIM phenotypic mappings, and actionable surveillance/contraindication guidance.
+  1. ClinVar status `Pathogenic` or `Likely Pathogenic` without conflicting/uncertain submissions in a coding- or splice-altering variant with gnomAD $\text{AF} \le 0.02$.
+  2. Curated ClinVar `Risk factor` or `Drug response` variants with established clinical actionability in the sample's callset.
+  3. Disqualified: Variants with `Conflicting classifications of pathogenicity`, `Uncertain significance` (unless rescued by extreme multi-engine AI concordance without high AF), or silent synonymous calls (`SYN` with $\text{SpliceAI} < 0.20$).
 
-### Category 2: Cardiovascular, Channelopathy & Hematology Surveillance
-* **Inclusion Criteria:** Actionable Tier 1/2 variants in genes with cardiovascular, arrhythmia, lipid transport, or coagulation terms in Gene Ontology (`gene_go_bpo`) or Human Phenotype Ontology (`gene_hpo_term`).
-* **Clinical Reporting:** Tabulated summary detailing arrhythmia/thrombophilia risk, REVEL/AlphaMissense scores, and driving AlphaGenome modalities (*Splicing*, *Cactus*, *AlphaMissense*).
+### Category 2: Non-Invasive Blood Tests & Preventive Surveillance (Section 2.1)
+* **Strict 1-to-1 Sample Isolation:** Every row in Section 2.1 must map 1-to-1 to a prioritized finding in the active sample's own Section 1.2 (plus a baseline hepatic/renal metabolic panel row tied to the active sample's own altered-metabolizer pharmacogenes).
+* **Explicit Variant & Zygosity Display:** Every row in Table 2.1 must explicitly display the sample's triggering **Gene**, **HGVS Variant (`p.` / `c.`)**, **dbSNP `rsID`**, **Coordinate**, **Zygosity**, and **Read Depth (`DP`)**, paired with a concrete **Non-Invasive Venous Blood Test or Office Evaluation** routed to the **Primary Care Physician (PCP)** and relevant **Specialist Co-Consult**.
+* **Heterozygous / Zygosity Non-Invasive Reassurance:** Every finding must explicitly state its zygosity and inheritance context and confirm that for heterozygous recessive carriers and pathway modifiers, **no invasive diagnostic procedures are warranted**.
 
-### Category 3: Metabolic, Mitochondrial & DNA Repair Co-Factors
-* **Inclusion Criteria:** Nuclear genes governing mitochondrial maintenance, transsulfuration/amino acid metabolism, or DNA repair machinery dynamically identified from ontology annotations.
-
-### Category 4: Protective Alleles & Critical Pharmacogenomic Contraindications
-* **Inclusion Criteria:**
-  1. **Protective / Longevity Trait Mining:** Rare variants ($\text{AF} \le 0.005$) tagged with `protective`, `hypobetalipoproteinemia`, `hypocholesterolemia`, `longevity`, or `reduced risk` across ClinVar significance and GWAS.
-  2. **Pharmacogenomic & Contraindication Discovery:** Variants tagged with `drug response`, `pharmacogenomic`, `toxicity`, `contraindicated`, or specific drug classes in ClinVar, PharmGKB, CPIC, or clinical synopses.
-* **Mandatory High-Impact Pharmacogenomic Directives:**
-  - **POLG Variants:** If *POLG* is present (e.g. `p.Gly737Arg`), the report **must prominently mandate an absolute, life-saving contraindication against sodium valproate (Depakote/valproic acid)** due to the extreme risk of fatal acute hepatic failure in POLG carriers, alongside warnings for mitochondrial-toxic medications and general anesthetics.
-  - **DPYD Variants:** If *DPYD* is present (e.g. `p.Val732Ile`), detail fluoropyrimidine (5-FU, capecitabine) catabolism deficiency and CPIC-guided dosing reductions or alternative therapy.
-  - **F5 Variants:** If *F5* is present, detail resistance to activated protein C (APC) and situational thromboprophylaxis guidelines during surgery, immobilization, or estrogen therapy.
-  - **ANK2 Variants:** If *ANK2* is present, detail cardiac conduction vigilance, torsadogenic drug cautions, and cross-reference the CredibleMeds QT-prolonging drug lists.
-  - **Sequencing Modality:** The sequencing modality is **strictly 40x Whole-Genome Sequencing (WGS)** on GRCh38. Reports and models must **never** refer to Whole-Exome Sequencing (WES).
+### Category 3: Actionable Pharmacogenomic Prescribing Guardrails (Section 1.1 & Section 2.2)
+* **Consistent Gene/Variant-First → Medication-Second Highlighting:** Every guardrail card in Section 1.1 must consistently highlight the **Gene, Diplotype/Variant, and Zygosity/Phenotype** in the card header, followed by the **Affected Medication(s) / Exposure** on line 1 of the body and the **Clinical Rule** on line 2.
+* **Wild-Type Reference Filtering:** Exclude wild-type reference diplotypes (`*1/*1`, `reference/reference` with `Normal Metabolizer` phenotype and empty defining hits) from actionable `AVOID`, `DOSE_DOWN`, and `DOSE_UP` guardrails so only genuine non-wild-type pharmacogenomic findings from the active sample are reported.
 
 ---
 
-## 4. Mandatory Soft Template Flow & VSCP-DF Standards
+## 4. Mandatory Deliverables & VSCP-DF Standards
 
-The reporting suite produces two synchronized clinical deliverables plus a structured EHR import dataset:
+The reporting suite produces synchronized clinical deliverables for a single isolated sample per invocation:
 
-### Deliverable 1: 3-Page Clinician Action Brief (`{Sample}_clinical_brief.html`)
-Designed specifically for sharing with physicians, clinical geneticists, and uploading into patient EHR records:
-* **Page 1 (The Bottom Line):**
-  - Priority Genomic Findings table (*CBLIF*, *GJB2*, *VDR*, *F5*, *ANK2*).
-  - Actionable Pharmacogenomic Prescribing Guardrails (*DPYD*, *NAT2*, *VKORC1*, *CYP2C9*).
-* **Page 2 (Surveillance & Decision Calculus):**
-  - Suggested Clinical & Laboratory Surveillance Schedule (frequencies and actionable thresholds).
-  - Balanced arguments FOR and AGAINST clinical interventions (gentle guidance, non-prescriptive).
-  - Calculated Evidence Confidence Metrics (0–100%).
-* **Page 3 (Digital Navigation & EHR Note):**
-  - Direct links to local interactive reports (`master_ontology_report.html`) and external repositories.
-  - EHR Problem List / Consultation Note block ready for direct EHR chart integration.
-
-### Deliverable 2: Deep Research Dossier (`{Sample}_deep_research_report.md` / `.html`)
-Comprehensive research synthesis formatted with strict polarity segregation and enhanced ergonomics:
-* **No Table of Contents:** Direct entry into content starting with Sentence 1.
-* **No Upfront 3D Viewer Link:** Clean academic layout without distractions.
-* **Section 7 (Confidence Assessment):** Formatted with confidence levels and explanatory text on **separate lines**:
-  ```markdown
-  ##### Analytical Callset Confidence
-  **98%**
-  High-depth 40x WGS callset aligned against panSN GBZ pan-genome graph...
-  ```
-* **Landscape Grouped Variant Catalog:** The multi-page catalog of prioritized variants is collapsed into distinct functional/clinical groupings:
-  1. *Pathogenic & Monogenic Carriers*
-  2. *Actionable Pharmacogenomics & Drug Response*
-  3. *Cardiovascular & Channelopathy Modifiers*
-  4. *Metabolic, Mitochondrial & DNA Repair Machinery*
-  5. *Protective & Longevity Modifiers*
-  6. *Secondary & Exploratory Clinical Variants*
-  - In print and PDF rendering, each grouping features a page break before the section with layout oriented in **landscape**.
-
-### Deliverable 3: Patient Self-Reported EHR Import JSON (`{Sample}_ehr_import.json`)
-A standards-compliant FHIR-aligned JSON bundle designed for EHR and patient portal ingestion containing:
-* Patient self-reported metadata and non-clinical WGS analysis flags.
-* Prioritized genomic alerts with HGVS notation, coordinates, zygosity, and ClinVar VCV accessions.
-* Actionable pharmacogenomic prescribing alerts with CPIC level indications.
-* Multi-system organ risk matrix summary and polygenic risk scores.
+1. **3-Page Clinician Action Brief (`{Sample}_clinical_brief.html`):**
+   * **Page 1:** Prominent AI Non-Diagnostic Disclaimer, Primary Care Physician (PCP) + Specialist routing strip with Mean WGS Depth, **Section 1.1 (Acute Prescribing & Perioperative Guardrails)** in consistent Gene/Variant $\rightarrow$ Medication format, and **Section 1.2 (Priority Genomic Findings & Carrier Status)** with zygosity non-invasive guidance.
+   * **Page 2:** **Section 2.1 (Non-Invasive Blood Tests & Preventive Surveillance Schedule)** containing the explicit Gene, Variant, and Zygosity in every row, and **Section 2.2 (Actionable Pharmacogenomic Prescribing Guardrails — Part A Action Tiers & Part B Patient Diplotype Reference)**.
+   * **Page 3:** **Section 3.1 (Clinical Decision Calculus FOR & AGAINST)**, **Section 3.2 (Calculated Evidence Confidence Metrics)**, **Section 3.3 (Copy-Paste Ready PCP/EHR Note)**, and **Section 3.4 (Multi-Hypertext & Clinical Evidence Directory)**.
+2. **Deep Research Dossier (`{Sample}_deep_research_report.md` / `.html`):**
+   * Structured across VSCP-DF sections (`Orientation`, `Body`, `Conclusions`, `Opportunities`, `Confidence & Uncertainty Assessment`).
+3. **Patient Self-Reported EHR Import JSON (`{Sample}_ehr_import.json`):**
+   * Standards-compliant FHIR-aligned JSON bundle.
 
 ---
 
-## 5. End-to-End Automated Pipeline Flow
+## 5. Execution & Memory Purge Protocol
 
-The end-to-end execution flow executes across 6 deterministic stages:
-```mermaid
-flowchart TD
-    [=Master JSON + Pharma + AlphaGenome=] --> ((Stage 1: Ingestion))
-    ((Stage 1: Ingestion)) --> ((Stage 2: Local PII Stripping))
-    ((Stage 2: Local PII Stripping)) --> [=Sanitized Zero-PII JSON=]
-    [=Sanitized Zero-PII JSON=] --> ((Stage 3: Gemini Fast High Synthesis))
-    ((Stage 3: Gemini Fast High Synthesis)) --> [=Sanitized Templates Alt B & C=]
-    [=Sanitized Templates Alt B & C=] --> ((Stage 4: MedGemma Local PII Binding))
-    ((Stage 4: MedGemma Local PII Binding)) --> [=Personalized Deliverables=]
-    ((Stage 4: MedGemma Local PII Binding)) --> ((Stage 5: Unload Local AI & Free RAM))
-    [=Personalized Deliverables=] --> ((Stage 6: Google Drive Sync))
-    ((Stage 6: Google Drive Sync)) --> [=Google Drive / Ontology /=]
-```
-
-1. **Stage 1 (Ingestion):** Local AI loads master JSON (`{Sample}_ontology_pharma_alphagenome.json`) containing complete open-cravat annotations, CPIC interactions, and AlphaGenome Atlas predictions.
-2. **Stage 2 (Local PII Stripping):** Programmatically scrubs all patient names, sample identifiers, and filesystem paths, producing zero-PII `proband_01_ontology_pharma_alphagenome.json`.
-3. **Stage 3 (Model Synthesis):** Synthesizes the Clinician Brief, Deep Dossier, and EHR Import JSON enforcing exact variant matching and strict validation templates.
-4. **Stage 4 (Local PII Binding):** Local MedGemma binds real patient name and sample IDs into deliverables entirely on localhost.
-5. **Stage 5 (Memory Reclamation):** Forcefully unloads local inference processes (`pkill -f llama-server.*7002`) and flushes RAM.
-6. **Stage 6 (Google Drive Sync):** Copies final personalized deliverables to Google Drive `Ontology/` root and dated run folder.
-
----
-
-## 6. Execution Script
-
-Run the automated flow via:
+Before executing a synthesis run for any sample:
+1. Purge running local inference servers (`pkill -f llama-server`), clear Python `__pycache__` bytecode caches, and remove stale temporary files.
+2. Execute the reporting pipeline in a fresh process for a single sample at a time:
 ```bash
-python3 generate_flow_pipeline.py \
-  --sample-id Daniel_Ehrle-07-10-2026 \
-  --patient-name "Daniel Ehrle" \
-  --patient-id "Daniel_Ehrle"
+python3 run_standard_reporting.py <sample_key> --sample-dir <Sample_Dated_Folder>
 ```
-
