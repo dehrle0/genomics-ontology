@@ -23,6 +23,8 @@ __pycache__/
 *.zip
 
 # Patient Reports & High-Volume Data
+export/
+reports/export/
 reports/Daniel_Ehrle*
 reports/Melinda_Ehrle*
 reports/*pharma_reports*

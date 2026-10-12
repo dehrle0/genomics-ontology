@@ -144,6 +144,23 @@ def main():
         if os.path.exists(os.path.dirname(gdrive_gen)):
             from run_standard_reporting import _sync_to_genomics_reports_with_retention
             _sync_to_genomics_reports_with_retention([out_path], gdrive_gen, max_iterations=5)
+
+        # Also export self-contained Dual-Cohort HTML to export/ subdirectories with local './' report links
+        with open(out_path, "r", encoding="utf-8") as f:
+            dual_html = f.read()
+        dual_html_local = (
+            dual_html.replace("reports/Daniel_Ehrle-09-10-2026/", "./")
+            .replace("reports/Melinda_Ehrle-09-10-2026/", "./")
+        )
+        for exp_d in [
+            os.path.join(SCRIPT_DIR, "export"),
+            os.path.join(SCRIPT_DIR, "reports", "export"),
+            os.path.join(gdrive_gen, "export") if os.path.exists(os.path.dirname(gdrive_gen)) else None,
+        ]:
+            if exp_d:
+                os.makedirs(exp_d, exist_ok=True)
+                with open(os.path.join(exp_d, "landscape_clinical_dashboard.html"), "w", encoding="utf-8") as ef:
+                    ef.write(dual_html_local)
         return
 
     if not args.json:

@@ -535,6 +535,36 @@ def run_standard_pipeline(
     if os.path.exists(gdrive_parent):
         _sync_to_genomics_reports_with_retention(sync_files, genomics_reports_dir, max_iterations=5)
 
+    # 4. Export HTML deliverables (Dashboard, Clinical Brief, Deep Research Report) to 'export/' subdirectories
+    project_root = os.path.dirname(os.path.abspath(reports_dir.rstrip("/")))
+    export_subdirs = [
+        os.path.join(project_root, "export"),
+        os.path.join(reports_dir, "export"),
+    ]
+    if os.path.exists(gdrive_parent):
+        export_subdirs.append(os.path.join(genomics_reports_dir, "export"))
+
+    html_export_files = [
+        clinic_html_path,
+        old_clinic_html_path,
+        deep_html_path,
+        old_deep_html_path,
+        dash_topn_html_path,
+        landscape_out_path,
+    ]
+    for exp_dir in export_subdirs:
+        os.makedirs(exp_dir, exist_ok=True)
+        for fpath in html_export_files:
+            if fpath and os.path.exists(fpath) and fpath.endswith(".html"):
+                fname = os.path.basename(fpath)
+                with open(fpath, "r", encoding="utf-8") as hf:
+                    h_txt = hf.read()
+                if "landscape_dashboard.html" in fname:
+                    h_txt = h_txt.replace(f"reports/{sample_dir_name}/", "./")
+                with open(os.path.join(exp_dir, fname), "w", encoding="utf-8") as out_hf:
+                    out_hf.write(h_txt)
+        print(f"  Exported HTML deliverables to: {exp_dir}")
+
     print("\n" + "=" * 80)
     print(f"STANDARD REPORTING PIPELINE FINISHED SUCCESSFULLY FOR {patient_id}")
     print("=" * 80)
