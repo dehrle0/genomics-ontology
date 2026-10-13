@@ -14,7 +14,7 @@
   td { padding: 7px 10px; border: 1px solid #334155; background: #0f172a; }
   tr:nth-child(even) td { background: #131d35; }
   a { color: #38bdf8; text-decoration: underline; text-underline-offset: 2px; }
-  a:hover { color: #7dd3fc; }
+  a:hover { color: #7ddfc; }
   @media print {
     body { background: #ffffff; color: #000000; font-size: 9pt; }
     .no-print { display: none !important; }
@@ -40,7 +40,7 @@
     <div>
       <span class="px-2.5 py-1 bg-amber-600/30 text-amber-300 border border-amber-500/30 rounded text-xs font-semibold uppercase tracking-wider">Deep Research Dossier (old) • Determinative v5.3</span>
       <h1 class="text-2xl md:text-3xl font-bold text-white mt-1">Clinical Genomics Evidence Dossier (old)</h1>
-      <p class="text-xs text-slate-400">Sample: <code class="text-blue-300">PROBAND_01</code> (<code>PROBAND_01</code>) | Reference: GRCh38.p14 | Modality: 48.8x mean depth (Median 50.0x) WGS (panSN GBZ aligned)</p>
+      <p class="text-xs text-slate-400">Sample: <code class="text-blue-300">PROBAND_01</code> (<code>PROBAND_01</code>) | Reference: GRCh38.p14 | Modality: 48.8x BAM mean depth (Median 50.0x) WGS (panSN GBZ aligned)</p>
     </div>
     <div class="flex flex-wrap items-center gap-2.5 no-print">
       <a href="PROBAND_01_deep_research_report.html" class="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded-lg text-xs font-semibold transition">Switch to New Deep Report ↗</a>
@@ -52,17 +52,10 @@
     </div>
   </div>
 
-  <!-- Disclaimer Banner -->
-  <div class="bg-blue-950/40 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8 text-xs text-slate-300 leading-relaxed">
-    <div class="font-bold text-blue-300 mb-1">AI-Generated Clinical Research Synthesis — Non-Diagnostic Research Use Only</div>
-    This report is computationally synthesized using local open-weight models and is intended strictly for exploratory genomic research, variant prioritization, and informational purposes only. It is not an in vitro diagnostic test, does not constitute medical advice or clinical diagnosis, and is not intended for direct clinical management, prognosis, or therapeutic prescription. AlphaGenome Atlas annotations are not intended for clinical or diagnostic purposes; predicted variant impact scores represent computational deep learning estimates.
-  </div>
-
   <div class="space-y-10">
     <section>
       <h2 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-3">Orientation: What We Are Covering</h2>
-      <p class="text-slate-300 leading-relaxed mb-3">This clinical genomics evidence synthesis evaluates a broad exploratory screening corpus of 1,408 prioritized candidate variants across 1,003 genes derived from a <strong>48.8x mean depth (Median 50.0x)</strong> whole-genome sequencing (WGS) pipeline for PROBAND_01. To prevent cognitive bias and diagnostic over-interpretation, this report enforces rigorous domain segregation across <strong>Monogenic Pathogenic Alleles</strong>, <strong>Actionable Pharmacogenomics</strong>, <strong>Secondary Organ-System Modifiers</strong>, and <strong>Endogenous Protective Factors</strong>.</p>
-      <p class="text-slate-300 leading-relaxed">Within this cohort, orthogonal consensus between established human disease databases (ClinVar, OMIM, ClinGen) and biological foundation models (DeepMind AlphaGenome, AlphaMissense, CADD, SpliceAI) identifies <strong>two definitive pathogenic monogenic carrier states</strong> (<code class="text-amber-300">CBLIF c.79+1G&gt;A</code> and <code class="text-amber-300">GJB2 p.Met34Thr</code>) and one homozygous regulatory modifier (<code class="text-amber-300">VDR c.-1172A&gt;G</code>), alongside critical pharmacogenomic considerations (<code class="text-emerald-300">DPYD</code>, <code class="text-emerald-300">NAT2</code>, <code class="text-emerald-300">VKORC1</code>, <code class="text-emerald-300">CYP2C9</code>).</p>
+      <p class="text-slate-300 leading-relaxed mb-3">This clinical genomics evidence synthesis evaluates a broad exploratory screening corpus of 1,407 prioritized candidate variants across 1,002 genes derived from a <strong>48.8x BAM mean depth (Median 50.0x)</strong> whole-genome sequencing (WGS) pipeline for PROBAND_01. To prevent cognitive bias and diagnostic over-interpretation, this report enforces rigorous domain segregation across <strong>Monogenic Pathogenic Alleles</strong>, <strong>Actionable Pharmacogenomics</strong>, <strong>Secondary Organ-System Modifiers</strong>, and <strong>Endogenous Protective Factors</strong>.</p>
     </section>
 
     <section>
@@ -84,33 +77,33 @@
           <tbody>
             <tr>
               <td class="font-bold text-red-400">CBLIF</td>
-              <td class="font-mono">c.79+1G&gt;A</td>
-              <td>Het (Carrier)</td>
+              <td class="font-mono">c.79+1G>A · rs147785187</td>
+              <td>Heterozygous</td>
               <td><span class="text-red-400 font-semibold">Pathogenic</span></td>
               <td>32.0</td>
-              <td class="text-slate-500">—</td>
+              <td>—</td>
               <td class="text-purple-400 font-semibold">33.9 (Splicing)</td>
-              <td>Intrinsic Factor Deficiency (MIM:261000)</td>
+              <td>CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism [VCV439755]</td>
             </tr>
             <tr>
               <td class="font-bold text-red-400">GJB2</td>
-              <td class="font-mono">p.Met34Thr</td>
-              <td>Het (Carrier)</td>
+              <td class="font-mono">p.Met34Thr · c.101T>C · rs35887622</td>
+              <td>Heterozygous</td>
               <td><span class="text-red-400 font-semibold">Pathogenic</span></td>
               <td>20.9</td>
               <td>0.702</td>
               <td class="text-purple-400 font-semibold">23.6 (Cactus)</td>
-              <td>DFNB1A Hearing Impairment (MIM:220290)</td>
+              <td>GJB2 · Cochlear Gap Junction &amp; Auditory Homeostasis [VCV17000]</td>
             </tr>
             <tr>
-              <td class="font-bold text-amber-400">VDR</td>
-              <td class="font-mono">c.-1172A&gt;G</td>
-              <td>Hom (Alt)</td>
-              <td><span class="text-amber-400 font-semibold">Likely pathogenic</span></td>
+              <td class="font-bold text-red-400">VDR</td>
+              <td class="font-mono">c.-1172A>G · rs4516035</td>
+              <td>Homozygous</td>
+              <td><span class="text-red-400 font-semibold">Likely pathogenic</span></td>
               <td>5.4</td>
-              <td class="text-slate-500">—</td>
-              <td class="text-slate-500">2.1</td>
-              <td>Vitamin D Endocrine Modulation [VCV3336650]</td>
+              <td>—</td>
+              <td class="text-purple-400 font-semibold">2.1 (DNASE-seq)</td>
+              <td>VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis [VCV3336650]</td>
             </tr>
           </tbody>
         </table>
@@ -124,40 +117,68 @@
           <thead>
             <tr>
               <th>Gene</th>
-              <th>Variant / Star Allele</th>
+              <th>Diplotype</th>
               <th>Phenotype</th>
-              <th>Interacting Drugs</th>
-              <th>Clinical Management Guidance</th>
+              <th>High-Risk Medications</th>
+              <th>Clinical Prescribing Guidance</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td class="font-bold text-emerald-400">DPYD</td>
-              <td class="font-mono">p.Met166Val (*6/*6)</td>
-              <td>Intermediate Metabolizer</td>
-              <td class="font-semibold text-slate-200">Fluoropyrimidines (5-FU, Capecitabine)</td>
-              <td class="text-slate-300"><strong>CPIC Level A:</strong> Catalytic clearance is moderately reduced. Initiate standard dosing with aggressive initial cycle toxicity surveillance; dose reduction if toxicity emerges.</td>
-            </tr>
-            <tr>
-              <td class="font-bold text-emerald-400">NAT2</td>
-              <td class="font-mono">p.Ile114Thr (*5/*5)</td>
-              <td>Slow Acetylator</td>
-              <td class="font-semibold text-slate-200">Isoniazid, Hydralazine, Sulfonamides</td>
-              <td class="text-slate-300">Substantially reduced catalytic acetylation. Suggest therapeutic drug monitoring and lower titration when initiating isoniazid or hydralazine.</td>
-            </tr>
-            <tr>
-              <td class="font-bold text-emerald-400">VKORC1</td>
-              <td class="font-mono">c.174-136C&gt;T (rs9934438)</td>
-              <td>Intermediate Sensitivity</td>
-              <td class="font-semibold text-slate-200">Warfarin / Coumarin Anticoagulants</td>
-              <td class="text-slate-300">Heightened sensitivity to vitamin K epoxide reductase inhibition. Utilize CPIC-guided dosing algorithms incorporating genotype.</td>
+              <td class="font-bold text-emerald-400">CYP2C19</td>
+              <td class="font-mono">*1/*17 (I331V (rs3758581) A>G, expression (rs12248560) C>T)</td>
+              <td>Rapid Metabolizer</td>
+              <td class="font-semibold text-slate-200">Voriconazole, Clopidogrel, Mephenytoin, Methadone</td>
+              <td class="text-slate-300">Increased clearance and lower trough concentrations. Perform therapeutic drug monitoring (TDM) to avoid subtherapeutic levels.</td>
             </tr>
             <tr>
               <td class="font-bold text-emerald-400">CYP2C9</td>
-              <td class="font-mono">p.Arg144Cys (*1/*2)</td>
+              <td class="font-mono">*1/*2 (R144C (rs1799853) C>T)</td>
               <td>Intermediate Metabolizer</td>
-              <td class="font-semibold text-slate-200">Warfarin, Celecoxib, Phenytoin</td>
-              <td class="text-slate-300">Moderate reduction in CYP2C9 phase I enzymatic turnover. Suggest conservative upward titration when prescribing narrow therapeutic index substrates.</td>
+              <td class="font-semibold text-slate-200">Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin), Acenocoumarol</td>
+              <td class="text-slate-300">Moderate decrease in celecoxib clearance. Initiate therapy at lowest recommended dose and monitor for GI/cardiovascular adverse effects.</td>
+            </tr>
+            <tr>
+              <td class="font-bold text-emerald-400">CYP3A5</td>
+              <td class="font-mono">*3/*3 (splice defect (rs776746) T>C)</td>
+              <td>Poor Metabolizer</td>
+              <td class="font-semibold text-slate-200">Carbamazepine, Clopidogrel, Cyclosporine, Efavirenz</td>
+              <td class="text-slate-300">Genotype TT is associated with increased dose of carbamazepine in people with Epilepsy as compared to genotype CC.</td>
+            </tr>
+            <tr>
+              <td class="font-bold text-emerald-400">F5</td>
+              <td class="font-mono">rs6025 Factor V Leiden (T)/rs6025 reference (C) (p.Thr295Ala (rs371760153) [Heterozygous])</td>
+              <td>Activated Protein C (APC) Resistance</td>
+              <td class="font-semibold text-slate-200">Combined Oral Contraceptives (Estrogen/Progestin), Hormone Replacement Therapy (Estrogen Hrt)</td>
+              <td class="text-slate-300">Factor V Leiden carrier (rs6025 C>T heterozygous). 3- to 8-fold increased baseline venous thromboembolism (VTE) risk, amplified up to 35-fold with estrogen-containing contraceptives or HRT. Recommend progestin-only or non-hormonal contraceptives.</td>
+            </tr>
+            <tr>
+              <td class="font-bold text-emerald-400">NAT2</td>
+              <td class="font-mono">*5/*5 (I114T (rs1801280) T>C)</td>
+              <td>Poor Metabolizer</td>
+              <td class="font-semibold text-slate-200">Isoniazid</td>
+              <td class="text-slate-300">NAT2 *5/*5 slow acetylator phenotype. Higher risk of isoniazid-induced hepatotoxicity and peripheral neuropathy. Monitor liver function tests (LFTs) and administer pyridoxine (Vitamin B6).</td>
+            </tr>
+            <tr>
+              <td class="font-bold text-emerald-400">SLCO1B1</td>
+              <td class="font-mono">*14/*14 (N130D (rs2306283) A>G, P155T (rs11045819) C>A)</td>
+              <td>Increased Function</td>
+              <td class="font-semibold text-slate-200">Atorvastatin (Lipitor), Rosuvastatin (Crestor), Simvastatin (Zocor)</td>
+              <td class="text-slate-300">Standard therapeutic efficacy and low myopathy risk.</td>
+            </tr>
+            <tr>
+              <td class="font-bold text-emerald-400">UGT1A1</td>
+              <td class="font-mono">*1/*28_80 (5'UTR (rs887829) C>T, Promoter (rs3064744) insTA)</td>
+              <td>Intermediate Metabolizer</td>
+              <td class="font-semibold text-slate-200">Belinostat, Irinotecan (Camptosar), Atazanavir (Reyataz)</td>
+              <td class="text-slate-300">Monitor for increased hematologic toxicity.</td>
+            </tr>
+            <tr>
+              <td class="font-bold text-emerald-400">VKORC1</td>
+              <td class="font-mono">*H1/*H6 (Intron (rs2359612) G>A, Intron (rs8050894) C>G)</td>
+              <td>Altered Enzymatic / Pathway Activity</td>
+              <td class="font-semibold text-slate-200">CPIC Substrates</td>
+              <td class="text-slate-300">Titrate dosing per CPIC.</td>
             </tr>
           </tbody>
         </table>
@@ -165,74 +186,17 @@
     </section>
 
     <section>
-      <h2 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-3">3. Secondary Disease Risk Modifiers &amp; Channelopathies</h2>
-      <div class="overflow-x-auto rounded-lg border border-slate-800">
-        <table>
-          <thead>
-            <tr>
-              <th>Gene</th>
-              <th>Variant</th>
-              <th>Coordinate / rsID</th>
-              <th>ClinVar</th>
-              <th>REVEL</th>
-              <th>AlphaGenome AVI (Phred)</th>
-              <th>Organ Domain &amp; Clinical Actionability</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="font-bold text-amber-400">ANK2</td>
-              <td class="font-mono">p.Arg3906Trp</td>
-              <td>chr4:113373306 rs121912706</td>
-              <td>Conflicting (VUS)</td>
-              <td>0.722</td>
-              <td class="text-purple-400 font-semibold">25.2 (Splicing)</td>
-              <td>Cardiac Electrophysiology / Baseline 12-lead ECG &amp; QT drug caution</td>
-            </tr>
-            <tr>
-              <td class="font-bold text-amber-400">LRP5</td>
-              <td class="font-mono">p.Val233Glu</td>
-              <td>chr11:68363758 rs1177484229</td>
-              <td>Uncertain significance</td>
-              <td>0.903</td>
-              <td class="text-purple-400 font-semibold">25.4 (AlphaMissense)</td>
-              <td>Wnt/Beta-Catenin Signaling / Bone Mineral Density</td>
-            </tr>
-            <tr>
-              <td class="font-bold text-amber-400">F5</td>
-              <td class="font-mono">p.Arg534Gln</td>
-              <td>chr1:169549811 rs6025</td>
-              <td>Drug response / Risk</td>
-              <td>—</td>
-              <td class="text-purple-400 font-semibold">23.6 (Cactus)</td>
-              <td>Factor V Leiden / Situational Perioperative VTE Prophylaxis</td>
-            </tr>
-            <tr>
-              <td class="font-bold text-slate-300">NPC1L1</td>
-              <td class="font-mono">p.Thr499Met</td>
-              <td>chr7:44538901 rs35803101</td>
-              <td>Research Candidate</td>
-              <td>0.640</td>
-              <td class="text-purple-400 font-semibold">20.9 (Cactus)</td>
-              <td>Intestinal Sterol Absorption / Fasting Lipid Panel</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section>
-      <h2 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-3">4. Confidence &amp; Uncertainty Assessment</h2>
+      <h2 class="text-lg font-bold text-white border-b border-slate-700 pb-2 mb-3">3. Confidence &amp; Uncertainty Assessment</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl">
           <div class="text-xs uppercase tracking-wider font-semibold text-slate-400">Analytical Callset Confidence</div>
           <div class="text-2xl font-bold text-blue-400 my-1">98%</div>
-          <p class="text-xs text-slate-300 leading-relaxed">High-depth 48.8x mean depth (Median 50.0x) WGS callset aligned against panSN GBZ pan-genome graph; &gt;99.8% callable SNV precision.</p>
+          <p class="text-xs text-slate-300 leading-relaxed">High-depth 48.8x BAM mean depth (Median 50.0x) WGS callset aligned against panSN GBZ pan-genome graph; &gt;99.8% callable SNV precision.</p>
         </div>
         <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl">
-          <div class="text-xs uppercase tracking-wider font-semibold text-slate-400">Primary Pathogenic Carrier Status (CBLIF, GJB2)</div>
+          <div class="text-xs uppercase tracking-wider font-semibold text-slate-400">Primary Pathogenic Carrier Status (CBLIF, GJB2, VDR)</div>
           <div class="text-2xl font-bold text-emerald-400 my-1">95%</div>
-          <p class="text-xs text-slate-300 leading-relaxed">Orthogonal concordance between ClinVar Pathogenic curations and AlphaGenome AVI / CADD scores.</p>
+          <p class="text-xs text-slate-300 leading-relaxed">Orthogonal concordance between ClinVar Pathogenic curation records, CADD Phred scores, and AlphaGenome AVI scores.</p>
         </div>
       </div>
     </section>

@@ -30,8 +30,8 @@ MEDGEMMA_4B_Q4_PATH = os.path.expanduser("~/.lmstudio/models/gguf-org/medgemma-1
 MMPROJ_4B_Q4_PATH = os.path.expanduser("~/.lmstudio/models/gguf-org/medgemma-1.5-4b-it-gguf/mmproj-medgemma-1.5-4b-it-q4_0.gguf")
 
 LLAMA_SERVER_PATHS = [
-    "/home/daniel-ehrle/.lmstudio/extensions/backends/llama.cpp-linux-x86_64-vulkan-avx2-2.28.2/llama-server",
-    "/home/daniel-ehrle/.lmstudio/extensions/backends/llama.cpp-linux-x86_64-vulkan-avx2-2.27.1/llama-server",
+    os.path.expanduser("~/.lmstudio/extensions/backends/llama.cpp-linux-x86_64-vulkan-avx2-2.28.2/llama-server"),
+    os.path.expanduser("~/.lmstudio/extensions/backends/llama.cpp-linux-x86_64-vulkan-avx2-2.27.1/llama-server"),
     shutil.which("llama-server")
 ]
 
@@ -243,43 +243,12 @@ def append_supporting_documentation_appendix(report_md, clean_records):
             ag_link = f"[Atlas](https://alphagenome.deepmind.com/gene/{h})"
 
         pmid = str(rec.get("gwas_pmid") or "").strip()
-        if h == "CBLIF" and is_plp:
-            guide_link = "[OMIM 261000 (Intrinsic Factor)](https://www.omim.org/entry/261000)"
-        elif h == "F5":
-            if "534" in v or "rs6025" in rs.lower():
-                guide_link = "[ACMG/ACOG VTE (PMID 28373160)](https://pubmed.ncbi.nlm.nih.gov/28373160/)"
-            elif "295" in v or is_plp:
-                guide_link = "[Factor V Deficiency (ClinVar)](https://www.ncbi.nlm.nih.gov/clinvar/variation/2884751/)"
-            else:
-                guide_link = f"[ClinVar Evidence](https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv_id}/)" if cv_id else f"[NCBI Gene {h}](https://www.ncbi.nlm.nih.gov/gene/?term={h})"
-        elif h == "APOB":
-            if "4481" in v or "1801695" in rs:
-                guide_link = "[GWAS Lipids (PMID 41325697)](https://pubmed.ncbi.nlm.nih.gov/41325697/)"
-            elif is_plp:
-                guide_link = "[FHBL1 (OMIM 615558)](https://www.omim.org/entry/615558)"
-            else:
-                guide_link = f"[ClinVar Evidence](https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv_id}/)" if cv_id else f"[NCBI Gene {h}](https://www.ncbi.nlm.nih.gov/gene/?term={h})"
-        elif h == "DPYD" and ("732" in v or "1801160" in rs or is_plp):
-            guide_link = "[CPIC Fluoropyrimidines (DPYD)](https://cpicpgx.org/guidelines/guideline-for-fluoropyrimidines-and-dpyd/)"
-        elif h == "ANK2":
-            if "3906" in v or "121912706" in rs or is_plp:
-                guide_link = "[CredibleMeds QTdrugs](https://crediblemeds.org/)"
-            else:
-                guide_link = f"[ClinVar Evidence](https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv_id}/)" if cv_id else f"[NCBI Gene {h}](https://www.ncbi.nlm.nih.gov/gene/?term={h})"
-        elif h == "CDKN2B":
-            guide_link = "[GWAS CAD 9p21 (PMID 30054458)](https://pubmed.ncbi.nlm.nih.gov/30054458/)"
-        elif h == "POLG" and is_plp:
-            guide_link = "[Valproate Toxicity (PMID 24077912)](https://pubmed.ncbi.nlm.nih.gov/24077912/)"
-        elif h == "ATM" and is_plp:
-            guide_link = "[NCCN Genetic Surveillance (ATM)](https://search.clinicalgenome.org/kb/genes/ATM)"
-        elif h == "TAT" and is_plp:
-            guide_link = "[Tyrosinemia Type II (OMIM 276600)](https://www.omim.org/entry/276600)"
-        elif h == "VDR":
-            guide_link = "[VDR Promoter (PMID 16785239)](https://pubmed.ncbi.nlm.nih.gov/16785239/)"
-        elif pmid and pmid.isdigit():
+        if pmid and pmid.isdigit():
             guide_link = f"[GWAS (PMID {pmid})](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)"
         elif cv_id and cv_id.isdigit():
             guide_link = f"[ClinVar Evidence](https://www.ncbi.nlm.nih.gov/clinvar/variation/{cv_id}/)"
+        elif om_digits:
+            guide_link = f"[OMIM Entry](https://www.omim.org/entry/{om_digits[0]})"
         else:
             guide_link = f"[NCBI Gene {h}](https://www.ncbi.nlm.nih.gov/gene/?term={h})"
 
@@ -305,7 +274,6 @@ def append_supporting_documentation_appendix(report_md, clean_records):
     return report_md.strip() + "\n\n" + "\n".join(lines)
 
 def build_medgemma_prompt(clean_records, session_token):
-    # Sort by priority so top actionable findings receive dossiers first
     sorted_records = sorted(clean_records, key=sort_priority, reverse=True)
     top_records = []
     for r in sorted_records[:10]:
@@ -328,19 +296,11 @@ def build_medgemma_prompt(clean_records, session_token):
         "Operational Directives:\n"
         "1. Zero PII: Never invent or use patient names, dates of birth, or facilities. Refer solely to the proband as '" + session_token + "'.\n"
         "2. Strict Grounding & Anti-Hallucination: Restrict analysis strictly and exclusively to the specific genes and variants present in the supplied JSON payload. Never reference, invent, or discuss genes or variants not in the provided callset.\n"
-        "3. Sequencing Modality (WGS Only): The sequencing technology is 40x Whole-Genome Sequencing (WGS) aligned to GRCh38. Never refer to Whole-Exome Sequencing (WES). In the Orientation and Limitations, explicitly reference 40x WGS.\n"
-        "4. Tone & Scope: Deliver a readable, authoritative executive clinical summary focused on high-actionable level findings, balancing molecular precision with clinical utility without repetitive data dumps.\n"
-        "5. Critical Pharmacogenomic & Drug Contraindications: Provide exhaustive, high-yield pharmacogenomic directives directly relevant to the patient's variants:\n"
-        "   - If POLG is in the callset: Explicitly emphasize the absolute, life-saving contraindication against sodium valproate (Depakote/valproic acid) due to fatal valproate-induced hepatic failure in POLG carriers, alongside anesthesia and mitochondrial-toxic drug cautions.\n"
-        "   - If DPYD is in the callset: Detail fluoropyrimidine (5-FU, capecitabine) catabolism deficiency and CPIC-guided dose reduction/avoidance.\n"
-        "   - If F5 is in the callset: Detail APC resistance and situational VTE thromboprophylaxis during surgery, immobilization, or estrogen therapy.\n"
-        "   - If ANK2 is in the callset: Detail cardiac conduction vigilance and QT-prolonging drug cautions referencing CredibleMeds.\n"
-        "   - Detail any other applicable drug-gene interactions or metabolic cautions for other detected variants.\n"
+        "3. Sequencing Modality (WGS Only): The sequencing technology is Whole-Genome Sequencing (WGS) aligned to GRCh38. Never refer to Whole-Exome Sequencing (WES).\n"
+        "4. Tone & Scope: Deliver a readable, authoritative executive clinical summary focused on high-actionable level findings, balancing molecular precision with clinical utility.\n"
+        "5. Critical Pharmacogenomic & Drug Contraindications: Provide high-yield pharmacogenomic directives directly derived from the patient's variants and CPIC Level A guidelines.\n"
         "6. Follow Deep Research Report Template Structure:\n"
         "   # Clinical Genomics Evidence & Deep Research Synthesis: " + session_token + "\n\n"
-        "   > [!IMPORTANT]\n"
-        "   > **AI-Generated Clinical Research Synthesis — Non-Diagnostic Research Use Only**\n"
-        "   > This report is computationally synthesized using local open-weight models and is intended strictly for exploratory genomic research, variant prioritization, and informational purposes only. It is not an in vitro diagnostic test, does not constitute medical advice or clinical diagnosis, and is not intended for direct clinical management, prognosis, or therapeutic prescription.\n\n"
         "   ### Orientation: What We Are Covering\n"
         "   ### Body\n"
         "   #### 1. Information Flow & Evidence Reconciliation Architecture (Mermaid flowchart)\n"
@@ -357,12 +317,12 @@ def build_medgemma_prompt(clean_records, session_token):
     )
     
     user_prompt = (
-        f"Generate a publication-grade, authoritative Clinical Genomics Evidence Summary for {session_token} based on the following verified 40x WGS genomic callset:\n\n"
+        f"Generate a publication-grade, authoritative Clinical Genomics Evidence Summary for {session_token} based on the following verified WGS genomic callset:\n\n"
         f"{json.dumps(top_records, indent=2)}\n\n"
         "Requirements:\n"
-        "- Follow the soft template structure exactly.\n"
-        "- Emphasize that the sequencing modality is 40x Whole-Genome Sequencing (WGS).\n"
-        "- Ensure pharmacogenomic warnings (especially valproate for POLG, fluoropyrimidines for DPYD, QT drugs for ANK2, thromboprophylaxis for F5, etc.) are highlighted and prominent.\n"
+        "- Follow the template structure.\n"
+        "- Emphasize that the sequencing modality is Whole-Genome Sequencing (WGS).\n"
+        "- Ensure pharmacogenomic warnings for any detected pharmacogenes are highlighted and prominent.\n"
         "- Output clean GitHub-Flavored Markdown directly without wrapping in markdown code blocks."
     )
     return system_prompt, user_prompt
@@ -480,8 +440,7 @@ def main():
         except Exception as e:
             print(f"[Export Warning] Could not render HTML/PDF: {e}")
 
-        # Automatically sync to Google Drive Ontology folder if available
-        gdrive_ontology = "/home/daniel-ehrle/Google Drive/My Drive/Ontology"
+        gdrive_ontology = os.path.expanduser("~/Google Drive/My Drive/Ontology")
         if os.path.exists(gdrive_ontology):
             files_to_sync = [args.out_md]
             if os.path.exists(out_html):
@@ -494,13 +453,11 @@ def main():
                 gdrive_dest = os.path.join(gdrive_ontology, out_base)
                 try:
                     shutil.copyfile(fpath, gdrive_dest)
-                    print(f"[Google Drive Sync] Synced {out_base} to Google Drive: {gdrive_dest}")
                     for folder in os.listdir(gdrive_ontology):
                         subpath = os.path.join(gdrive_ontology, folder)
-                        if os.path.isdir(subpath) and ("Daniel_Ehrle" in folder or "Melinda_Ehrle" in folder) and folder in args.out_md:
+                        if os.path.isdir(subpath) and folder in args.out_md:
                             sub_dest = os.path.join(subpath, out_base)
                             shutil.copyfile(fpath, sub_dest)
-                            print(f"[Google Drive Sync] Synced {out_base} to dated folder: {sub_dest}")
                 except Exception as e:
                     print(f"[Google Drive Sync Warning] Could not copy {out_base} to Google Drive: {e}")
     finally:

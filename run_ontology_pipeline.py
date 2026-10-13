@@ -316,7 +316,7 @@ def update_actionable_with_phased_vcfs(act_json_path, act_db_path, vcf_paths):
                         phase_origin = None
                         if gt == "0|1":
                             phase_origin = "Maternal"
-                            anchor_label = " (SE Anchor)" if ("Daniel" in str(data.get("patient", "")) or "DE" in str(data.get("patient", ""))) else " (MI Anchor)"
+                            anchor_label = " (SE Anchor)" if "DE" in str(data.get("patient", "")).upper() else " (MI Anchor)"
                             phasing_str = f"Phased: Maternal{anchor_label}{f' (PS #{ps})' if ps and ps != '.' else ''}"
                             phased_maternal += 1
                         elif gt in ("1|0", "1/0"):
@@ -381,10 +381,7 @@ def main():
         base = os.path.basename(args.input)
         for ext in [".sqlite", ".vcf.gz", ".vcf", "_and_2_files"]:
             base = base.replace(ext, "")
-        if "Daniel_Ehrle" in base or "260830" in base:
-            sample_name = "Daniel_Ehrle"
-        else:
-            sample_name = base or "Sample"
+        sample_name = base or "Sample"
 
     now = datetime.now()
     date_str = now.strftime("%d-%m-%Y")

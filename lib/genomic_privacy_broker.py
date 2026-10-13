@@ -28,55 +28,16 @@ from typing import List, Dict, Any, Tuple
 
 DEFAULT_DECOY_CATALOG = [
     {
-        "gene": "APOE",
-        "variant": "c.388T>C (p.Cys130Arg)",
-        "so": "MISSENSE",
-        "zygosity": "het",
-        "clinvar_sig": "Risk_factor",
-        "cadd_phred": 14.2,
-        "revel": 0.42,
-        "avi_phred": 8.5
-    },
-    {
-        "gene": "MTHFR",
-        "variant": "c.665C>T (p.Ala222Val)",
-        "so": "MISSENSE",
-        "zygosity": "het",
-        "clinvar_sig": "Benign/Likely_benign",
-        "cadd_phred": 11.5,
-        "revel": 0.31,
-        "avi_phred": 6.2
-    },
-    {
-        "gene": "CYP2D6",
-        "variant": "c.100C>T (p.Pro34Ser)",
-        "so": "MISSENSE",
-        "zygosity": "het",
-        "clinvar_sig": "Drug_response",
-        "cadd_phred": 16.8,
-        "revel": 0.51,
-        "avi_phred": 12.1
-    },
-    {
-        "gene": "G6PD",
-        "variant": "c.376A>G (p.Asn126Asp)",
+        "gene": f"DECOY_LOCUS_{i}",
+        "variant": f"SYNTH_ALLELE_{i}",
         "so": "MISSENSE",
         "zygosity": "het",
         "clinvar_sig": "Benign",
-        "cadd_phred": 9.4,
-        "revel": 0.22,
-        "avi_phred": 5.0
-    },
-    {
-        "gene": "HFE",
-        "variant": "c.187C>G (p.His63Asp)",
-        "so": "MISSENSE",
-        "zygosity": "het",
-        "clinvar_sig": "Risk_factor",
-        "cadd_phred": 15.3,
-        "revel": 0.45,
-        "avi_phred": 10.3
+        "cadd_phred": 10.0 + i,
+        "revel": 0.20 + (i * 0.05),
+        "avi_phred": 5.0 + i
     }
+    for i in range(1, 6)
 ]
 
 class GenomicPrivacyBroker:

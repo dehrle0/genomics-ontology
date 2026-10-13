@@ -14,7 +14,7 @@ import sys
 import tempfile
 from typing import Dict, Any, List
 
-AVI_SCRIPT = "/home/daniel-ehrle/.gemini/config/plugins/science/skills/alphagenome_variant_impact_score/scripts/alphagenome_atlas_avi.py"
+AVI_SCRIPT = os.path.expanduser("~/.gemini/config/plugins/science/skills/alphagenome_variant_impact_score/scripts/alphagenome_atlas_avi.py")
 UV_BIN = os.path.expanduser("~/.local/bin/uv")
 GLOBAL_CACHE_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "alphagenome_cache.json")
 

@@ -3,18 +3,20 @@
 scripts/prepare_landscape_data.py
 Precomputes high-density clinical genomics chart aggregations, AlphaGenome 18-modality
 feature attributions, Executive Wisdom Imperatives, Cis/Trans Phase Audits,
-STRING/Reactome/Pathway Gene Relationship Networks, VCF Header Depth Telemetry,
+GO/HPO/Organ-System Gene Relationship Networks, VCF Header Depth Telemetry,
 and Dual-Cohort Concordance for the Genomic Command Center & Variant Atlas.
+Zero hardcoded PII, gene symbols, or variant IDs.
 """
 
 import json
 import os
 import sys
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(SCRIPT_DIR, "data")
 REPORTS_DIR = os.path.join(SCRIPT_DIR, "reports")
+AG_CACHE_PATH = os.path.join(DATA_DIR, "alphagenome_cache.json")
 
 sys.path.insert(0, os.path.join(SCRIPT_DIR, "scripts"))
 try:
@@ -30,14 +32,39 @@ except ImportError:
             "alignment_graph": "hprc-v2.1-mc-grch38.d46.gbz (PanSN Reference Topology Only)"
         }
 
-DE_JSON = os.path.join(REPORTS_DIR, "Daniel_Ehrle-09-10-2026", "Daniel_Ehrle_ontology_pharma_alphagenome.json")
-ME_JSON = os.path.join(REPORTS_DIR, "Melinda_Ehrle-09-10-2026", "Melinda_Ehrle_ontology_pharma_alphagenome.json")
-AG_CACHE_PATH = os.path.join(DATA_DIR, "alphagenome_cache.json")
 
-PATIENT_VCF_MAP = {
-    "Daniel_Ehrle": "/data/Genomes/DE/Approach4D_Output/DE_grch38_wgs_phased.pass.vcf.gz",
-    "Melinda_Ehrle": "/data/Genomes/ME/Approach4D_Output/ME_grch38_wgs_phased.pass.vcf.gz"
-}
+def discover_cohort_samples(reports_dir=None):
+    """
+    Dynamically discovers sample profiles from `reports/*-*/*_ontology_pharma_alphagenome.json`
+    so zero personal names, folder names, or PII strings are hardcoded in source code.
+    Returns dict keyed by 2-letter lowercase code (e.g. 'de', 'me').
+    """
+    rdir = reports_dir or REPORTS_DIR
+    discovered = {}
+    if not os.path.exists(rdir):
+        return discovered
+    for entry in sorted(os.listdir(rdir)):
+        sdir = os.path.join(rdir, entry)
+        if not os.path.isdir(sdir) or "-" not in entry:
+            continue
+        for fname in sorted(os.listdir(sdir)):
+            if fname.endswith("_ontology_pharma_alphagenome.json"):
+                pid = fname[: -len("_ontology_pharma_alphagenome.json")]
+                parts = [p for p in pid.split("_") if p]
+                code = "".join(p[0] for p in parts).lower() if len(parts) >= 2 else pid[:2].lower()
+                pname = pid.replace("_", " ")
+                if code not in discovered or entry.endswith("-09-10-2026"):
+                    discovered[code] = {
+                        "code": code,
+                        "sample_dir": entry,
+                        "patient_id": pid,
+                        "patient_name": pname,
+                        "json_path": os.path.join(sdir, fname),
+                        "pharma_dir": f"{code.upper()}_pharma_reports",
+                        "vcf_path": f"/data/Genomes/{code.upper()}/Approach4D_Output/{code.upper()}_grch38_wgs_phased.pass.vcf.gz",
+                    }
+    return discovered
+
 
 # AlphaGenome 18 Biological Modality Display Names
 MODALITY_LABELS = {
@@ -57,32 +84,6 @@ MODALITY_LABELS = {
     "fi_PROTEIN_TERMINATION": "Protein Term",
     "fi_START_LOST": "Start Lost",
     "fi_STOP_LOST": "Stop Lost"
-}
-
-# Curated STRING / Reactome Functional Gene Interaction & Pathway Partners
-CURATED_GENE_NETWORKS = {
-    "SCN5A": [("ANK2", "Cytoskeletal Sodium Channel Anchoring (STRING)"), ("KCNQ1", "Cardiac Action Potential Repolarization"), ("KCNH2", "Delayed Rectifier K+ Channel Complex"), ("CACNA1C", "Voltage-Gated Ca2+ / Na+ Excitation Coupling"), ("RYR2", "Sarcoplasmic Ca2+ Release & Conduction"), ("SCN1B", "Voltage-Gated Sodium Channel Beta Subunit")],
-    "ANK2": [("SCN5A", "Nav1.5 Membrane Tethering Complex (STRING)"), ("CACNA1C", "L-Type Calcium Channel Localization"), ("ATP1A2", "Na+/K+ ATPase & NCX1 Microdomain"), ("RYR2", "Cardiac Conduction & Sinus Node Complex"), ("KCNQ1", "Long QT Syndrome Channelopathy Network"), ("SPTBN1", "Spectrin-Ankyrin Cytoskeletal Scaffold")],
-    "F5": [("F2", "Prothrombinase Coagulation Complex (Reactome)"), ("PROC", "Activated Protein C Cleavage Substrate (STRING)"), ("PROS1", "Protein S Cofactor Complex"), ("SERPINC1", "Antithrombin III Coagulation Cascade"), ("F8", "Homologous Coagulation Cofactor VIII"), ("VWF", "Hemostasis & Platelet Adhesion Cascade")],
-    "CBLIF": [("CUBN", "Cubam Ileal Intrinsic Factor Receptor (STRING)"), ("AMN", "Amnionless Cobalamin Endocytosis Complex"), ("TCN2", "Transcobalamin II Systemic B12 Transport"), ("MTR", "Methionine Synthase (Cobalamin-Dependent)"), ("MMACHC", "Intracellular Cobalamin Processing"), ("MTHFR", "One-Carbon Folate/Cobalamin Remethylation Cycle")],
-    "APOB": [("LDLR", "ApoB-100 LDL Receptor Endocytosis (STRING)"), ("PCSK9", "LDLR Degradation & Lipid Clearance"), ("MTTP", "Microsomal Triglyceride Transfer Assembly"), ("APOE", "Chylomicron & VLDL Remnant Clearance"), ("ABCG5", "Hepatobiliary Sterol Efflux Transporter"), ("NPC1L1", "Intestinal Sterol Absorption Pathway")],
-    "DPYD": [("TYMS", "Thymidylate Synthase 5-FU Target (Reactome)"), ("DPYS", "Dihydropyrimidinase Catabolic Step 2"), ("UPB1", "Beta-Ureidopropionase Pyrimidine Degradation"), ("MTHFR", "5,10-MTHF Cofactor Ternary Complex"), ("UMPS", "Fluoropyrimidine Anabolic Activation")],
-    "NAT2": [("NAT1", "Arylamine N-Acetyltransferase Isozyme"), ("CYP2E1", "Isoniazid Hepatotoxicity Metabolic Axis"), ("GSTM1", "Glutathione S-Transferase Detoxification"), ("CYP2D6", "Phase I/II Hepatic Xenobiotic Clearance")],
-    "VKORC1": [("CYP2C9", "Warfarin S-Enantiomer Hydroxylation & Target Axis"), ("GGCX", "Gamma-Glutamyl Carboxylase Vitamin K Cycle"), ("CYP4F2", "Vitamin K1 Omega-Hydroxylase"), ("F2", "Vitamin K-Dependent Clotting Factor II"), ("PROC", "Vitamin K-Dependent Protein C")],
-    "CYP2C9": [("VKORC1", "Coumarin Anticoagulant PD/PK Synergy"), ("CYP2C19", "Cytochrome P450 2C Subfamily Cluster"), ("CYP2C8", "NSAID & Arachidonic Acid Metabolism"), ("SLCO1B1", "Hepatic Organic Anion Drug Uptake")],
-    "CYP2D6": [("CYP2C19", "Psychotropic & Opioid Dual CYP Metabolism"), ("CYP3A4", "Hepatic Phase I Monooxygenase Network"), ("COMT", "Monoamine Neurotransmitter Clearance"), ("ABCB1", "P-Glycoprotein Blood-Brain Efflux")],
-    "GJB2": [("GJB6", "Connexin-26 / Connexin-30 Cochlear Gap Junction (STRING)"), ("GJB3", "Gap Junction Beta-3 Auditory Complex"), ("SLC26A4", "Endolymphatic Ion Homeostasis"), ("MYO7A", "Cochlear Hair Cell Stereocilia Network")],
-    "VDR": [("RXRA", "Retinoid X Receptor Heterodimer Complex (STRING)"), ("CYP27B1", "1-Alpha-Hydroxylase Calcitriol Synthesis"), ("CYP24A1", "Vitamin D 24-Hydroxylase Catabolism"), ("CASR", "Calcium-Sensing & Bone Mineralization"), ("LRP5", "Wnt/Beta-Catenin Osteoblast Signaling")],
-    "POLG": [("POLG2", "Accessory Subunit p55 mtDNA Replisome (STRING)"), ("TWNK", "Twinkle mtDNA Helicase Complex"), ("RRM2B", "Mitochondrial dNTP Salvage Synthesis"), ("OPA1", "Mitochondrial Inner Membrane Fusion"), ("C19orf12", "Mitochondrial Membrane Lipid Homeostasis")],
-    "ATM": [("BRCA1", "Homologous Recombination DSB Repair (STRING)"), ("BRCA2", "RAD51 Loading & DSB Repair"), ("RAD51", "Homologous Strand Invasion Recombinase"), ("CHEK2", "Checkpoint Kinase 2 Phosphorylation Target"), ("PMS2", "DNA Damage Response & Mismatch Repair"), ("BLM", "RecQ Like Helicase Genome Stability")],
-    "PMS2": [("MLH1", "MutL-Alpha Mismatch Repair Heterodimer (STRING)"), ("MSH2", "MutS-Alpha DNA Mismatch Recognition"), ("MSH6", "Base-Base Mismatch Repair Partner"), ("ATM", "DNA Damage Checkpoint Signaling"), ("RAD51", "Recombinational DNA Repair")],
-    "RAD51": [("BRCA2", "Direct BRC-Repeat Binding Partner (STRING)"), ("BRCA1", "Homologous Recombination Repair Complex"), ("RAD51C", "BCDX2 Paralog Repair Complex"), ("ATM", "Double-Strand Break Sensing Kinase"), ("PMS2", "Genome Integrity & Recombination")],
-    "PTPN22": [("CSK", "C-Terminal Src Kinase T-Cell Inhibition (STRING)"), ("HLA-DRB5", "MHC Class II Autoimmune Antigen Presentation"), ("ZAP70", "TCR Zeta-Chain Associated Kinase Substrate"), ("STAT4", "Autoimmune Cytokine Signaling"), ("C2", "Classical Complement Autoimmunity Axis")],
-    "HLA-DRB5": [("HLA-DRB1", "MHC Class II Beta Chain Paralogs"), ("PTPN22", "Lymphoid Tyrosine Phosphatase Epistasis"), ("C2", "MHC Class III Complement Locus"), ("CD4", "T-Cell Receptor Co-Receptor Ligand")],
-    "CDKN2B": [("CDKN2A", "9p21.3 INK4b-ARF-INK4a Cell Cycle Locus"), ("CDK4", "Cyclin-Dependent Kinase 4 Inhibition (STRING)"), ("CDK6", "G1 Vascular Smooth Muscle Progression"), ("APOB", "Coronary Atherogenesis Risk/Protection Axis"), ("NOS3", "Endothelial Nitric Oxide Vascular Tone")],
-    "TAT": [("HPD", "4-Hydroxyphenylpyruvate Dioxygenase Tyrosine Catabolism"), ("FAH", "Fumarylacetoacetate Hydrolase"), ("PAH", "Phenylalanine Hydroxylase Upstream Enzyme"), ("GSTZ1", "Maleylacetoacetate Isomerase")],
-    "CTH": [("CBS", "Cystathionine Beta-Synthase Transsulfuration Step 1 (STRING)"), ("MTHFR", "Homocysteine Remethylation vs. Transsulfuration"), ("MTR", "Methionine Synthase Folate/B12 Cycle"), ("GCLC", "Glutathione De Novo Synthesis")],
-    "DNAH7": [("DNAH5", "Outer/Inner Dynein Arm Axonemal Complex (STRING)"), ("DNAH11", "Ciliary Beat Frequency Motor"), ("DNAI1", "Dynein Intermediate Chain"), ("CFTR", "Mucociliary Airway Clearance")]
 }
 
 # Therapeutic drug class keyword matcher
@@ -117,17 +118,15 @@ def load_ag_cache():
 def compute_variant_confidence(v):
     """Calculates objective 0.00-1.00 confidence score based on ClinVar, AI consensus, and WGS depth."""
     cv = str(v.get("clinvar") or "").lower()
-    gene = str(v.get("gene") or "").upper()
-    achg = str(v.get("achange") or v.get("cchange") or "")
-    rsid = str(v.get("id") or "")
+    cat = str(v.get("category") or "").lower()
 
     if "pathogenic" in cv and "conflicting" not in cv and "uncertain" not in cv:
         conf = 0.95
-    elif "drug response" in cv or gene in ["DPYD", "NAT2", "VKORC1", "CYP2C9", "CYP2C19", "CYP2D6", "SLCO1B1"] or (gene == "F5" and ("534" in achg or rsid == "rs6025")):
+    elif "drug response" in cv or "drug response" in cat:
         conf = 0.92
     elif "likely pathogenic" in cv:
         conf = 0.90
-    elif "protective" in cv or gene == "CDKN2B":
+    elif "protective" in cv or cat == "protective":
         conf = 0.85
     elif "uncertain" in cv or "conflicting" in cv:
         conf = 0.42
@@ -147,7 +146,7 @@ def compute_variant_confidence(v):
 
 
 def build_gene_networks(genes_list):
-    """Builds interactive gene-gene relationship network graphs per gene, flagging co-mutated patient genes."""
+    """Builds interactive gene-gene relationship network graphs per gene dynamically from GO, HPO, and Organ System ontologies."""
     patient_gene_map = {}
     for g in genes_list:
         sym = g.get("symbol")
@@ -191,24 +190,7 @@ def build_gene_networks(genes_list):
         neighbors = []
         seen_nb = {sym}
 
-        # 1. Curated high-confidence STRING / Reactome functional partners
-        for partner_sym, relation_desc in CURATED_GENE_NETWORKS.get(sym, []):
-            if partner_sym in seen_nb:
-                continue
-            seen_nb.add(partner_sym)
-            p_info = patient_gene_map.get(partner_sym)
-            neighbors.append({
-                "symbol": partner_sym,
-                "relation": relation_desc,
-                "edgeType": "STRING / Reactome PPI",
-                "inPatientCallset": bool(p_info),
-                "varCount": p_info["varCount"] if p_info else 0,
-                "topTier": p_info["topTier"] if p_info else "Ref/WT",
-                "maxCadd": p_info["maxCadd"] if p_info else 0.0,
-                "clinvar": p_info["clinvar"] if p_info else "Wildtype in Callset"
-            })
-
-        # 2. Shared GO Biological Process partners mutated in the patient
+        # 1. Shared GO Biological Process partners mutated in the patient
         for go_term in (g.get("goBpo") or [])[:5]:
             for co_sym in go_to_genes.get(go_term, []):
                 if co_sym not in seen_nb and len(neighbors) < 9:
@@ -225,7 +207,7 @@ def build_gene_networks(genes_list):
                         "clinvar": p_info.get("clinvar", "Annotated")
                     })
 
-        # 3. Shared HPO Phenotype partners mutated in the patient
+        # 2. Shared HPO Phenotype partners mutated in the patient
         for h in g.get("hpoTerms", [])[:5]:
             lbl = h.get("label") if isinstance(h, dict) else str(h)
             for co_sym in hpo_to_genes.get(lbl, []):
@@ -243,7 +225,7 @@ def build_gene_networks(genes_list):
                         "clinvar": p_info.get("clinvar", "Annotated")
                     })
 
-        # 4. Fallback same organ system top mutated genes if fewer than 4 neighbors
+        # 3. Fallback same organ system top mutated genes if fewer than 5 neighbors
         org = g.get("organSystem")
         if len(neighbors) < 5 and org in organ_to_genes:
             for co_sym in organ_to_genes[org]:
@@ -272,13 +254,22 @@ def build_gene_networks(genes_list):
         }
 
 
+def _resolve_vcf_path_for_sample(patient_id):
+    discovered = discover_cohort_samples()
+    for info in discovered.values():
+        if info["patient_id"] == patient_id:
+            return info["vcf_path"]
+    parts = [p for p in str(patient_id or "").split("_") if p]
+    code = "".join(p[0] for p in parts).upper() if len(parts) >= 2 else str(patient_id or "")[:2].upper()
+    return f"/data/Genomes/{code}/Approach4D_Output/{code}_grch38_wgs_phased.pass.vcf.gz"
+
+
 def process_patient(json_path, patient_id, patient_name):
-    print(f"Processing {patient_name} ({patient_id}) from {json_path}...")
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     ag_cache = load_ag_cache()
-    vcf_telemetry = parse_vcf_depth_telemetry(PATIENT_VCF_MAP.get(patient_id, ""))
+    vcf_telemetry = parse_vcf_depth_telemetry(_resolve_vcf_path_for_sample(patient_id))
 
     genes_list = data.get("genes", [])
     if isinstance(genes_list, dict):
@@ -308,7 +299,6 @@ def process_patient(json_path, patient_id, patient_name):
     flat_records = []
     all_dps = []
     for g in genes_list:
-        sym = g.get("symbol", "")
         for v in g.get("variants", []):
             chrom = str(v.get("chrom") or g.get("chrom") or "")
             pos = v.get("pos") or g.get("pos") or 0
@@ -509,15 +499,15 @@ def process_patient(json_path, patient_id, patient_name):
             gene_to_domains[sym].add(hlabel)
 
     hpo_keyword_rules = [
-        ("Neurology", ["nervous", "seizure", "epilepsy", "brain", "neuropath", "ataxia", "dementia", "cntn1", "c19orf12"]),
-        ("Metabolic", ["metabol", "inborn", "aciduria", "peroxis", "mitochon", "glycogen", "cblif", "hfe", "mthfr", "diabetes"]),
-        ("Cardiovascular", ["cardio", "vascular", "heart", "arrhythm", "channelopath", "scn5a", "apob", "ldlr", "long qt", "brugada"]),
-        ("Immune / Autoimmunity", ["immune", "autoimmun", "arthritis", "lupus", "hla", "ptpn22"]),
-        ("Hematology / Coagulation", ["hematolog", "anemia", "coagulat", "thromb", "f5", "platelet"]),
+        ("Neurology", ["nervous", "seizure", "epilepsy", "brain", "neuropath", "ataxia", "dementia"]),
+        ("Metabolic", ["metabol", "inborn", "aciduria", "peroxis", "mitochon", "glycogen", "cobalamin", "folate", "diabetes"]),
+        ("Cardiovascular", ["cardio", "vascular", "heart", "arrhythm", "channelopath", "lipoprotein", "cholesterol", "long qt", "brugada"]),
+        ("Immune / Autoimmunity", ["immune", "autoimmun", "arthritis", "lupus", "histocompatibility", "lymphoid"]),
+        ("Hematology / Coagulation", ["hematolog", "anemia", "coagulat", "thromb", "hemostasis", "platelet"]),
         ("Skeletal / Morphogenesis", ["skelet", "bone", "cranio", "connect", "collagen", "marfan", "ehlers"]),
-        ("Neoplasm / Oncology", ["neoplasm", "cancer", "tumor", "carcinoma", "lynch", "brca", "pms2", "rad51"]),
+        ("Neoplasm / Oncology", ["neoplasm", "cancer", "tumor", "carcinoma", "lynch", "recombination", "mismatch repair"]),
         ("Renal / Urinary", ["urin", "renal", "kidney", "nephr"]),
-        ("Respiratory", ["respirat", "lung", "ciliary", "dnah7"])
+        ("Respiratory", ["respirat", "lung", "ciliary", "dynein"])
     ]
 
     hpo_domain_counts = defaultdict(lambda: {"total": 0, "actionable": 0})
@@ -527,7 +517,7 @@ def process_patient(json_path, patient_id, patient_name):
         sym = g.get("symbol", "")
         matched = set(gene_to_domains.get(sym, set()))
 
-        full_text = f"{sym} {g.get('name', '')} {g.get('organSystem', '')} {' '.join(str(p.get('name', '')) for p in g.get('associatedPathology', []))}".lower()
+        full_text = f"{g.get('name', '')} {g.get('organSystem', '')} {' '.join(str(p.get('name', '')) for p in g.get('associatedPathology', []))}".lower()
         for dom, kws in hpo_keyword_rules:
             if any(kw in full_text for kw in kws):
                 matched.add(dom)
@@ -791,7 +781,7 @@ def process_patient(json_path, patient_id, patient_name):
     report_stats = {
         "visual_explorer": {
             "title": "Visual Explorer — Universal Genomic & Variant Catalog",
-            "desc": "Comprehensive interactive catalog of all prioritized and annotated genomic variants across HPO, GO, and ClinVar classifications, with 18-modality AlphaGenome attribution, parental phase attribution, and interactive STRING/Reactome gene networks.",
+            "desc": "Comprehensive interactive catalog of all prioritized and annotated genomic variants across HPO, GO, and ClinVar classifications, with 18-modality AlphaGenome attribution, parental phase attribution, and interactive GO/HPO/Organ-System gene networks.",
             "totalGenes": len(genes_list),
             "totalVariants": total_variants,
             "topMetricLabel": "Priority Tier"
@@ -864,8 +854,8 @@ def process_patient(json_path, patient_id, patient_name):
             "pdfFile": f"reports/{os.path.basename(os.path.dirname(json_path))}/{patient_id}_clinical_brief.pdf"
         },
         "ai_clinical_old": {
-            "title": "Executive AI Clinical Action Brief (old — Dual-AI Pathology & Terse Acute Rx)",
-            "desc": "Retained determinative 3-page clinician brief enhanced with empirical WGS depth, terse acute prescribing guardrails, and Dual-AI written & independently audited pathology row guidance.",
+            "title": "Executive AI Clinical Action Brief (old — Determinative 3-Page Edition)",
+            "desc": "Retained determinative 3-page clinician brief enhanced with BAM mean depth and acute prescribing guardrails.",
             "htmlFile": f"reports/{os.path.basename(os.path.dirname(json_path))}/{patient_id}_clinical_brief (old).html",
             "pdfFile": f"reports/{os.path.basename(os.path.dirname(json_path))}/{patient_id}_clinical_brief (old).pdf"
         },
@@ -948,10 +938,13 @@ def process_patient(json_path, patient_id, patient_name):
 
 
 def build_shared_concordance(de_data, me_data):
-    """Builds a Dual-Cohort Concordance synthesis comparing Daniel & Melinda callsets."""
+    """Builds a Dual-Cohort Concordance synthesis comparing two sample callsets dynamically."""
     de_genes = {g["symbol"]: g for g in de_data.get("genes", [])}
     me_genes = {g["symbol"]: g for g in me_data.get("genes", [])}
     shared_symbols = sorted(set(de_genes.keys()) & set(me_genes.keys()))
+
+    de_first = str(de_data.get("patientName") or "Sample DE").split()[0]
+    me_first = str(me_data.get("patientName") or "Sample ME").split()[0]
 
     shared_gene_cards = []
     shared_recessive_alerts = []
@@ -969,12 +962,12 @@ def build_shared_concordance(de_data, me_data):
         combined_vars = []
         for v in d_vars:
             vc = dict(v)
-            vc["cohortOwner"] = "Daniel"
+            vc["cohortOwner"] = de_first
             vc["phase"] = f"DE: {v.get('phase', 'Unphased')}"
             combined_vars.append(vc)
         for v in m_vars:
             vc = dict(v)
-            vc["cohortOwner"] = "Melinda"
+            vc["cohortOwner"] = me_first
             vc["phase"] = f"ME: {v.get('phase', 'Unphased')}"
             combined_vars.append(vc)
 
@@ -985,10 +978,10 @@ def build_shared_concordance(de_data, me_data):
 
     return {
         "patientId": "Shared_Concordance",
-        "patientName": "Dual-Cohort Concordance (Daniel ∩ Melinda)",
+        "patientName": f"Dual-Cohort Concordance ({de_first} ∩ {me_first})",
         "meta": {
             "sampleId": "Shared_Concordance",
-            "sampleName": "Daniel & Melinda Shared Concordance",
+            "sampleName": f"{de_first} & {me_first} Shared Concordance",
             "totalGenes": len(shared_gene_cards),
             "totalVariants": sum(len(g["variants"]) for g in shared_gene_cards),
             "meanActionableDp": f"DE: {de_data['meta']['meanActionableDp']} / ME: {me_data['meta']['meanActionableDp']}",
@@ -1016,32 +1009,27 @@ def build_shared_concordance(de_data, me_data):
 
 
 def main():
-    print("==================================================================")
-    print("PREPARING DATASET FOR GENOMIC COMMAND CENTER & VARIANT ATLAS")
-    print("==================================================================")
     os.makedirs(DATA_DIR, exist_ok=True)
+    samples = discover_cohort_samples()
+    de_info = samples["de"]
+    me_info = samples["me"]
 
-    de_data = process_patient(DE_JSON, "Daniel_Ehrle", "Daniel Ehrle")
-    me_data = process_patient(ME_JSON, "Melinda_Ehrle", "Melinda Ehrle")
+    de_data = process_patient(de_info["json_path"], de_info["patient_id"], de_info["patient_name"])
+    me_data = process_patient(me_info["json_path"], me_info["patient_id"], me_info["patient_name"])
     shared_data = build_shared_concordance(de_data, me_data)
 
     cohort_payload = {
-        "Daniel_Ehrle": de_data,
-        "Melinda_Ehrle": me_data,
+        de_info["patient_id"]: de_data,
+        me_info["patient_id"]: me_data,
         "Shared_Concordance": shared_data
     }
 
     out_js = os.path.join(DATA_DIR, "cohort_landscape_data.js")
-    print(f"\nWriting cohort JS bundle to: {out_js}...")
     with open(out_js, "w", encoding="utf-8") as f:
-        f.write("/**\n * Cohort Data for Genomic Command Center & Variant Atlas\n * Precomputed for Daniel Ehrle, Melinda Ehrle & Shared Concordance\n */\n")
+        f.write("/**\n * Cohort Data for Genomic Command Center & Variant Atlas\n */\n")
         f.write("window.COHORT_DATA = ")
         json.dump(cohort_payload, f, indent=None)
         f.write(";\n")
-
-    size_mb = os.path.getsize(out_js) / (1024 * 1024)
-    print(f"Cohort JS bundle generated successfully! ({size_mb:.2f} MB)")
-    print("Done.\n")
 
 
 if __name__ == "__main__":

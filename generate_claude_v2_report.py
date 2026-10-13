@@ -10,19 +10,20 @@ from datetime import datetime
 
 def find_external_pharma_json(patient_id):
     """
-    Locates patient pharmacogenomics report JSON across local and system paths.
+    Locates patient pharmacogenomics report JSON across local and system paths dynamically.
     """
+    import glob
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    candidates = []
-    sample_prefix = "DE" if ("Daniel" in patient_id or "DE" in patient_id) else ("ME" if ("Melinda" in patient_id or "ME" in patient_id) else patient_id)
-    
-    candidates.extend([
+    parts = [p for p in str(patient_id or "").split("_") if p]
+    sample_prefix = "".join(p[0] for p in parts).upper() if len(parts) >= 2 else str(patient_id or "")[:2].upper()
+
+    candidates = [
         os.path.join(script_dir, "reports", f"{sample_prefix}_pharma_reports", f"{patient_id}_pharma.json"),
-        os.path.join(script_dir, "reports", f"{sample_prefix}_pharma_reports", "Daniel_Ehrle_pharma.json" if sample_prefix == "DE" else "Melinda_Ehrle_pharma.json"),
         f"/data/Genomes/{sample_prefix}/Approach4D_Output/pharma_reports/{patient_id}_pharma.json",
-        f"/data/Genomes/{sample_prefix}/Approach4D_Output/pharma_reports/" + ("Daniel_Ehrle_pharma.json" if sample_prefix == "DE" else "Melinda_Ehrle_pharma.json")
-    ])
-    
+    ]
+    candidates.extend(glob.glob(os.path.join(script_dir, "reports", f"{sample_prefix}_pharma_reports", "*_pharma.json")))
+    candidates.extend(glob.glob(f"/data/Genomes/{sample_prefix}/Approach4D_Output/pharma_reports/*_pharma.json"))
+
     for c in candidates:
         if os.path.exists(c):
             try:
@@ -179,63 +180,8 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
     pgx_list = []
     prs_map = {}
 
-    CURATED_PUBLICATIONS = {
-        "SCN5A": [
-            {"pmid": "32916098", "title": "Large-Scale Genomics of ECG Morphology and Sodium Channel Cardiac Arrhythmias", "journal": "Nat Genet", "year": 2020, "authors": "Sotoodehnia N et al.", "relevance": "Evaluates SCN5A missense variants in cardiac conduction, Brugada syndrome, and QT prolongation.", "url": "https://pubmed.ncbi.nlm.nih.gov/32916098/"},
-            {"pmid": "30192842", "title": "Clinical Spectrum and Penetrance of SCN5A Mutations in Brugada and Long QT Syndromes", "journal": "Circulation", "year": 2018, "authors": "Priori SG et al.", "relevance": "Defines genotype-phenotype correlations and arrhythmogenic risk tiers in voltage-gated sodium channelopathy.", "url": "https://pubmed.ncbi.nlm.nih.gov/30192842/"}
-        ],
-        "APOB": [
-            {"pmid": "41896352", "title": "Polygenic and Monogenic Architecture of Serum Triglycerides and Familial Hypercholesterolemia", "journal": "Am J Hum Genet", "year": 2024, "authors": "Richardson TG et al.", "relevance": "Links APOB coding variants to atherogenic lipid elevations and coronary artery disease risk.", "url": "https://pubmed.ncbi.nlm.nih.gov/41896352/"},
-            {"pmid": "31043511", "title": "ClinGen Familial Hypercholesterolemia Expert Panel Curation of APOB Variants", "journal": "Genet Med", "year": 2019, "authors": "Chora JR et al.", "relevance": "Standardized ACMG/ClinGen classification guidelines for pathogenic APOB mutations.", "url": "https://pubmed.ncbi.nlm.nih.gov/31043511/"}
-        ],
-        "PTPN22": [
-            {"pmid": "37794183", "title": "Genome-Wide Association Studies of Autoimmune Multi-Disease Risk", "journal": "Nature", "year": 2023, "authors": "Saevarsdottir S et al.", "relevance": "Identifies PTPN22 functional missense variants in rheumatoid arthritis, SLE, and type 1 diabetes susceptibility.", "url": "https://pubmed.ncbi.nlm.nih.gov/37794183/"}
-        ],
-        "HLA-DRB5": [
-            {"pmid": "37794183", "title": "MHC Class II Allelic Variation in Systemic Autoimmunity and Antigen Presentation", "journal": "Nature", "year": 2023, "authors": "Saevarsdottir S et al.", "relevance": "Fine-mapping of HLA-DRB5/DRB1 haplotypes in autoimmune arthropathies.", "url": "https://pubmed.ncbi.nlm.nih.gov/37794183/"}
-        ],
-        "PMS2": [
-            {"pmid": "31676860", "title": "Lynch Syndrome and Mismatch Repair Deficiency in Hereditary Colorectal and Endometrial Cancer", "journal": "N Engl J Med", "year": 2019, "authors": "Ten Broeke SW et al.", "relevance": "Clinical guidelines for surveillance in constitutional PMS2 mutation carriers.", "url": "https://pubmed.ncbi.nlm.nih.gov/31676860/"}
-        ],
-        "RAD51": [
-            {"pmid": "32296059", "title": "Homologous Recombination DNA Repair Genes in Hereditary Breast and Ovarian Cancer", "journal": "Lancet Oncol", "year": 2020, "authors": "Dorling L et al.", "relevance": "Evaluates RAD51C/RAD51 paralog missense variants in DNA double-strand break repair.", "url": "https://pubmed.ncbi.nlm.nih.gov/32296059/"}
-        ],
-        "CBLIF": [
-            {"pmid": "28957414", "title": "Inherited Cobalamin Malabsorption and Gastric Intrinsic Factor Deficiency", "journal": "Blood", "year": 2017, "authors": "Tanner SM et al.", "relevance": "Identifies gastric intrinsic factor (CBLIF) mutations in juvenile megaloblastic anemia and cobalamin transport deficiency.", "url": "https://pubmed.ncbi.nlm.nih.gov/28957414/"}
-        ],
-        "C19orf12": [
-            {"pmid": "21981780", "title": "Mitochondrial Membrane Protein-Associated Neurodegeneration (MPAN) Caused by C19orf12 Mutations", "journal": "Nat Genet", "year": 2011, "authors": "Hartig MB et al.", "relevance": "Clinical and genetic characterization of C19orf12 mutations in neurodegeneration with brain iron accumulation.", "url": "https://pubmed.ncbi.nlm.nih.gov/21981780/"}
-        ],
-        "DNAH7": [
-            {"pmid": "38965376", "title": "Axonemal Dynein Heavy Chain Mutations in Ciliary Motility and Respiratory Phenotypes", "journal": "Eur Respir J", "year": 2024, "authors": "Legendre M et al.", "relevance": "Characterizes axonemal inner dynein arm mutations in ciliary clearance.", "url": "https://pubmed.ncbi.nlm.nih.gov/38965376/"}
-        ],
-        "GJB2": [
-            {"pmid": "37794183", "title": "Connexin-26 (GJB2) Genetic Architecture in Sensorineural Hearing Impairment", "journal": "Hum Genet", "year": 2023, "authors": "Sloan-Heggen CM et al.", "relevance": "Comprehensive population frequency and pathogenicity spectra for GJB2 alleles.", "url": "https://pubmed.ncbi.nlm.nih.gov/37794183/"}
-        ]
-    }
-
-    # Curated monogenic dominant / recessive inheritance mapping
-    INHERITANCE_MAP = {
-        "SCN5A": [{"name": "Brugada syndrome 1 / Long QT syndrome 3", "inheritance": ["Autosomal Dominant"], "omim": "601144"}],
-        "APOB": [{"name": "Familial Hypercholesterolemia 2", "inheritance": ["Autosomal Dominant"], "omim": "144010"}],
-        "PTPN22": [{"name": "Autoimmune Disease Susceptibility", "inheritance": ["Autosomal Dominant", "Complex"], "omim": "600716"}],
-        "HLA-DRB5": [{"name": "Rheumatoid Arthritis Susceptibility", "inheritance": ["Complex / Polygenic"], "omim": "604305"}],
-        "PMS2": [{"name": "Lynch Syndrome 4 / Mismatch Repair Cancer Predisposition", "inheritance": ["Autosomal Dominant", "Autosomal Recessive"], "omim": "600259"}],
-        "RAD51": [{"name": "Breast-Ovarian Cancer Predisposition", "inheritance": ["Autosomal Dominant"], "omim": "179570"}],
-        "CBLIF": [{"name": "Intrinsic Factor Deficiency / Cobalamin Malabsorption", "inheritance": ["Autosomal Recessive"], "omim": "261000"}],
-        "C19orf12": [{"name": "Neurodegeneration with Brain Iron Accumulation 4", "inheritance": ["Autosomal Recessive"], "omim": "614297"}],
-        "DNAH7": [{"name": "Primary Ciliary Dyskinesia / Respiratory Clearance", "inheritance": ["Autosomal Recessive"], "omim": "610061"}],
-        "GJB2": [{"name": "Autosomal Recessive Deafness 1A / Dominant 3A", "inheritance": ["Autosomal Recessive", "Autosomal Dominant"], "omim": "121011"}],
-        "LMO1": [{"name": "Neuroblastoma Susceptibility (Protective polymorphism)", "inheritance": ["Complex / Protective"], "omim": "180210"}],
-        "CYP46A1": [{"name": "Chronic Obstructive Pulmonary Disease Susceptibility", "inheritance": ["Complex / Protective"], "omim": "604071"}],
-        "MPO": [{"name": "Lung Cancer Protection in Smokers / Myeloperoxidase Deficiency", "inheritance": ["Autosomal Recessive", "Protective / Risk Factor"], "omim": "606989"}],
-        "CASP8": [{"name": "Lung Cancer Protection / Autoimmune Lymphoproliferative", "inheritance": ["Autosomal Dominant", "Protective Factor"], "omim": "601763"}],
-        "CCR5": [{"name": "HIV-1 Infection Resistance / Delayed Progression", "inheritance": ["Autosomal Recessive", "Protective Factor"], "omim": "601373"}],
-        "ADH1C": [{"name": "Alcohol Dependence & Toxicity Modulator", "inheritance": ["Complex / Protective"], "omim": "103730"}],
-        "C2": [{"name": "Age-Related Macular Degeneration 14 Protection", "inheritance": ["Autosomal Recessive", "Protective Factor"], "omim": "613793"}],
-        "NOS3": [{"name": "Metabolic Syndrome & Hypertension Susceptibility", "inheritance": ["Complex / Protective"], "omim": "163729"}],
-        "CDKN2B": [{"name": "Coronary Artery Disease & Breast Carcinoma", "inheritance": ["Complex / Polygenic", "Protective Allele"], "omim": "600431"}]
-    }
+    CURATED_PUBLICATIONS = {}
+    INHERITANCE_MAP = {}
 
     # 1. Parse individual variant records
     for r in records:
@@ -1092,31 +1038,34 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
         }
     }
 
-    organ_risk_matrix = [
-        {"system": "Heart & Cardiovascular", "icon": "🫀", "riskTier": "HIGH", "pathogenicCount": 1, "concernGenes": ["SCN5A", "APOB"], "prsPercentile": 87, "pathway": "Cardiac Action Potential & Lipid Transport"},
-        {"system": "Immune & Autoimmunity", "icon": "🛡️", "riskTier": "HIGH", "pathogenicCount": 0, "concernGenes": ["HLA-DRB5", "PTPN22"], "prsPercentile": 68, "pathway": "MHC Class II Antigen Presentation & Arthritis"},
-        {"system": "Brain & Nervous System", "icon": "🧠", "riskTier": "MODERATE", "pathogenicCount": 0, "concernGenes": ["CNTN1", "C19orf12"], "prsPercentile": 52, "pathway": "Synaptic Cell Adhesion & Axonal Guidance"},
-        {"system": "Digestive & Metabolism", "icon": "🧪", "riskTier": "MODERATE", "pathogenicCount": 1, "concernGenes": ["CBLIF"], "prsPercentile": 94, "pathway": "Cobalamin / Intrinsic Factor Processing"},
-        {"system": "Skeleton & Connective Tissue", "icon": "🦴", "riskTier": "TYPICAL", "pathogenicCount": 0, "concernGenes": [], "prsPercentile": 44, "pathway": "Extracellular Matrix & Collagen Organization"},
-        {"system": "Lungs & Respiratory", "icon": "🫁", "riskTier": "TYPICAL", "pathogenicCount": 0, "concernGenes": ["DNAH7"], "prsPercentile": 38, "pathway": "Axonemal Inner Dynein Ciliary Motion"},
-        {"system": "Kidneys & Urinary", "icon": "🫘", "riskTier": "TYPICAL", "pathogenicCount": 0, "concernGenes": [], "prsPercentile": 50, "pathway": "Glomerular Basement Membrane & Filtration"},
-        {"system": "Cancer Predisposition", "icon": "🔬", "riskTier": "MODERATE", "pathogenicCount": 0, "concernGenes": ["PMS2", "RAD51"], "prsPercentile": 48, "pathway": "Homologous Recombination & Mismatch Repair"}
+    organ_defs = [
+        ("Heart & Cardiovascular", "🫀", "Cardiac Action Potential & Lipid Transport"),
+        ("Immune & Autoimmunity", "🛡️", "MHC Class II Antigen Presentation & Immunity"),
+        ("Brain & Nervous System", "🧠", "Synaptic Cell Adhesion & Axonal Guidance"),
+        ("Digestive & Metabolism", "🧪", "Metabolic & Enzymatic Processing"),
+        ("Skeleton & Connective Tissue", "🦴", "Extracellular Matrix & Collagen Organization"),
+        ("Lungs & Respiratory", "🫁", "Axonemal Ciliary Motion & Airway Clearance"),
+        ("Kidneys & Urinary", "🫘", "Glomerular Basement Membrane & Filtration"),
+        ("Cancer Predisposition", "🔬", "Homologous Recombination & Mismatch Repair")
     ]
+    organ_risk_matrix = []
+    for sys_name, icon, pathway_desc in organ_defs:
+        concern_genes = [
+            g["symbol"] for g in genes_list
+            if g.get("organSystem") == sys_name and any(v.get("category") == "concern" for v in g.get("variants", []))
+        ]
+        organ_risk_matrix.append({
+            "system": sys_name,
+            "icon": icon,
+            "riskTier": "HIGH" if len(concern_genes) >= 2 else ("MODERATE" if concern_genes else "TYPICAL"),
+            "pathogenicCount": len(concern_genes),
+            "concernGenes": concern_genes[:5],
+            "prsPercentile": 50,
+            "pathway": pathway_desc
+        })
 
     prs_list = list(prs_map.values())
-    if not prs_list:
-        prs_list = [
-            {"trait": "Coronary Artery Disease", "organSystem": "Cardiovascular", "percentile": 87, "category": "HIGH", "pgsId": "PGS000018"},
-            {"trait": "Atrial Fibrillation", "organSystem": "Cardiovascular", "percentile": 42, "category": "AVERAGE", "pgsId": "PGS000024"},
-            {"trait": "Type 2 Diabetes", "organSystem": "Metabolic", "percentile": 94, "category": "HIGH", "pgsId": "PGS000036"},
-            {"trait": "Rheumatoid Arthritis", "organSystem": "Immune", "percentile": 68, "category": "MODERATE", "pgsId": "PGS000102"}
-        ]
-
-    fallback_pgx = [
-        {"gene": "CYP2D6", "diplotype": "*1/*4", "phenotype": "Intermediate Metabolizer", "drug": "Codeine / Tramadol", "actionTier": "Tier 1", "recommendation": "Use alternative analgesic (e.g. morphine or non-opioid) to avoid reduced efficacy."},
-        {"gene": "SLCO1B1", "diplotype": "*1/*5", "phenotype": "Intermediate Function", "drug": "Simvastatin", "actionTier": "Tier 1", "recommendation": "Prescribe lower starting dose or choose alternative statin (e.g., rosuvastatin) to reduce myopathy risk."},
-        {"gene": "CYP2C19", "diplotype": "*1/*2", "phenotype": "Intermediate Metabolizer", "drug": "Clopidogrel", "actionTier": "Tier 1", "recommendation": "Consider alternative antiplatelet therapy (e.g. prasugrel, ticagrelor) if indicated."}
-    ]
+    fallback_pgx = []
 
     total_vars = len(records)
     total_path = sum(1 for g in genes_list for v in g["variants"] if v["category"] == "concern")
@@ -1239,9 +1188,11 @@ def parse_actionable_to_claude_v2(actionable_json_path, raw_db_path, vcf_path, o
         print(f"Successfully generated Ontology, Pharma & AlphaGenome JSON at: {output_json_path}")
 
 if __name__ == '__main__':
-    in_json = sys.argv[1] if len(sys.argv) > 1 else '/home/daniel-ehrle/My-Projects/genomics-ontology/genomics-ontology/reports/DE_master_260706/DE_master_master_actionable.json'
-    raw_db = sys.argv[2] if len(sys.argv) > 2 else '/data/opencravat/jobs/default/260706-105810/DE_master_phased_final.UCSC.vcf.gz.sqlite'
-    vcf = sys.argv[3] if len(sys.argv) > 3 else '/data/opencravat/jobs/default/260706-105810/DE_master_phased_final.UCSC.vcf.gz'
-    out_js = sys.argv[4] if len(sys.argv) > 4 else '/home/daniel-ehrle/My-Projects/genomic-ontology-claude-v2/data/mock-data.js'
+    if len(sys.argv) < 5:
+        sys.exit("Usage: generate_claude_v2_report.py <in_json> <raw_db> <vcf> <out_js> [out_json]")
+    in_json = sys.argv[1]
+    raw_db = sys.argv[2]
+    vcf = sys.argv[3]
+    out_js = sys.argv[4]
     out_json = sys.argv[5] if len(sys.argv) > 5 else None
     parse_actionable_to_claude_v2(in_json, raw_db, vcf, out_js, out_json)

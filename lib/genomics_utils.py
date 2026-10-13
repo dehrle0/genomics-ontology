@@ -109,7 +109,7 @@ def clean_clinvar_disease(disease_str: Any, max_terms: int = 3) -> List[str]:
     return terms[:max_terms]
 
 def format_omim_ids(omim_raw: Any) -> str:
-    """Normalize OMIM IDs into standard formatted string (e.g. OMIM: 123456; 654321)."""
+    """Normalize OMIM IDs into standard formatted string."""
     raw = safe_str(omim_raw)
     if not raw:
         return ""

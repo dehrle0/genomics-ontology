@@ -236,7 +236,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
 
     <div class="search-bar-container">
-        <input type="text" id="searchInput" class="search-input" onkeyup="filterReport()" placeholder="Search by Gene (e.g. LDLR), RSID (rs121908025), Reason Code, or Keyword...">
+        <input type="text" id="searchInput" class="search-input" onkeyup="filterReport()" placeholder="Search by Gene Symbol, Variant ID, Reason Code, or Keyword...">
         <select id="ontologyFilter" class="select-input" onchange="filterReport()">
             <option value="">All Ontology Categories</option>
             {ontology_options_html}

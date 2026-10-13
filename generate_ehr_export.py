@@ -2,7 +2,7 @@ import json
 import datetime
 import os
 
-def export_ehr(json_path, out_path, subject_name='Daniel Ehrle', subject_id='Daniel_Ehrle'):
+def export_ehr(json_path, out_path, subject_name='PROBAND_01', subject_id='PROBAND_01'):
     with open(json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 

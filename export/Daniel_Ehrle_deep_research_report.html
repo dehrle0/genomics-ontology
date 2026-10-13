@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinical Genomics Deep Research Report - Daniel Ehrle</title>
+<style>
+  @page {
+    size: letter portrait;
+    margin: 12mm 12mm 12mm 12mm;
+  }
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    background: #ffffff;
+    line-height: 1.38;
+    font-size: 9.2pt;
+    margin: 0;
+    padding: 16px;
+  }
+  h1 {
+    font-size: 15pt;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 4px 0;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 12pt;
+    font-weight: 600;
+    color: #1e40af;
+    margin: 12px 0 4px 0;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 2px;
+  }
+  h3 {
+    font-size: 10.8pt;
+    font-weight: 600;
+    color: #1e3a8a;
+    margin: 10px 0 4px 0;
+  }
+  h4 {
+    font-size: 9.8pt;
+    font-weight: 600;
+    color: #33415a;
+    margin: 8px 0 3px 0;
+  }
+  h5 {
+    font-size: 9.4pt;
+    font-weight: 600;
+    color: #0369a1;
+    margin: 6px 0 2px 0;
+  }
+  p {
+    margin: 0 0 5px 0;
+  }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 8pt;
+    background-color: #f1f5f9;
+    padding: 1px 3px;
+    border-radius: 3px;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+  }
+  strong {
+    color: #0f172a;
+  }
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin: 6px 0 10px 0;
+    page-break-inside: avoid;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt;
+    text-align: left;
+  }
+  th {
+    background-color: #f8fafc;
+    color: #33415a;
+    font-weight: 600;
+    padding: 4px 5px;
+    border: 1px solid #cbd5e1;
+  }
+  td {
+    padding: 3px 5px;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  ul {
+    margin: 0 0 6px 0;
+    padding-left: 16px;
+  }
+  li {
+    margin-bottom: 2px;
+  }
+  .mermaid-diagram {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 6px;
+    margin: 6px 0;
+    font-size: 7.5pt;
+    font-family: monospace;
+    page-break-inside: avoid;
+  }
+  .diagram-step {
+    padding: 1px 0;
+    color: #33415a;
+  }
+  a {
+    color: #1d4ed8;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    word-break: break-word;
+  }
+  a:hover {
+    color: #1e40af;
+  }
+  br {
+    display: none;
+  }
+  .no-print-bar {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 8px 14px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 8.5pt;
+  }
+  .no-print-btn {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 8pt;
+    font-weight: 700;
+    text-decoration: none !important;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  @media print {
+    body {
+      padding: 0;
+      font-size: 8.8pt;
+      line-height: 1.35;
+    }
+    .no-print-bar {
+      display: none !important;
+    }
+    a {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+    .table-container, table, tr, h3, h4, h5 {
+      page-break-inside: avoid;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="no-print-bar">
+    <div>
+      <span style="background:#0f766e;color:#ffffff;padding:2px 7px;border-radius:4px;font-weight:800;font-size:7.5pt;text-transform:uppercase;margin-right:6px;">New Edition</span>
+      <strong style="color:#ffffff;">Daniel Ehrle (Daniel_Ehrle) — Deep Research Genomic Dossier</strong>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      <a href="Daniel_Ehrle_deep_research_report (old).html" class="no-print-btn" style="background:#b45309;color:#ffffff;">Switch to Deep Research (old) ↗</a>
+      <a href="Daniel_Ehrle_clinical_brief.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border-color:#47556a;">Clinical Brief (New)</a>
+      <a href="Daniel_Ehrle_landscape_dashboard.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border-color:#47556a;">Command Center</a>
+      <button onclick="window.print()" class="no-print-btn" style="background:#2563eb;color:#ffffff;">🖨️ Print Report</button>
+      <a href="Daniel_Ehrle_deep_research_report.pdf" target="_blank" download="Daniel_Ehrle_deep_research_report.pdf" class="no-print-btn" style="background:#05966a;color:#ffffff;">📥 Save / Open PDF</a>
+    </div>
+  </div>
+  <h1>Clinical Genomics Evidence & Deep Research Synthesis: Daniel Ehrle</h1>
+<p><strong>Patient / Cohort Identifier:</strong> <code>Daniel_Ehrle</code> | <strong>Report Date:</strong> October 12, 2026</p>
+<p><strong>Target Audience:</strong> Medical Geneticist · Subspecialty Investigator · Primary Care Physician · Clinical Bioinformatician</p>
+<p><strong>Sequencing Depth & Reference:</strong> BAM Aligned Mean Depth <strong>48.8x</strong> on GRCh38.p14</p>
+<br/>
+<h3>Orientation: What We Are Covering</h3>
+<p>This clinical genomics research dossier evaluates <strong>1407 prioritized variants across 1002 clinical genes</strong> and <strong>41 pharmacogenes (377 screened medications)</strong> for <strong>Daniel Ehrle</strong> (<code>Daniel_Ehrle</code>), backed by <strong>48.8x</strong> BAM mean sequencing depth. This synthesis separates <strong>Mechanistic Causality</strong> (coding loss-of-function, canonical splice disruption, 3D active-site destabilization) from <strong>Statistical Correlation</strong> (GWAS linkage disequilibrium proxies and common polygenic modifiers), audits <strong>Intra-Gene Cis/Trans Phasing</strong> across multi-variant genes, and provides a <strong>Biomarker Ground-Truthing & Longitudinal Futures Roadmap</strong>.</p>
+<br/>
+<h3>Body</h3>
+<br/>
+<h4>1. Primary Mechanistic & High-Priority Clinical Findings (With Locus Depth, VAF & Confidence)</h4>
+<div class="table-container"><table>
+<thead><tr><th>Gene</th><th>Variant & Coordinate (GRCh38)</th><th>Zygosity & Phase</th><th>Locus DP & VAF</th><th>ClinVar Status</th><th>CADD (Phred) / REVEL</th><th>AlphaGenome AVI (Phred) & Top Driver</th><th>Confidence</th></tr></thead><tbody>
+<tr><td><strong>CBLIF</strong></td><td><code>c.79+1G>A</code> (<code>chr11:59845374</code>)</td><td>Heterozygous (Maternal)</td><td><code>49x</code> / <code>0.47</code></td><td><strong>Pathogenic</strong></td><td>32.0 / —</td><td>33.9 (Splicing)</td><td><strong>0.95</strong></td></tr>
+<tr><td><strong>GJB2</strong></td><td><code>p.Met34Thr</code> (<code>chr13:20189481</code>)</td><td>Heterozygous (Unphased)</td><td><code>57x</code> / <code>0.63</code></td><td><strong>Pathogenic</strong></td><td>20.9 / 0.70</td><td>23.6 (Cactus)</td><td><strong>0.99</strong></td></tr>
+<tr><td><strong>VDR</strong></td><td><code>c.-1172A>G</code> (<code>chr12:47906043</code>)</td><td>Homozygous (N/A)</td><td><code>49x</code> / <code>1.00</code></td><td><strong>Likely pathogenic</strong></td><td>5.4 / —</td><td>2.1 (DNASE-seq)</td><td><strong>0.85</strong></td></tr>
+<tr><td><strong>F5</strong></td><td><code>p.Arg534Gln</code> (<code>chr1:169549811</code>)</td><td>Heterozygous (Unphased)</td><td><code>58x</code> / <code>0.62</code></td><td><strong>drug response</strong></td><td>27.9 / AM:0.20</td><td>23.6 (Cactus)</td><td><strong>0.99</strong></td></tr>
+<tr><td><strong>PEX6</strong></td><td><code>p.Val788Met</code> (<code>chr6:42966044</code>)</td><td>Heterozygous (Unphased)</td><td><code>48x</code> / <code>0.58</code></td><td><strong>Conflicting classifications of pathogenicity</strong></td><td>35.0 / 0.92</td><td>32.3 (Cactus)</td><td><strong>0.88</strong></td></tr>
+<tr><td><strong>GJB3</strong></td><td><code>p.Arg75Cys</code> (<code>chr1:34784985</code>)</td><td>Heterozygous (Maternal)</td><td><code>38x</code> / <code>0.37</code></td><td><strong>Conflicting classifications of pathogenicity</strong></td><td>26.2 / 0.94</td><td>32.4 (AlphaMissense)</td><td><strong>0.88</strong></td></tr>
+<tr><td><strong>SCN4A</strong></td><td><code>p.His599Arg</code> (<code>chr17:63961242</code>)</td><td>Heterozygous (Unphased)</td><td><code>56x</code> / <code>0.59</code></td><td><strong>Conflicting classifications of pathogenicity</strong></td><td>24.4 / 0.93</td><td>27.8 (AlphaMissense)</td><td><strong>0.88</strong></td></tr>
+</tbody></table></div>
+<br/>
+<h4>2. Mechanistic Causality vs. Statistical Correlation Matrix</h4>
+<p>To prevent clinical over-interpretation of statistical GWAS proxies, cohort findings are stratified across four epistemic tiers:</p>
+<br/>
+<div class="table-container"><table>
+<thead><tr><th>Epistemic Class</th><th>Count in Cohort</th><th>Representative Genes</th><th>Mechanistic vs. Statistical Distinction & Clinical Rule</th></tr></thead><tbody>
+<tr><td><strong>Q1 · Confirmed Mechanistic Causality</strong></td><td><strong>3</strong></td><td>CBLIF, GJB2, CYP3A5</td><td><strong>Direct Physical Disruption + Clinical Proof:</strong> Concordant ClinVar P/LP curation backed by high AI functional impact (CADD ≥ 20 / AVI ≥ 20). Eligible for preventive clinical surveillance.</td></tr>
+<tr><td><strong>Q2 · Cryptic AI-Predicted Disruptors</strong></td><td><strong>166</strong></td><td>DNAH7, GRIA4, HEXA, PLA2G6, TRAK1, TTN</td><td><strong>Biophysical Disruption Without Clinical Database Entry:</strong> Severe deep-learning predicted splice, chromatin, or 3D folding impact currently VUS/unreviewed in ClinVar. Prioritize for biomarker ground-truthing.</td></tr>
+<tr><td><strong>Q3 · Database-Curated / Statistical & PGx Modifiers</strong></td><td><strong>321</strong></td><td>CNTN1, TTN, VDR, ALDH4A1, ANK3, APOB</td><td><strong>Curated Hypomorphic, PGx & Statistical GWAS Loci:</strong> Includes enzymatic drug-response alleles and statistical population modifiers; must <strong>never</strong> trigger invasive monogenic workups.</td></tr>
+<tr><td><strong>Q4 · Protective & Resilience Offsets</strong></td><td><strong>9</strong></td><td>ADH1C, CCR5, CASP8, MPO, NOS3, CDKN2B</td><td><strong>Risk-Attenuating & Cardioprotective Alleles:</strong> Curated protective modifiers buffering baseline metabolic or vascular pathway susceptibility.</td></tr>
+</tbody></table></div>
+<br/>
+<h5>2.1 High-Priority Cryptic AI Disruptors (AlphaGenome 18-Modality Attribution)</h5>
+<div class="table-container"><table>
+<thead><tr><th>Gene</th><th>Variant & Coordinate</th><th>Zygosity & Phase</th><th>AVI (Phred) & Percentile</th><th>Primary Modality Driver</th><th>Top SHAP Attribution Weights (<code>fi_*</code>)</th></tr></thead><tbody>
+<tr><td><strong>COL23A1</strong></td><td><code>c.675+2T>C</code> (<code>chr5:178262215</code>)</td><td>Heterozygous (Unphased)</td><td><strong>26.3</strong> (Top 0.23%)</td><td><strong>Splicing</strong></td><td>Splicing: 59.0%, Cactus 241-Way: 20.3%, PhastCons 470-Way: 12.1%</td></tr>
+<tr><td><strong>ELOVL7</strong></td><td><code>p.Ser79Tyr</code> (<code>chr5:60771922</code>)</td><td>Heterozygous (Maternal)</td><td><strong>31.4</strong> (Top 0.07%)</td><td><strong>AlphaMissense</strong></td><td>AlphaMissense: 48.4%, Cactus 241-Way: 31.5%, PhastCons 470-Way: 13.9%</td></tr>
+<tr><td><strong>IGFBP5</strong></td><td><code>p.Arg193His</code> (<code>chr2:216678221</code>)</td><td>Heterozygous (Unphased)</td><td><strong>26.4</strong> (Top 0.23%)</td><td><strong>AlphaMissense</strong></td><td>AlphaMissense: 39.4%, Cactus 241-Way: 38.9%, PhastCons 470-Way: 14.9%</td></tr>
+<tr><td><strong>PTDSS2</strong></td><td><code>p.Glu232Gly</code> (<code>chr11:488272</code>)</td><td>Heterozygous (Unphased)</td><td><strong>25.8</strong> (Top 0.26%)</td><td><strong>AlphaMissense</strong></td><td>AlphaMissense: 48.7%, Cactus 241-Way: 28.4%, PhastCons 470-Way: 16.9%</td></tr>
+<tr><td><strong>NSMCE1</strong></td><td><code>p.Cys231Tyr</code> (<code>chr16:27225755</code>)</td><td>Heterozygous (Paternal)</td><td><strong>30.6</strong> (Top 0.09%)</td><td><strong>AlphaMissense</strong></td><td>AlphaMissense: 50.2%, Cactus 241-Way: 32.3%, PhastCons 470-Way: 14.0%</td></tr>
+<tr><td><strong>BTN3A2</strong></td><td><code>c.715+2T>G</code> (<code>chr6:26370605</code>)</td><td>Heterozygous (Unphased)</td><td><strong>25.4</strong> (Top 0.29%)</td><td><strong>Splicing</strong></td><td>Splicing: 69.3%, PhastCons 470-Way: 14.6%, CAGE Promoter: 4.1%</td></tr>
+</tbody></table></div>
+<br/>
+<h4>3. Intra-Gene Cis / Trans Phase Auditor & Cross-Pathway Epistasis</h4>
+<p>Parental and read-backed phasing across all multi-variant genes in <strong>Daniel Ehrle</strong> resolved <strong>45 Trans Multi-Variant Genes</strong> (variants on opposite parental homologs; 0 confirmed biallelic pathogenic recessive compound-heterozygotes) and <strong>38 Cis Haplotype Genes</strong> (variants co-inherited on the same parental chromosome, leaving the opposite parental homolog completely wild-type).</p>
+<br/>
+<div class="table-container"><table>
+<thead><tr><th>Gene</th><th>Organ System</th><th>Phased Architecture</th><th>Variant Count (Mat / Pat)</th><th>Max CADD (Phred)</th><th>Clinical & Inheritance Interpretation</th></tr></thead><tbody>
+<tr><td><strong>DHRS3</strong></td><td>Heart & Cardiovascular</td><td><strong>TRANS (Biallelic / Compound Het Candidate)</strong></td><td>2 (1M / 1P)</td><td>28.1</td><td>1 Maternal + 1 Paternal alleles in trans across DHRS3</td></tr>
+<tr><td><strong>APOB</strong></td><td>Heart & Cardiovascular</td><td><strong>TRANS (Biallelic / Compound Het Candidate)</strong></td><td>10 (2M / 3P)</td><td>28.0</td><td>2 Maternal + 3 Paternal alleles in trans across APOB</td></tr>
+<tr><td><strong>ANK2</strong></td><td>Multisystem</td><td><strong>TRANS (Biallelic / Compound Het Candidate)</strong></td><td>3 (1M / 1P)</td><td>27.7</td><td>1 Maternal + 1 Paternal alleles in trans across ANK2</td></tr>
+<tr><td><strong>CACNA1S</strong></td><td>Heart & Cardiovascular</td><td><strong>TRANS (Biallelic / Compound Het Candidate)</strong></td><td>12 (4M / 3P)</td><td>26.8</td><td>4 Maternal + 3 Paternal alleles in trans across CACNA1S</td></tr>
+<tr><td><strong>VPS13C</strong></td><td>Multisystem</td><td><strong>TRANS (Biallelic / Compound Het Candidate)</strong></td><td>3 (1M / 1P)</td><td>25.6</td><td>1 Maternal + 1 Paternal alleles in trans across VPS13C</td></tr>
+<tr><td><strong>MYOM1</strong></td><td>Multisystem</td><td><strong>TRANS (Biallelic / Compound Het Candidate)</strong></td><td>3 (2M / 1P)</td><td>25.2</td><td>2 Maternal + 1 Paternal alleles in trans across MYOM1</td></tr>
+<tr><td><strong>TENM4</strong></td><td>Multisystem</td><td><strong>TRANS (Biallelic / Compound Het Candidate)</strong></td><td>4 (1M / 1P)</td><td>24.3</td><td>1 Maternal + 1 Paternal alleles in trans across TENM4</td></tr>
+<tr><td><strong>TTN</strong></td><td>Heart & Cardiovascular</td><td><strong>TRANS (Biallelic / Compound Het Candidate)</strong></td><td>4 (2M / 1P)</td><td>23.4</td><td>2 Maternal + 1 Paternal alleles in trans across TTN</td></tr>
+<tr><td><strong>PLEC</strong></td><td>Heart & Cardiovascular</td><td><strong>TRANS (Biallelic / Compound Het Candidate)</strong></td><td>3 (1M / 2P)</td><td>23.2</td><td>1 Maternal + 2 Paternal alleles in trans across PLEC</td></tr>
+<tr><td><strong>FLT1</strong></td><td>Multisystem</td><td><strong>TRANS (Biallelic / Compound Het Candidate)</strong></td><td>2 (1M / 1P)</td><td>22.9</td><td>1 Maternal + 1 Paternal alleles in trans across FLT1</td></tr>
+</tbody></table></div>
+<br/>
+<h4>4. Actionable Pharmacogenomic (CPIC / DPWG) Medication Matrix</h4>
+<div class="table-container"><table>
+<thead><tr><th>Prescribing Action</th><th>Screened Drug Count</th><th>Key Affected Medications & Causal Pharmacogenes</th></tr></thead><tbody>
+<tr><td><strong>🚫 Avoid / Contraindicated</strong></td><td><strong>2</strong></td><td><strong>Combined Oral Contraceptives (Estrogen/Progestin)</strong> (F5), <strong>Hormone Replacement Therapy (Estrogen Hrt)</strong> (F5)</td></tr>
+<tr><td><strong>⬇️ Reduce Dose</strong></td><td><strong>5</strong></td><td><strong>Celecoxib (Celebrex)</strong> (CYP2C9), <strong>Phenytoin (Dilantin)</strong> (CYP2C9), <strong>Voriconazole</strong> (CYP2C19/NR1I2/POR/ABCB1), <strong>Warfarin (Coumadin)</strong> (CYP2C9), <strong>Ondansetron</strong> (CYP3A5)</td></tr>
+<tr><td><strong>⬆️ Increase Dose / Rapid Clearance</strong></td><td><strong>2</strong></td><td><strong>Omeprazole / Pantoprazole / Lansoprazole</strong> (CYP2C19), <strong>Vardenafil</strong> (CYP3A5)</td></tr>
+<tr><td><strong>⚠️ Use With Caution</strong></td><td><strong>5</strong></td><td><strong>4-Hydroxycyclophosphamide</strong> (CYP3A5), <strong>Belinostat</strong> (UGT1A1), <strong>Irinotecan (Camptosar)</strong> (UGT1A1), <strong>Isoniazid</strong> (NAT2/NR1I2), <strong>Atazanavir / Ritonavir</strong> (CYP3A5)</td></tr>
+<tr><td><strong>🔍 Monitor</strong></td><td><strong>8</strong></td><td><strong>Atazanavir (Reyataz)</strong> (UGT1A1), <strong>Citalopram (Celexa)</strong> (CYP2C19), <strong>Escitalopram (Lexapro)</strong> (CYP2C19), <strong>Flurbiprofen / Ibuprofen</strong> (CYP2C9), <strong>Sertraline (Zoloft)</strong> (CYP2C19), <strong>Erlotinib</strong> (ABCB1), <strong>Glucose</strong> (CRTC2), <strong>Hdl Cholesterol</strong> (CRTC2)</td></tr>
+<tr><td><strong>✅ Preferred Alternatives</strong></td><td><strong>81</strong></td><td><strong>Antihypertensives</strong> (AGT/CLNK/NAMPT/PTPRD), <strong>Atorvastatin (Lipitor)</strong> (SLCO1B1), <strong>Beta Blocking Agents, Selective</strong> (), <strong>Bisphosphonates</strong> (FDPS), <strong>Clopidogrel (Plavix)</strong> (CYP2C19), <strong>Melatonin Receptor Agonists</strong> (ABCB1), <strong>Rosuvastatin (Crestor)</strong> (SLCO1B1), <strong>Selective Serotonin Reuptake Inhibitors</strong> (AFAP1L1/GABRA6/CAP2/FKBP5/ABCB1/MCPH1/TRPM3/ADRA2A/OR52I2)</td></tr>
+</tbody></table></div>
+<br/>
+<h5>4.1 Allelic Fraction (VAF) Skewing & Mosaicism / Paralog Uncertainty Audit</h5>
+<div class="table-container"><table>
+<thead><tr><th>Gene</th><th>Variant & Coordinate</th><th>Locus DP</th><th>Observed VAF</th><th>Classification</th><th>Technical Interpretation</th></tr></thead><tbody>
+<tr><td><strong>PAK3</strong></td><td><code>p.Thr247Pro</code> (<code>chrX:111163700</code>)</td><td><code>15x</code></td><td><strong>0.27</strong></td><td>Not reviewed</td><td>Skewed VAF (<0.35); rule out clonal mosaicism vs. paralog alignment skew before clinical action.</td></tr>
+<tr><td><strong>F5</strong></td><td><code>p.Thr295Ala</code> (<code>chr1:169556715</code>)</td><td><code>47x</code></td><td><strong>0.34</strong></td><td>Uncertain significance</td><td>Skewed VAF (<0.35); rule out clonal mosaicism vs. paralog alignment skew before clinical action.</td></tr>
+<tr><td><strong>ALKBH3</strong></td><td><code>p.Arg70Ter</code> (<code>chr11:43884007</code>)</td><td><code>50x</code></td><td><strong>0.34</strong></td><td>Not reviewed</td><td>Skewed VAF (<0.35); rule out clonal mosaicism vs. paralog alignment skew before clinical action.</td></tr>
+<tr><td><strong>FBXO41</strong></td><td><code>p.Glu93Gly</code> (<code>chr2:73269353</code>)</td><td><code>12x</code></td><td><strong>0.17</strong></td><td>Not reviewed</td><td>Skewed VAF (<0.35); rule out clonal mosaicism vs. paralog alignment skew before clinical action.</td></tr>
+<tr><td><strong>TENM2</strong></td><td><code>p.Arg1266Gln</code> (<code>chr5:168204594</code>)</td><td><code>41x</code></td><td><strong>0.27</strong></td><td>Not reviewed</td><td>Skewed VAF (<0.35); rule out clonal mosaicism vs. paralog alignment skew before clinical action.</td></tr>
+<tr><td><strong>TCAIM</strong></td><td><code>p.Arg217His</code> (<code>chr3:44392932</code>)</td><td><code>31x</code></td><td><strong>0.32</strong></td><td>Uncertain significance</td><td>Skewed VAF (<0.35); rule out clonal mosaicism vs. paralog alignment skew before clinical action.</td></tr>
+</tbody></table></div>
+<br/>
+<h3>Conclusions: Diagnostic & Epistemic Decision Calculus</h3>
+<br/>
+<h4>Arguments FOR Preventive Surveillance & Genotype-Guided Prescribing</h4>
+<p>1. <strong>High-Depth Analytical Grounding:</strong> Empirical BAM aligned coverage (<strong>48.8x</strong> mean depth) provides high analytical certainty (<code>0.98</code>) across SNVs and small indels.</p>
+<p>2. <strong>Actionable Pharmacogenomic Safety:</strong> 22 drug-gene interactions across 41 pharmacogenes provide immediate CPIC/DPWG guidance to avoid toxicity and optimize dosing.</p>
+<p>3. <strong>Low-Cost Biomarker Ground-Truthing:</strong> Routine PCP blood panels directly verify physiological homeostasis across the sample's specific prioritized pathways.</p>
+<br/>
+<h4>Arguments AGAINST Over-Intervention (Why Invasive Testing Is Unwarranted)</h4>
+<p>1. <strong>Heterozygous Recessive Carrier & Modifier Reserve:</strong> Heterozygous variants affecting or potentially affecting one allele in autosomal recessive or modifier genes and uni-allelic <em>Cis</em> haplotypes (38 genes) retain one intact wild-type parental copy; invasive diagnostic procedures or restrictive diets are clinically unwarranted.</p>
+<p>2. <strong>Statistical GWAS ≠ Monogenic Causality:</strong> Common polygenic modifiers (AF > 1%) reflect population linkage disequilibrium proxies and must never trigger monogenic disease interventions.</p>
+<br/>
+<h3>Opportunities: Physiological Ground-Truthing & Longitudinal Futures Roadmap</h3>
+<br/>
+<p>1. <strong>Primary Care Preventive Blood Panel:</strong> Incorporate the sample-specific venous blood panels and preventive evaluations from Section 2 of the Clinical Brief into the annual PCP physical.</p>
+<p>2. <strong>Cryptic Splice & Regulatory Functional Validation (Quadrant 2):</strong> The <strong>166 Cryptic AI Disruptors</strong> exhibiting high AlphaGenome <code>AVI</code> scores driven by splicing or RNA-seq modalities can be inspected via the AlphaGenome Ref vs. Alt Track Predictions view.</p>
+<p>3. <strong>Automated Annual Re-Annotation & SHA-256 State Fingerprint:</strong> Verified 0 variant reclassifications since prior snapshot (2026-10-12 22:39:18; SHA-256 0f7000325413527a…).</p>
+<br/>
+<h3>Confidence & Uncertainty Assessment</h3>
+<ul>
+<li><strong>Analytical WGS Callset & Phasing Confidence:</strong> <strong>0.98</strong> (BAM Mean Depth <code>48.8x</code>).</li>
+<li><strong>CPIC / DPWG Pharmacogenomic Prescribing Confidence:</strong> <strong>0.95</strong> (41 pharmacogenes, 377 screened drugs).</li>
+<li><strong>Monogenic Carrier & Surveillance Confidence:</strong> <strong>0.94</strong> (Orthogonal ClinVar, OMIM, CADD, and AlphaGenome agreement).</li>
+<li><strong>Polygenic / VUS Modifier Penetrance Confidence:</strong> <strong>0.70</strong> (Requires laboratory biomarker ground-truthing).</li>
+</ul>
+<br/>
+<h2>Appendix: Supporting Documentation & Variant Cross-Reference Directory</h2>
+<br/>
+<div class="table-container"><table>
+<thead><tr><th>Gene</th><th>Variant</th><th>Coordinates (GRCh38)</th><th>ClinVar</th><th>dbSNP</th><th>OMIM</th><th>ClinGen</th><th>AlphaGenome Atlas</th></tr></thead><tbody>
+<tr><td><strong>CBLIF</strong></td><td><code>c.79+1G>A</code></td><td><code>chr11:59845374</code></td><td><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/439755/" target="_blank">VCV439755</a></td><td><a href="https://www.ncbi.nlm.nih.gov/snp/rs147785187" target="_blank">rs147785187</a></td><td><a href="https://www.omim.org/entry/261000" target="_blank">MIM:261000</a></td><td><a href="https://search.clinicalgenome.org/kb/genes/CBLIF" target="_blank">CBLIF</a></td><td><a href="https://alphagenome.deepmind.com/variant/chr11:59845374" target="_blank">Atlas</a></td></tr>
+<tr><td><strong>GJB2</strong></td><td><code>p.Met34Thr</code></td><td><code>chr13:20189481</code></td><td><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/17000/" target="_blank">VCV17000</a></td><td><a href="https://www.ncbi.nlm.nih.gov/snp/rs35887622" target="_blank">rs35887622</a></td><td><a href="https://www.omim.org/entry/121011" target="_blank">MIM:121011</a></td><td><a href="https://search.clinicalgenome.org/kb/genes/GJB2" target="_blank">GJB2</a></td><td><a href="https://alphagenome.deepmind.com/variant/chr13:20189481" target="_blank">Atlas</a></td></tr>
+<tr><td><strong>VDR</strong></td><td><code>c.-1172A>G</code></td><td><code>chr12:47906043</code></td><td><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/3336650/" target="_blank">VCV3336650</a></td><td><a href="https://www.ncbi.nlm.nih.gov/snp/rs4516035" target="_blank">rs4516035</a></td><td>—</td><td><a href="https://search.clinicalgenome.org/kb/genes/VDR" target="_blank">VDR</a></td><td><a href="https://alphagenome.deepmind.com/variant/chr12:47906043" target="_blank">Atlas</a></td></tr>
+<tr><td><strong>F5</strong></td><td><code>p.Arg534Gln</code></td><td><code>chr1:169549811</code></td><td><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/642/" target="_blank">VCV642</a></td><td><a href="https://www.ncbi.nlm.nih.gov/snp/rs6025" target="_blank">rs6025</a></td><td>—</td><td><a href="https://search.clinicalgenome.org/kb/genes/F5" target="_blank">F5</a></td><td><a href="https://alphagenome.deepmind.com/variant/chr1:169549811" target="_blank">Atlas</a></td></tr>
+<tr><td><strong>PEX6</strong></td><td><code>p.Val788Met</code></td><td><code>chr6:42966044</code></td><td><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/556244/" target="_blank">VCV556244</a></td><td><a href="https://www.ncbi.nlm.nih.gov/snp/rs267608240" target="_blank">rs267608240</a></td><td><a href="https://www.omim.org/entry/614862" target="_blank">MIM:614862</a></td><td><a href="https://search.clinicalgenome.org/kb/genes/PEX6" target="_blank">PEX6</a></td><td><a href="https://alphagenome.deepmind.com/variant/chr6:42966044" target="_blank">Atlas</a></td></tr>
+<tr><td><strong>GJB3</strong></td><td><code>p.Arg75Cys</code></td><td><code>chr1:34784985</code></td><td><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/297191/" target="_blank">VCV297191</a></td><td><a href="https://www.ncbi.nlm.nih.gov/snp/rs370476720" target="_blank">rs370476720</a></td><td><a href="https://www.omim.org/entry/133200" target="_blank">MIM:133200</a></td><td><a href="https://search.clinicalgenome.org/kb/genes/GJB3" target="_blank">GJB3</a></td><td><a href="https://alphagenome.deepmind.com/variant/chr1:34784985" target="_blank">Atlas</a></td></tr>
+<tr><td><strong>SCN4A</strong></td><td><code>p.His599Arg</code></td><td><code>chr17:63961242</code></td><td><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/324537/" target="_blank">VCV324537</a></td><td><a href="https://www.ncbi.nlm.nih.gov/snp/rs187401185" target="_blank">rs187401185</a></td><td><a href="https://www.omim.org/entry/168300" target="_blank">MIM:168300</a></td><td><a href="https://search.clinicalgenome.org/kb/genes/SCN4A" target="_blank">SCN4A</a></td><td><a href="https://alphagenome.deepmind.com/variant/chr17:63961242" target="_blank">Atlas</a></td></tr>
+</tbody></table></div>
+<br/>
+</body>
+</html>

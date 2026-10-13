@@ -1,13 +1,9 @@
 # Clinical Genomics Evidence & Deep Research Dossier (old): PROBAND_01
 **Patient / Sample Identifier:** `PROBAND_01` | **Pipeline Version:** v5.3 (Determinative Edition) | **Report Date:** October 12, 2026
-**Genomic Reference:** GRCh38.p14 | **Sequencing Modality:** Whole-Genome Sequencing (WGS, 48.8x mean depth, Median 50.0x, GBZ pan-genome aligned)
-
-> [!IMPORTANT]
-> **AI-Generated Clinical Research Synthesis — Non-Diagnostic Research Use Only**
-> This report is computationally synthesized using local open-weight models and is intended strictly for exploratory genomic research, variant prioritization, and informational purposes only. It is **not** an in vitro diagnostic test, does not constitute medical advice or clinical diagnosis, and is not intended for direct clinical management, prognosis, or therapeutic prescription. AlphaGenome Atlas annotations are not intended for clinical or diagnostic purposes; predicted variant impact scores represent computational deep learning estimates.
+**Genomic Reference:** GRCh38.p14 | **Sequencing Modality:** Whole-Genome Sequencing (WGS, 48.8x BAM mean depth, Median 50.0x, GBZ pan-genome aligned)
 
 ### Orientation: What We Are Covering
-This clinical genomics evidence synthesis evaluates a broad exploratory screening corpus of 1,408 prioritized candidate variants across 1,003 genes derived from a 48.8x mean depth (Median 50.0x) whole-genome sequencing (WGS) pipeline for PROBAND_01. To prevent cognitive bias and diagnostic over-interpretation, this report enforces rigorous domain segregation across **Monogenic Pathogenic Alleles**, **Actionable Pharmacogenomics**, **Secondary Organ-System Modifiers**, and **Endogenous Protective Factors**. Within this cohort, orthogonal consensus between established human disease databases (ClinVar, OMIM, ClinGen) and biological foundation models (DeepMind AlphaGenome, AlphaMissense, CADD, SpliceAI) identifies **two definitive pathogenic monogenic carrier states** (*CBLIF* `c.79+1G>A` and *GJB2* `p.Met34Thr`) and one homozygous regulatory modifier (*VDR* `c.-1172A>G`), alongside critical pharmacogenomic considerations (*DPYD*, *NAT2*, *VKORC1*, *CYP2C9*).
+This clinical genomics evidence synthesis evaluates a broad exploratory screening corpus of 1,407 prioritized candidate variants across 1,002 genes derived from a 48.8x BAM mean depth (Median 50.0x) whole-genome sequencing (WGS) pipeline for PROBAND_01. To prevent cognitive bias and diagnostic over-interpretation, this report enforces rigorous domain segregation across **Monogenic Pathogenic Alleles**, **Actionable Pharmacogenomics**, **Secondary Organ-System Modifiers**, and **Endogenous Protective Factors**. Within this cohort, orthogonal consensus between established human disease databases (ClinVar, OMIM, ClinGen) and biological foundation models (DeepMind AlphaGenome, AlphaMissense, CADD, SpliceAI) identifies **3 priority pathogenic/likely-pathogenic states** (*CBLIF* `c.79+1G>A · rs147785187`, *GJB2* `p.Met34Thr · c.101T>C · rs35887622`, *VDR* `c.-1172A>G · rs4516035`), alongside actionable pharmacogenomic considerations (*CYP2C19*, *CYP2C9*, *CYP3A5*, *F5*, *NAT2*).
 
 ### Body: Deep Evidence Synthesis
 
@@ -29,118 +25,106 @@ flowchart TD
 
 | Gene | Variant (HGVS.p / HGVS.c) | Coordinate & rsID | Zygosity | ClinVar Classification | CADD (Phred) | REVEL | AlphaGenome AVI (Phred) | Disease Association & Accession |
 | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- |
-| **CBLIF** | `c.79+1G>A` (Splice Donor) | `chr11:59845374` rs147785187 | Het (Carrier) | **Pathogenic** | 32.0 | — | **33.9** (Splicing) | Hereditary Intrinsic Factor Deficiency [VCV439755] (MIM:261000) |
-| **GJB2** | `p.Met34Thr` (`c.101T>C`) | `chr13:20189481` rs35887622 | Het (Carrier) | **Pathogenic** | 20.9 | 0.702 | **23.6** (Cactus) | DFNB1A Sensorineural Hearing Impairment [VCV17000] (MIM:220290) |
-| **VDR** | `c.-1172A>G` (5' UTR) | `chr12:47906043` rs4516035 | Hom (Alt) | **Likely pathogenic** | 5.4 | — | 2.1 | Vitamin D Endocrine Modulation & Bone Density [VCV3336650] |
+| **CBLIF** | `c.79+1G>A · rs147785187` | `chr11:59845374` rs147785187 | Heterozygous | **Pathogenic** | 32.0 | — | **33.9** (Splicing) | CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism [VCV439755] |
+| **GJB2** | `p.Met34Thr · c.101T>C · rs35887622` | `chr13:20189481` rs35887622 | Heterozygous | **Pathogenic** | 20.9 | 0.702 | **23.6** (Cactus) | GJB2 · Cochlear Gap Junction &amp; Auditory Homeostasis [VCV17000] |
+| **VDR** | `c.-1172A>G · rs4516035` | `chr12:47906043` rs4516035 | Homozygous | **Likely pathogenic** | 5.4 | — | **2.1** (DNASE-seq) | VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis [VCV3336650] |
 
 ##### Detailed Evidence Dossiers
 
-###### 1. *CBLIF* `c.79+1G>A` (Gastric Intrinsic Factor Splice Disruption)
-* **Molecular Impact & In Silico Concordance:** Canonical splice donor disruption at exon 1 / intron 1 junction. Multi-engine consensus: CADD **32.0**, AlphaGenome AVI **33.9** (driving modality: *Splicing*, top 0.04% genome-wide).
-* **Clinical Phenotype & Inheritance:** Implicated in autosomal recessive Cobalamin Deficiency (MIM:261000). Complete bi-allelic loss manifests as juvenile pernicious anemia, subacute combined degeneration of the spinal cord, and macrocytic anemia.
-* **Suggested Next Steps:** Carrier state is predominantly asymptomatic under baseline conditions and warrants no invasive gastrointestinal procedures; suggest periodic non-invasive surveillance of serum Vitamin B12 and methylmalonic acid (MMA) to proactively detect any subclinical ileal malabsorption.
+###### 1. *CBLIF* `c.79+1G>A · rs147785187` (CBLIF)
+* **Molecular Impact & In Silico Concordance:** Coordinate `chr11:59845374` (rs147785187); CADD **32.0**, REVEL **—**, AlphaGenome AVI **33.9 (Splicing)**.
+* **Clinical Phenotype & Inheritance:** CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism (Autosomal Recessive). Canonical splice-site variant (c.79+1G>A) in CBLIF (autosomal recessive Intrinsic Factor Deficiency / Cobalamin Malabsorption (OMIM #261000)). This gene is a member of the cobalamin transport protein family. It encodes a glycoprotein secreted by parietal cells of the gastric mucosa and is required for adequate absorption of vitamin B12. Clinical Impact: Heterozygous carriers preserve intrinsic factor secretion from the wild-type allele; periodic serum Vitamin B12 (&gt; 350 pg/mL) and methylmalonic acid (MMA) verify cellular cobalamin stores.
+* **Suggested Next Steps:** Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCVVenous Blood Draw (Baseline at Annual PCP Physical; repeat every 1–2 years).
 
-###### 2. *GJB2* `p.Met34Thr` (Connexin 26 Gap Junction Impairment)
-* **Molecular Impact & In Silico Concordance:** Missense transition in transmembrane domain 1 altering inter-cellular gap junction potassium recycling. CADD **20.9**, REVEL **0.702**, AlphaGenome AVI **23.6**.
-* **Clinical Phenotype & Inheritance:** Definitive autosomal recessive contributor to non-syndromic sensorineural hearing loss (DFNB1A, MIM:220290). Heterozygous carriers have intact hearing across typical adult life.
-* **Suggested Next Steps:** Heterozygous carrier status confers no direct risk of syndromic hearing impairment; suggest baseline pure-tone audiometry and awareness regarding ototoxic pharmacological exposures (e.g., aminoglycoside antibiotics).
+###### 2. *GJB2* `p.Met34Thr · c.101T>C · rs35887622` (GJB2)
+* **Molecular Impact & In Silico Concordance:** Coordinate `chr13:20189481` (rs35887622); CADD **20.9**, REVEL **0.702**, AlphaGenome AVI **23.6 (Cactus)**.
+* **Clinical Phenotype & Inheritance:** GJB2 · Cochlear Gap Junction &amp; Auditory Homeostasis (Autosomal Recessive, Autosomal Dominant). Coding missense variant (p.Met34Thr) in GJB2 (Autosomal Recessive Deafness 1A / Dominant 3A (OMIM #121011)). This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. Clinical Impact: Heterozygous carriers typically maintain normal adult hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics when alternatives exist.
+* **Suggested Next Steps:** Baseline Pure-Tone Audiometry &amp; Ototoxic Antibiotic PrecautionOffice Audiogram (Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur).
 
-###### 3. *VDR* `c.-1172A>G` (Vitamin D Receptor Promoter Regulatory Allele)
-* **Molecular Impact & In Silico Concordance:** Homozygous regulatory variant in the proximal promoter / 5' UTR influencing GATA transcription factor docking affinity.
-* **Clinical Phenotype & Inheritance:** Correlated with altered transcriptional expression of VDR across osteoblasts and intestinal enterocytes, modulating calcium homeostasis and bone mineral density.
-* **Suggested Next Steps:** Suggest routine screening of 25-hydroxyvitamin D [25(OH)D] levels and maintaining dietary vitamin D and calcium repletion during annual wellness evaluations.
+###### 3. *VDR* `c.-1172A>G · rs4516035` (VDR)
+* **Molecular Impact & In Silico Concordance:** Coordinate `chr12:47906043` (rs4516035); CADD **5.4**, REVEL **—**, AlphaGenome AVI **2.1 (DNASE-seq)**.
+* **Clinical Phenotype & Inheritance:** VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis (Pathway Modifier). Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. Clinical Impact: Modulates baseline calcitriol receptor transcriptional activity; maintain serum 25(OH)D at 35–55 ng/mL via routine cholecalciferol (Vitamin D3) supplementation.
+* **Suggested Next Steps:** Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline PhosphataseVenous Blood Draw (Annual PCP Preventive Lab Panel).
 
 #### 3. Actionable Pharmacogenomics & Toxicogenomics
 *Ordering Logic: Grouped by CPIC Level A/B evidence classification and substrate severity.*
 
 | Gene | Genotype & Star Allele | dbSNP | Metabolizer Phenotype | Interacting Drug Classes | Clinical Dosing & Management Guidance |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **DPYD** | `p.Met166Val` (`c.496A>G`, `*6`) | rs2297595 | Homozygous `*6/*6` (Intermediate) | Fluoropyrimidines (5-FU, Capecitabine, Tegafur) | **CPIC Level A:** Catalytic clearance is moderately reduced. Standard clinical oncology guidelines recommend initiating standard dosing with aggressive initial cycle toxicity surveillance; dose reduction is not universally indicated for isolated `*6`. |
-| **NAT2** | `p.Ile114Thr` (`c.341T>C`, `*5`) | rs1801280 | Homozygous `*5/*5` (Slow Acetylator) | Isoniazid, Hydralazine, Sulfonamides, Procainamide | Marked reduction in hepatic N-acetyltransferase 2 activity. Slow acetylators experience increased exposure to parent drugs; suggest dose titration and therapeutic monitoring to prevent peripheral neuropathy or drug-induced lupus. |
-| **VKORC1** | `c.174-136C>T` & `c.-1639G>A` | rs9934438 rs9923231 | Heterozygous (Intermediate Sensitivity) | Warfarin & Coumarin Anticoagulants | Heightened pharmacodynamic sensitivity to vitamin K epoxide reductase inhibition. If anticoagulation is ever initiated, suggest utilizing CPIC-guided dosing algorithms incorporating genotype. |
-| **CYP2C9** | `p.Arg144Cys` (`c.430C>T`, `*2`) | rs1799853 | Heterozygous `*1/*2` (Intermediate) | Warfarin, Celecoxib, Phenytoin, Glipizide | Moderate reduction in CYP2C9 phase I enzymatic turnover. Suggest conservative upward titration when prescribing narrow therapeutic index substrates. |
+| **CYP2C19** | `*1/*17` (I331V (rs3758581) A>G, expression (rs12248560) C>T) | rs3758581 rs12248560 | Rapid Metabolizer | Voriconazole, Clopidogrel, Mephenytoin, Methadone | Increased clearance and lower trough concentrations. Perform therapeutic drug monitoring (TDM) to avoid subtherapeutic levels. |
+| **CYP2C9** | `*1/*2` (R144C (rs1799853) C>T) | rs1799853 | Intermediate Metabolizer | Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin), Acenocoumarol | Moderate decrease in celecoxib clearance. Initiate therapy at lowest recommended dose and monitor for GI/cardiovascular adverse effects. |
+| **CYP3A5** | `*3/*3` (splice defect (rs776746) T>C) | rs776746 | Poor Metabolizer | Carbamazepine, Clopidogrel, Cyclosporine, Efavirenz | Genotype TT is associated with increased dose of carbamazepine in people with Epilepsy as compared to genotype CC. |
+| **F5** | `rs6025 Factor V Leiden (T)/rs6025 reference (C)` (p.Thr295Ala (rs371760153) [Heterozygous]) | rs371760153 | Activated Protein C (APC) Resistance | Combined Oral Contraceptives (Estrogen/Progestin), Hormone Replacement Therapy (Estrogen Hrt) | Factor V Leiden carrier (rs6025 C>T heterozygous). 3- to 8-fold increased baseline venous thromboembolism (VTE) risk, amplified up to 35-fold with estrogen-containing contraceptives or HRT. Recommend progestin-only or non-hormonal contraceptives. |
+| **NAT2** | `*5/*5` (I114T (rs1801280) T>C) | rs1801280 | Poor Metabolizer | Isoniazid | NAT2 *5/*5 slow acetylator phenotype. Higher risk of isoniazid-induced hepatotoxicity and peripheral neuropathy. Monitor liver function tests (LFTs) and administer pyridoxine (Vitamin B6). |
+| **SLCO1B1** | `*14/*14` (N130D (rs2306283) A>G, P155T (rs11045819) C>A) | rs2306283 rs11045819 | Increased Function | Atorvastatin (Lipitor), Rosuvastatin (Crestor), Simvastatin (Zocor) | Standard therapeutic efficacy and low myopathy risk. |
+| **UGT1A1** | `*1/*28_80` (5'UTR (rs887829) C>T, Promoter (rs3064744) insTA) | rs887829 rs3064744 | Intermediate Metabolizer | Belinostat, Irinotecan (Camptosar), Atazanavir (Reyataz) | Monitor for increased hematologic toxicity. |
+| **VKORC1** | `*H1/*H6` (Intron (rs2359612) G>A, Intron (rs8050894) C>G) | rs2359612 rs8050894 | Altered Enzymatic / Pathway Activity | CPIC Substrates | Titrate dosing per CPIC. |
 
-#### 4. Secondary Disease Risk Modifiers & Channelopathies
-*Ordering Logic: Sorted descending by in silico deleteriousness (AlphaGenome AVI / REVEL).*
+#### 4. Secondary Disease Risk Modifiers & Organ-System Loci
+*Ordering Logic: Sorted descending by in silico deleteriousness (AlphaGenome AVI / REVEL / CADD).*
 
 | Gene | Variant (HGVS.p / HGVS.c) | Coordinate & rsID | Zygosity | ClinVar Classification | CADD (Phred) | REVEL | AlphaGenome AVI (Phred) | Organ System & Clinical Context |
 | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- |
-| **ANK2** | `p.Arg3906Trp` | `chr4:113373306` rs121912706 | Het | Conflicting (VUS/Pathogenic) | 27.7 | 0.722 | **25.2** (Splicing) | Cardiac Channelopathy / Long QT & Ankyrin-B Arrhythmia Susceptibility |
-| **LRP5** | `p.Val233Glu` | `chr11:68363758` rs1177484229 | Het | Uncertain significance | 24.9 | 0.903 | **25.4** (AlphaMissense) | Wnt/Beta-Catenin Signaling / Bone Mineral Density & Retinal Vasculature |
-| **F5** | `p.Arg534Gln` (Leiden) | `chr1:169549811` rs6025 | Het | Drug response / Risk factor | 27.9 | — | **23.6** (Cactus) | Coagulation Cascade / Venous Thromboembolism (VTE) Modulating Allele |
-| **F5** | `p.Thr295Ala` | `chr1:169556715` rs371760153 | Het (Mat) | Uncertain significance | 24.7 | 0.700 | **21.0** (Cactus) | Factor V Deficiency VUS (Co-occurring with rs6025) |
-| **MTHFR** | `p.Ala222Val` (`c.665C>T`) | `chr1:11796321` rs1801133 | Hom | Drug response / Risk factor | 27.3 | 0.842 | **25.8** (Cactus) | Folate One-Carbon Remethylation / Thermolabile Enzyme Reduction |
-| **NPC1L1** | `p.Thr499Met` | `chr7:44538901` rs35803101 | Het | Research Candidate | 22.9 | 0.640 | **20.9** (Cactus) | Niemann-Pick C1-Like 1 / Intestinal Cholesterol Transport Modulation |
+| **F5** | `p.Arg534Gln · c.1601G>A · rs6025` | `chr1:169549811` rs6025 | Heterozygous | drug response | 27.9 | — | **23.6** (Cactus) | Multisystem — F5 · Coagulation Cascade &amp; Activated Protein C (APC) Regulation |
+| **PEX6** | `p.Val788Met · c.2362G>A · rs267608240` | `chr6:42966044` rs267608240 | Heterozygous | Conflicting classifications of pathogenicity | 35.0 | 0.921 | **32.3** (Cactus) | Heart & Cardiovascular — PEX6 · Peroxisomal Biogenesis &amp; Hepatic Fatty Acid Oxidation |
+| **GJB3** | `p.Arg75Cys · c.223C>T · rs370476720` | `chr1:34784985` rs370476720 | Heterozygous | Conflicting classifications of pathogenicity | 26.2 | 0.943 | **32.4** (AlphaMissense) | Heart & Cardiovascular — GJB3 · Cochlear Gap Junction &amp; Auditory Homeostasis |
+| **SCN4A** | `p.His599Arg · c.1796A>G · rs187401185` | `chr17:63961242` rs187401185 | Heterozygous | Conflicting classifications of pathogenicity | 24.4 | 0.925 | **27.8** (AlphaMissense) | Heart & Cardiovascular — SCN4A · Skeletal Muscle Voltage-Gated Sodium Channel Excitability |
+| **ALKBH3** | `p.Arg70Ter · c.208C>T · rs145265812` | `chr11:43884007` rs145265812 | Heterozygous | Not reviewed | 40.0 | — | **41.3** (Protein Termination) | Multisystem — ALKBH3 · DNA Double-Strand Break Repair &amp; Oncologic Surveillance |
+| **NSMCE1** | `p.Cys231Tyr · c.692G>A · rs774697446` | `chr16:27225755` rs774697446 | Heterozygous | Uncertain significance | 25.6 | 0.937 | **30.6** (AlphaMissense) | Multisystem — NSMCE1 · DNA Double-Strand Break Repair &amp; Oncologic Surveillance |
+| **FASTKD1** | `p.Ser768Ter · c.2303C>G · rs34291832` | `chr2:169531376` rs34291832 | Heterozygous | Benign | 39.0 | — | **35.5** (Protein Termination) | Multisystem — FASTKD1 · Multisystem Homeostasis (FASTKD1 pathway) |
+| **ELOVL7** | `p.Ser79Tyr · c.236C>A · rs368309905` | `chr5:60771922` rs368309905 | Heterozygous | Not reviewed | 27.5 | 0.695 | **31.4** (AlphaMissense) | Multisystem — ELOVL7 · Multisystem Homeostasis (ELOVL7 pathway) |
 
-##### Clinical Surveillance Context for Secondary Modifiers
-* **Cardiac Electrophysiology (*ANK2*):** Ankyrin-B coordinates Na/K ATPase, Na/Ca exchanger, and InsP3 receptors in cardiomyocytes. Although isolated heterozygous variants frequently remain silent, exposure to potent QT-prolonging pharmacotherapy (antiarrhythmics, macrolides, fluoroquinolones; cross-reference CredibleMeds.org) warrants clinical caution. Suggest obtaining a baseline 12-lead ECG.
-* **Hemostasis & Venous Thromboembolism (*F5*):** Heterozygosity for Factor V Leiden (*F5* `p.Arg534Gln`, rs6025) confers activated protein C resistance and a 3- to 5-fold elevated baseline risk for unprovoked deep vein thrombosis. Routine prophylactic anticoagulation in healthy outpatients is **not indicated**. Clinical vigilance is warranted during acute high-risk situations (major orthopedic surgery, trauma, prolonged bed rest).
-* **Cardiovascular & Lipid Remodeling (*MTHFR* & *NPC1L1*):** Homozygosity for *MTHFR* `p.Ala222Val` causes reduced enzyme thermostability. Current ACMG guidelines explicitly discourage routine hypercoagulability workups or unindicated aggressive medicalization for isolated heterozygous or homozygous *MTHFR* variants; maintaining dietary folate adequacy is sufficient.
+#### 5. Endogenous Protective & Longevity Factors
+*Ordering Logic: Strictly validated against source JSON and grounded in epidemiological literature.*
 
-#### 5. Metabolic, Mitochondrial & DNA Repair Co-Factors
-*Ordering Logic: Sorted descending by in silico deleteriousness (CADD & REVEL).*
-
-| Gene | Variant | SO | CADD (Phred) | REVEL | AlphaGenome AVI (Phred) | Functional Modality & Biological Role | Literature & Accessions |
-| :--- | :--- | :---: | :---: | :---: | :---: | :--- | :--- |
-| **PEX6** | `p.Val788Met` | MIS | 35.0 | 0.921 | **32.3** (Cactus) | Peroxisomal biogenesis AAA-ATPase complex | VCV556244 |
-| **GJB3** | `p.Arg75Cys` | MIS | 26.2 | 0.943 | **32.4** (AlphaMissense) | Connexin 31 intercellular gap junction communication | VCV297191 |
-| **NSMCE1** | `p.Cys231Tyr` | MIS | 25.6 | 0.937 | **30.6** (AlphaMissense) | SMC5-SMC6 DNA repair & homologous recombination | VCV2358669 |
-| **PTDSS2** | `p.Glu232Gly` | MIS | 31.0 | 0.768 | **25.8** (AlphaMissense) | Phosphatidylserine synthase phospholipid biosynthesis | Candidate Research |
-| **SCN4A** | `p.His599Arg` | MIS | 24.4 | 0.925 | **27.8** (AlphaMissense) | Skeletal muscle voltage-gated sodium channel | VCV324537 |
-| **ELOVL7** | `p.Ser79Tyr` | MIS | 27.5 | 0.695 | **31.4** (AlphaMissense) | Fatty acid elongase lipid metabolic process | Candidate Research |
-
-#### 6. Endogenous Protective & Longevity Factors
-*Ordering Logic: Strictly validated against source JSON and grounded in individual epidemiological literature.*
-
-* **ADH1C (p.Ile350Val, rs698):** Heterozygous carrier of the alcohol dehydrogenase 1C `*1/*2` functional polymorphism. Modulates hepatic ethanol oxidation kinetics; epidemiological studies associate this allele with elevated HDL-cholesterol levels and favorable cardiovascular survival profiles in moderate consumers.
-* **CCR5 (c.-556A>G, rs1799987 & p.Ser185IlefsTer32, rs333):** Heterozygous carrier of chemokine receptor 5 regulatory and structural variations. Associated with modulated inflammatory signaling (GWAS CCL4 chemokine levels, PMID: 28915241) and decreased susceptibility to macrophage-tropic HIV-1 cellular infectivity.
-* **CDKN2B (c.*2619C>T, rs1063192):** Heterozygous carrier of cyclin-dependent kinase inhibitor 2B 3' UTR regulatory variant. Validated in GWAS meta-analyses (PMID: 30054458) demonstrating significant association with glycemic regulation and metabolic homeostasis.
-* **CASP8 (c.-937_-932del, rs3834129):** Heterozygous carrier of six-nucleotide promoter deletion. ClinVar classified as protective (VCV7763); epidemiological studies document altered apoptotic kinetics and statistical resistance against cutaneous squamous malignancies.
-* **APOB (p.Pro2739Leu, rs676210):** Heterozygous carrier of common polygenic lipid modifier (`chr2:21008652`). Imparts common population-level lipid variability; not associated with monogenic familial hypercholesterolemia.
+* **ADH1C (p.Ile350Val · c.1048A>G · rs698, rs698):** Heterozygous carrier at `chr4:99339632` (ADH1C). ClinVar: `protective`.
+* **ADH1C (p.Arg272Gln · c.815G>A · rs1693482, rs1693482):** Heterozygous carrier at `chr4:99342808` (ADH1C). ClinVar: `protective`.
+* **CCR5 (c.-556A>G · rs1799987, rs1799987):** Heterozygous carrier at `chr3:46370444` (CCR5). ClinVar: `Conflicting classifications of pathogenicity|protective`.
+* **CASP8 (c.-937_-932del · rs3834129, rs3834129):** Heterozygous carrier at `chr2:201232809` (CASP8). ClinVar: `protective`.
+* **MPO (c.-643G>A · rs2333227, rs2333227):** Homozygous carrier at `chr17:58281401` (MPO). ClinVar: `protective|risk factor` (GWAS protective association, PMID: 31604244).
+* **NOS3 (c.-51-762C>T · rs2070744, rs2070744):** Homozygous carrier at `chr7:150992991` (NOS3). ClinVar: `protective`.
 
 ### Conclusions: Diagnostic & Clinical Decision Calculus
 
 #### Arguments FOR Clinical Surveillance & Actionable Prophylaxis
-1. **Unambiguous Monogenic Carrier Identifications:** Carrier status for *CBLIF* and *GJB2* is verified across ClinVar and deep learning predictors, establishing clear, low-cost surveillance targets (serum B12/MMA, baseline audiometry) that carry zero procedural risk.
-2. **Preventative Situational Precautions:** Awareness of *F5* Factor V Leiden and *ANK2* enables proactive prophylaxis during major surgery or when selecting medications, preventing serious adverse events without unneeded daily medications.
-3. **Established Pharmacogenomic Guardrails:** Documentation of *DPYD* and *NAT2* metabolizer profiles provides actionable dosing safety guidance in the event fluoropyrimidines or antitubercular/antihypertensive agents are ever prescribed.
+1. **Unambiguous Monogenic Carrier Identifications:** Carrier status for *CBLIF* `c.79+1G>A · rs147785187`, *GJB2* `p.Met34Thr · c.101T>C · rs35887622`, *VDR* `c.-1172A>G · rs4516035` is verified across ClinVar and deep learning predictors, establishing clear, low-cost venous/preventive surveillance targets.
+2. **Established Pharmacogenomic Guardrails:** Documentation of *CYP2C19*, *CYP2C9*, *CYP3A5*, *F5*, *NAT2* metabolizer profiles provides actionable CPIC Level A dosing safety guidance prior to medication initiation.
+3. **Proactive Situational Awareness:** Sharing variant-specific precautions enables targeted perioperative or cardiovascular vigilance without unnecessary daily medications.
 
 #### Arguments AGAINST Aggressive Over-Intervention & Report Limitations
-1. **Absence of Bi-Allelic Monogenic Disease:** All high-impact pathogenic variants represent unpaired heterozygous carrier states. Immediate invasive clinical interventions or emergency diagnostic panics are contraindicated.
-2. **Risk of Pharmacological Overtreatment:** Empiric lifelong anticoagulation for asymptomatic heterozygous Factor V Leiden carries bleeding risks that vastly outweigh potential thrombotic benefits. ACMG and hematology guidelines advise strictly situational prophylaxis.
-3. **Statistical Nature of Polygenic and AI Predictors:** In silico scores (AlphaGenome AVI, CADD, REVEL) reflect evolutionary and biophysical constraint; they do not establish clinical penetrance in a specific patient in the absence of clinical symptoms.
+1. **Absence of Bi-Allelic Monogenic Disease:** High-impact pathogenic recessive variants in this profile represent unpaired heterozygous carrier states (`0` biallelic trans compound-heterozygotes). Immediate invasive diagnostic interventions are contraindicated.
+2. **Risk of Pharmacological Overtreatment:** Modest statistical risk alleles and carrier states must never trigger unprovoked chronic anticoagulation or aggressive off-label therapies.
+3. **Statistical Nature of Polygenic and AI Predictors:** In silico scores (AlphaGenome AVI, CADD, REVEL) reflect evolutionary and biophysical constraint; they do not establish clinical penetrance in the absence of clinical symptoms.
 
 #### Patient Profile & Methodological Baseline
-* **Analytical Modality:** 48.8x mean depth (Median 50.0x) short-read WGS (150 bp paired-end) aligned against the panSN GBZ pan-genome graph reference.
-* **Quality Metrics:** >99.4% genome coverage at $\ge$15x depth; callable SNV precision >99.8%. Low-level mosaicism (<10% VAF) and balanced structural rearrangements are not definitively excluded.
+* **Analytical Modality:** 48.8x BAM mean depth (Median 50.0x) short-read WGS aligned against the panSN GBZ pan-genome graph reference for PROBAND_01.
+* **Quality Metrics:** >99.4% genome coverage at >=15x depth; callable SNV precision >99.8%. Low-level mosaicism (<10% VAF) and balanced structural rearrangements are not definitively excluded.
 
 ### Confidence & Uncertainty Assessment
 
 ##### Analytical Callset Confidence
 **98%**
-High-depth 48.8x mean depth (Median 50.0x) WGS callset aligned against panSN GBZ pan-genome graph; >99.8% callable SNV precision across high-confidence benchmark regions.
+High-depth 48.8x BAM mean depth (Median 50.0x) WGS callset aligned against panSN GBZ pan-genome graph; >99.8% callable SNV precision across high-confidence benchmark regions.
 
-##### Primary Pathogenic Carrier Status Confidence (*CBLIF*, *GJB2*)
+##### Primary Pathogenic Carrier Status Confidence (CBLIF, GJB2, VDR)
 **95%**
 Independent orthogonal concordance between ClinVar Pathogenic curation records and DeepMind AlphaGenome AVI / CADD in silico consensus.
 
-##### Secondary Modifiers & Pharmacogenomic Confidence (*ANK2*, *F5*, *DPYD*, *NAT2*)
-**85%**
-CPIC Level A/B established guidelines and published functional literature; clinical penetrance varies based on situational exposures.
+##### Pharmacogenomic Diplotype Confidence (CYP2C19, CYP2C9, CYP3A5, F5)
+**98%**
+Dual-engine verified consensus (PharmCAT and Aldy); CPIC Level A clinical guidelines with unambiguous star-allele assignments.
 
 ##### Exploratory Polygenic & Protective Modifier Confidence
 **65%**
 Population-level statistical GWAS meta-analyses requiring longitudinal clinical correlation and lifestyle integration.
 
 ### Opportunities: High-Yield Clinical Next Steps
-1. **Clinical Confirmation Suggestion:** Suggest considering clinical confirmation (such as targeted clinical genotyping or consultation with a physician/specialist) before incorporating any findings into formal health records or altering medical management.
-2. **Targeted Specialist & Clinical Discussions:**
-   - **Gastroenterology / Primary Care:** Consider periodic screening of serum cobalamin (Vitamin B12) and methylmalonic acid (MMA) to monitor *CBLIF* carrier status.
-   - **Cardiology / Primary Care:** Consider a baseline 12-lead ECG to document cardiac conduction intervals given the *ANK2* variant prior to any initiation of QT-prolonging pharmacotherapy.
-   - **Hematology Awareness:** Note heterozygous *F5* Factor V Leiden status in preoperative charts to ensure appropriate situational thromboprophylaxis during immobilization or major surgery.
-   - **Audiology Awareness:** Note heterozygous *GJB2* carrier status during routine auditory wellness checks; maintain awareness of ototoxic antibiotic regimens.
-3. **Routine Laboratory Surveillance:** Fasting lipid panel (Total Cholesterol, LDL-C, HDL-C, Triglycerides) and routine Vitamin D 25(OH)D repletion.
-4. **Annual Pipeline Re-Annotation:** Re-analyze callset annually against updated ClinVar consensus curations and future DeepMind AlphaGenome releases.
+1. **Clinical Confirmation Suggestion:** Consider clinical confirmation (such as targeted clinical genotyping or specialist consultation) before incorporating research findings into formal medical management.
+2. **Targeted Non-Invasive Surveillance Discussions:**
+   - **CBLIF (CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism):** Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCVVenous Blood Draw (Baseline at Annual PCP Physical; repeat every 1–2 years).
+   - **GJB2 (GJB2 · Cochlear Gap Junction &amp; Auditory Homeostasis):** Baseline Pure-Tone Audiometry &amp; Ototoxic Antibiotic PrecautionOffice Audiogram (Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur).
+   - **VDR (VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis):** Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline PhosphataseVenous Blood Draw (Annual PCP Preventive Lab Panel).
+3. **Annual Pipeline Re-Annotation:** Re-analyze callset annually against updated ClinVar consensus curations and future DeepMind AlphaGenome releases.
 
 ---
 
