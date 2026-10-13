@@ -181,12 +181,18 @@ flowchart TD
    * Variants in *APOE* (ε2 allele) lower circulating LDL-C and confer statistical longevity advantages, provided secondary metabolic triggers for type III hyperlipoproteinemia are monitored.
 
 ### Architectural Opportunity & Pipeline Strategy
-* **Why Separate Protective Variants from Primary Disease Risks?**
-  * Presenting an *APOB* or *LRP5* variant inside Section 1 ("Priority Genomic Findings") without explicit protective framing causes immediate clinician and patient misunderstanding. An uncontextualized "Pathogenic" label risks misdiagnosis or unwarranted aggressive medication.
+* **The Clinical Reporting Floor Standard:**
+  * **Genomic Monogenic & Carrier List (Section 1 Floor):** The absolute minimum baseline is to include **all verified Pathogenic (P) and Likely Pathogenic (LP)** variants present in the sample callset.
+  * **Pharmacogenomics & Medication Safety (Section 2 Floor):** The absolute minimum baseline is to include **all verified Actionable CPIC Level A/B** prescribing rules (Absolute Contraindications / Fatal Risks, Avoids, Dose Reductions, and High-Risk Metabolizer Phenotypes).
+  * Above this mandatory floor, reporting expands dynamically with documented clinical risk, high-impact Tier 1 monogenic carrier disruption, and endogenous protective traits without arbitrary count limits.
+* **OpenCRAVAT Full LitVar Annotation Pipeline:**
+  * OpenCRAVAT natively provides the `litvar` annotator module, which queries NCBI's semantic literature graph linking genomic variants directly to PubMed and PubMed Central (PMC) full-text publications.
+  * By enabling full `litvar` annotation in the OpenCRAVAT pipeline, every variant call is automatically enriched with its surrounding scientific publication corpus.
+  * An automated local text-mining / NLP agent can parse the LitVar publication abstracts to extract effect sizes, odds ratios ($\text{OR} < 1.0$), and documented protective phenotypes (e.g. LDL lowering, fracture resistance, malaria protection) that are omitted from standard ClinVar disease classifications.
 * **Dual-Valence Annotation Logic (Zero Static Curation Compliant):**
   * Integrate GWAS Catalog and Open Targets effect-direction metrics ($\beta < 0$, $\text{OR} < 1.0$ for adverse disease endpoints; $\beta > 0$ for protective traits).
   * Automatically cross-reference ClinVar phenotypic terms with NLP semantic matching for protective keywords (`reduced susceptibility`, `protective against`, `decreased LDL cholesterol`, `high bone mass`).
-  * Display a dedicated **"Endogenous Strengths & Protective Alleles"** subsection or an explicit **"Valence: Protective / Resilience Factor"** badge.
+  * Display a dedicated **"Endogenous Strengths & Protective Alleles"** subsection or an explicit **"Valence: Protective / Resilience Factor"** badge to avoid confounding disease risk findings.
 
 ---
 
