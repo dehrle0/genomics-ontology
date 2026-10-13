@@ -1,14 +1,14 @@
 # Clinical Genomics Evidence & Deep Research Synthesis: PROBAND_01
 **Patient / Cohort Identifier:** `PROBAND_01` | **Report Date:** October 12, 2026
 **Target Audience:** Medical Geneticist · Subspecialty Investigator · Primary Care Physician · Clinical Bioinformatician
-**Sequencing Depth & Reference:** Mean Called-Locus Depth **50.1x** (Median **50.0x**) on GRCh38.p14
+**Sequencing Depth & Reference:** Mean Called-Locus Depth **50.11x** (Median **50.0x**) on GRCh38.p14
 
 > [!IMPORTANT]
 > **AI-Generated Informational & Research Synthesis — Non-Diagnostic Use Only**
 > This dossier is computationally synthesized using local artificial intelligence (AI) models and public genomic databases for exploratory research, variant prioritization, and informational purposes only. It is **not** a clinical diagnostic test, does not establish a medical diagnosis, and requires independent clinical laboratory verification prior to altering medical management.
 
 ### Orientation: What We Are Covering
-This clinical genomics research dossier evaluates **1407 prioritized variants across 1002 clinical genes** and **41 pharmacogenes (377 screened medications)** for **PROBAND_01** (`PROBAND_01`), backed by **50.1x** mean called-locus sequencing depth. This synthesis separates **Mechanistic Causality** (coding loss-of-function, canonical splice disruption, 3D active-site destabilization) from **Statistical Correlation** (GWAS linkage disequilibrium proxies and common polygenic modifiers), audits **Intra-Gene Cis/Trans Phasing** across multi-variant genes, and provides a **Non-Invasive Biomarker Ground-Truthing & Longitudinal Futures Roadmap**.
+This clinical genomics research dossier evaluates **1407 prioritized variants across 1002 clinical genes** and **41 pharmacogenes (377 screened medications)** for **PROBAND_01** (`PROBAND_01`), backed by **50.11x** mean called-locus sequencing depth. This synthesis separates **Mechanistic Causality** (coding loss-of-function, canonical splice disruption, 3D active-site destabilization) from **Statistical Correlation** (GWAS linkage disequilibrium proxies and common polygenic modifiers), audits **Intra-Gene Cis/Trans Phasing** across multi-variant genes, and provides a **Non-Invasive Biomarker Ground-Truthing & Longitudinal Futures Roadmap**.
 
 ### Body
 
@@ -82,7 +82,7 @@ Parental and read-backed phasing across all multi-variant genes in **PROBAND_01*
 ### Conclusions: Diagnostic & Epistemic Decision Calculus
 
 #### Arguments FOR Non-Invasive Surveillance & Genotype-Guided Prescribing
-1. **High-Depth Analytical Grounding:** Empirical called-locus coverage (**50.1x** mean depth, **50.0x** median depth) provides high analytical certainty (`0.98`) across SNVs and small indels.
+1. **High-Depth Analytical Grounding:** Empirical called-locus coverage (**50.11x** mean depth, **50.0x** median depth) provides high analytical certainty (`0.98`) across SNVs and small indels.
 2. **Actionable Pharmacogenomic Safety:** 142 drug-gene interactions across 41 pharmacogenes provide immediate CPIC/DPWG guidance to avoid toxicity and optimize dosing.
 3. **Low-Cost Non-Invasive Biomarker Ground-Truthing:** Routine PCP blood panels directly verify physiological homeostasis across the sample's specific prioritized pathways.
 
@@ -94,10 +94,10 @@ Parental and read-backed phasing across all multi-variant genes in **PROBAND_01*
 
 1. **Primary Care Non-Invasive Blood Panel:** Incorporate the sample-specific non-invasive venous blood panels and preventive evaluations from Section 2.1 of the Clinical Brief into the annual PCP physical.
 2. **Cryptic Splice & Regulatory Functional Validation (Quadrant 2):** The **166 Cryptic AI Disruptors** exhibiting high AlphaGenome `AVI` scores driven by splicing or RNA-seq modalities can be inspected via the AlphaGenome Ref vs. Alt Track Predictions view.
-3. **Automated Annual Re-Annotation & SHA-256 State Fingerprint:** Baseline SHA-256 callset state fingerprint established (0f7000325413527a…); future annual pipeline runs will automatically report ClinVar/AlphaGenome delta reclassifications against this snapshot.
+3. **Automated Annual Re-Annotation & SHA-256 State Fingerprint:** Verified 0 variant reclassifications since prior snapshot (2026-10-12 19:07:03; SHA-256 0f7000325413527a…).
 
 ### Confidence & Uncertainty Assessment
-- **Analytical WGS Callset & Phasing Confidence:** **0.98** (Mean Called-Locus Depth `50.1x`, Median `50.0x`).
+- **Analytical WGS Callset & Phasing Confidence:** **0.98** (Mean Called-Locus Depth `50.11x`, Median `50.0x`).
 - **CPIC / DPWG Pharmacogenomic Prescribing Confidence:** **0.95** (41 pharmacogenes, 377 screened drugs).
 - **Monogenic Carrier & Surveillance Confidence:** **0.94** (Orthogonal ClinVar, OMIM, CADD, and AlphaGenome agreement).
 - **Polygenic / VUS Modifier Penetrance Confidence:** **0.70** (Requires non-invasive biomarker ground-truthing).
