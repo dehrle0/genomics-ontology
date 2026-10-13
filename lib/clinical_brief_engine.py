@@ -578,13 +578,31 @@ def _map_gene_to_noninvasive_screening(gene_obj, v):
             "mech": f"{csq_label} ({v_chg}) in {gname}. {func_sent} <strong>Clinical Impact:</strong> Alters enzymatic clearance of specific medications; reference Sections 3–4 prior to prescribing substrate therapies."
         }
 
+    if any(k in primary_pathology.lower() for k in ["pathway", "phenotype", "function"]):
+        impact_prefix = f"Potential impact on {primary_pathology}."
+    elif primary_pathology and primary_pathology.lower() not in [f"{gname.lower()} pathway", f"{sym.lower()} pathway", "general pathway", "clinical pathway"]:
+        impact_prefix = f"Potential impact on {primary_pathology} pathway."
+    elif organ and organ.lower() != "multisystem":
+        impact_prefix = f"Potential impact on {organ.lower()} cellular pathways."
+    else:
+        impact_prefix = f"Potential modulation of cellular {sym} pathway function."
+
+    zyg_finding_desc = f"Single-copy {zyg.lower()} finding" if "het" in zyg.lower() else f"{zyg} finding"
+    fallback_impact = _clean_complete_sentence(
+        f"{impact_prefix} {zyg_finding_desc}; review in the context of standard annual wellness labs and personal clinical history.",
+        250
+    )
+
     return {
         "pathway": f"{sym} · {organ} Pathway ({primary_pathology})",
         "test": "<strong>Routine Annual Metabolic &amp; Wellness Panel</strong><div style='font-size:7.3pt;color:#0f766e;'>Standard Annual Physical</div>",
         "routing": "<strong>Primary Care Physician (PCP)</strong>",
         "freq": "Annual PCP Checkup",
-        "impact_and_guidance": f"Single-copy {zyg.lower()} finding; review in the context of standard annual wellness labs and personal clinical history.",
-        "mech": f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} <strong>Clinical Impact:</strong> Review in the context of standard annual wellness labs and clinical history."
+        "impact_and_guidance": fallback_impact,
+        "mech": (
+            f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
+            f"<strong>Clinical Impact:</strong> {impact_prefix} {zyg_finding_desc}; review in the context of standard annual wellness labs and clinical history."
+        )
     }
 
 
