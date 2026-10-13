@@ -77,6 +77,47 @@ def _calc_variant_confidence(v, vcf_mean_dp=40.0):
     return round(min(max(dp_score + vaf_score + cur_score + ai_bonus, 0.58), 0.99), 2)
 
 
+def _clean_complete_sentence(text, max_len=175):
+    """
+    Trims text to complete sentences or complete words up to approximately max_len,
+    ensuring it ends with a clean period (.), exclamation point, or question mark,
+    and NEVER ends with an ellipsis ('…' or '...').
+    """
+    if not text:
+        return ""
+    text = str(text).replace("…", "").strip()
+    if len(text) <= max_len:
+        if not text.endswith((".", "!", "?")):
+            text += "."
+        return text
+
+    # Look for a complete sentence boundary before or within max_len + 25
+    candidate = text[:max_len + 25]
+    sentence_ends = [m.end() for m in re.finditer(r"[.!?](?:\s+|$)", candidate)]
+    if sentence_ends:
+        valid_ends = [end for end in sentence_ends if end >= int(max_len * 0.40)]
+        if valid_ends:
+            return candidate[:valid_ends[-1]].strip()
+
+    candidate_short = text[:max_len]
+    last_space = candidate_short.rfind(" ")
+    if last_space > int(max_len * 0.40):
+        trimmed = candidate_short[:last_space].rstrip(" ,;:-\u2014/()[]{}")
+        dangling = {"to", "as", "and", "or", "with", "for", "in", "of", "on", "at", "by", "from", "than", "that", "which"}
+        words = trimmed.split()
+        while words and words[-1].lower() in dangling:
+            words.pop()
+        trimmed = " ".join(words).rstrip(" ,;:-\u2014/()[]{}")
+        if not trimmed.endswith((".", "!", "?")):
+            trimmed += "."
+        return trimmed
+
+    trimmed = candidate_short.rstrip(" ,;:-\u2014/()[]{}")
+    if not trimmed.endswith((".", "!", "?")):
+        trimmed += "."
+    return trimmed
+
+
 def _extract_inheritance_mode(gene_obj):
     """Extracts human-readable inheritance mode strictly from the sample's JSON ontology/pathology metadata (zero static gene lists)."""
     summary_low = str(gene_obj.get("summary") or "").lower()
@@ -337,8 +378,7 @@ def _map_gene_to_noninvasive_screening(gene_obj, v):
     func_sent = sents[0] if sents else f"Encodes {gname} within the {organ} system."
     if len(sents) > 1 and len(func_sent) < 115:
         func_sent = f"{func_sent} {sents[1]}"
-    if len(func_sent) > 220:
-        func_sent = func_sent[:217] + "…"
+    func_sent = _clean_complete_sentence(func_sent, 210)
 
     hpo_labels = [str(h.get("label") if isinstance(h, dict) else h) for h in (gene_obj.get("hpoTerms") or [])[:8]]
     go_terms = [str(g) for g in (gene_obj.get("goBpo") or [])[:8]] + [str(g) for g in (gene_obj.get("goMfo") or [])[:8]]
@@ -697,33 +737,60 @@ def _build_pharma_sections(pharma_data, p_data, priority_pairs, mean_dp_fallback
 
         if is_plp and ("mitochondrial dna polymerase" in corpus or ("polymerase" in corpus and "gamma" in corpus) or "valproate" in corpus):
             seen_redbox_genes.add(sym)
+            rule_clean = "High risk of fatal valproate-induced hepatic necrosis / mitochondrial liver failure. Strictly avoid valproate formulations."
             redbox_cards.append({
-                "gene_variant_header": f"{sym} · <code>{vdesc['hgvs_line']}</code> ({vdesc['zygosity']} Carrier)",
+                "gene_sym": sym,
+                "dip_str": vdesc['hgvs_line'],
+                "var_str": f"{vdesc['zygosity']} Carrier",
+                "phenotype": "Mitochondrial Carrier",
+                "is_life_threatening": True,
+                "is_high_risk": False,
                 "action_badge": "🚨 LIFE-THREATENING RISK · CONTRAINDICATED",
+                "action_short": "CONTRAINDICATED",
                 "badge_col": "#dc2626",
                 "badge_bg": "#fef2f2",
+                "drug_names": "Valproic Acid, Sodium Valproate, Divalproex Sodium",
                 "drugs_highlighted": "<span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Valproic Acid, Sodium Valproate, Divalproex Sodium</span>",
-                "clinical_rule": f"<strong>CRITICAL HAZARD:</strong> Pathogenic {g.get('name', sym)} carrier; valproate formulations are strictly contraindicated due to high risk of fatal valproate-induced hepatic necrosis / mitochondrial liver failure."
+                "clinical_rule": rule_clean,
+                "gene_variant_header": f"{sym} · <code>{vdesc['hgvs_line']}</code> ({vdesc['zygosity']} Carrier)"
             })
         elif ("coagulation cascade" in corpus or "blood coagulation" in corpus) and "drug response" in cv:
             seen_redbox_genes.add(sym)
+            rule_clean = "Confers Activated Protein C (APC) resistance with 35-fold amplified risk of venous thromboembolism (VTE) and pulmonary embolism with systemic estrogen exposure. Avoid oral estrogen formulations; implement situational perioperative VTE prophylaxis."
             redbox_cards.append({
-                "gene_variant_header": f"{sym} · <code>{vdesc['hgvs_line']}</code> ({vdesc['zygosity']} APC Resistance)",
-                "action_badge": "🚨 LIFE-THREATENING RISK · AVOID ESTROGENS",
-                "badge_col": "#dc2626",
-                "badge_bg": "#fef2f2",
-                "drugs_highlighted": "<span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Systemic Estrogens, Combined Oral Contraceptives, HRT</span>",
-                "clinical_rule": "<strong>CRITICAL HAZARD:</strong> Confers Activated Protein C (APC) resistance with 35-fold amplified risk of venous thromboembolism (VTE) and pulmonary embolism with systemic estrogen exposure. Avoid oral estrogen formulations; implement situational perioperative VTE prophylaxis."
+                "gene_sym": sym,
+                "dip_str": vdesc['hgvs_line'],
+                "var_str": f"{vdesc['zygosity']} APC Resistance",
+                "phenotype": "Heterozygous APC Resistance",
+                "is_life_threatening": False,
+                "is_high_risk": True,
+                "action_badge": "⚠️ HIGH RISK · AVOID ESTROGENS",
+                "action_short": "AVOID ESTROGENS",
+                "badge_col": "#b45309",
+                "badge_bg": "#fffbeb",
+                "drug_names": "Systemic Estrogens, Combined Oral Contraceptives, HRT",
+                "drugs_highlighted": "<strong>Systemic Estrogens, Combined Oral Contraceptives, HRT</strong>",
+                "clinical_rule": rule_clean,
+                "gene_variant_header": f"{sym} · <code>{vdesc['hgvs_line']}</code> ({vdesc['zygosity']} APC Resistance)"
             })
         elif "dihydropyrimidine" in corpus or "pyrimidine catabolism" in corpus:
             seen_redbox_genes.add(sym)
+            rule_clean = f"Functional variant {vdesc['primary']} in {g.get('name', sym)} impairs pyrimidine catabolism, causing fluoropyrimidine myelotoxicity and neurotoxicity. Initiate at ≥50% dose reduction per CPIC Level A."
             redbox_cards.append({
-                "gene_variant_header": f"{sym} · <code>{vdesc['hgvs_line']}</code> ({vdesc['zygosity']})",
+                "gene_sym": sym,
+                "dip_str": vdesc['hgvs_line'],
+                "var_str": vdesc['zygosity'],
+                "phenotype": "Decreased Pyrimidine Catabolism",
+                "is_life_threatening": True,
+                "is_high_risk": False,
                 "action_badge": "🚨 LIFE-THREATENING TOXICITY · REDUCE DOSE 50%",
+                "action_short": "REDUCE DOSE 50%",
                 "badge_col": "#dc2626",
                 "badge_bg": "#fef2f2",
+                "drug_names": "Fluorouracil (5-FU), Capecitabine, Tegafur",
                 "drugs_highlighted": "<span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Fluorouracil (5-FU), Capecitabine, Tegafur</span>",
-                "clinical_rule": f"<strong>CRITICAL HAZARD:</strong> Functional variant {vdesc['primary']} in {g.get('name', sym)} impairs pyrimidine catabolism, causing fluoropyrimidine myelotoxicity / neurotoxicity; initiate at ≥50% dose reduction per CPIC Level A."
+                "clinical_rule": rule_clean,
+                "gene_variant_header": f"{sym} · <code>{vdesc['hgvs_line']}</code> ({vdesc['zygosity']})"
             })
 
     # Step 2: Add Non-Wild-Type Pharmacogene AVOID cards from THIS sample's pharma_data
@@ -742,30 +809,40 @@ def _build_pharma_sections(pharma_data, p_data, priority_pairs, mean_dp_fallback
         g_info = pharmacogenes.get(g_sym, {})
         dip, pheno, var_str = _extract_pgx_defining_variant(g_info, callset_genes, g_sym)
         drug_names = ", ".join([c["drug"].title() for c in dcs[:6]])
-        ev_txt = dcs[0].get("evidence_text") or "High risk of adverse toxicity or therapeutic failure per CPIC."
-        if len(ev_txt) > 155:
-            ev_txt = ev_txt[:152] + "…"
+        ev_raw = dcs[0].get("evidence_text") or "High risk of adverse toxicity or therapeutic failure per CPIC."
+        ev_txt = _clean_complete_sentence(ev_raw, 135)
 
-        is_lt = any(w in ev_txt.lower() for w in ["fatal", "life-threatening", "death"]) or any(w in drug_names.lower() for w in ["fluorouracil", "capecitabine"])
+        is_lt = any(w in ev_raw.lower() for w in ["fatal", "life-threatening", "death"]) or any(w in drug_names.lower() for w in ["fluorouracil", "capecitabine"])
 
         if is_lt:
-            badge_lbl = f"🚨 LIFE-THREATENING RISK · AVOID {g_sym}"
+            badge_lbl = f"🚨 LIFE-THREATENING RISK · AVOID"
             b_col, b_bg = "#dc2626", "#fef2f2"
             drug_highlight = f"<strong style='color:#b91c1c;'>{drug_names}</strong>"
             crit_prefix = "<strong>CRITICAL HAZARD:</strong> "
+            act_short = "CONTRAINDICATED"
         else:
             badge_lbl = "⚠️ HIGH RISK · AVOID MEDICATION"
             b_col, b_bg = "#b45309", "#fffbeb"
             drug_highlight = f"<strong>{drug_names}</strong>"
             crit_prefix = ""
+            act_short = "AVOID MEDICATION"
 
+        rule_clean = _clean_complete_sentence(f"{crit_prefix}{ev_txt} Select a non-substrate alternative per CPIC.", 260)
         redbox_cards.append({
-            "gene_variant_header": f"<strong>{g_sym}</strong> · <span class='mono'>{dip}</span>" + (f" [<span class='mono'>{var_str}</span>]" if var_str else "") + f" ({pheno})",
+            "gene_sym": g_sym,
+            "dip_str": dip,
+            "var_str": var_str,
+            "phenotype": pheno,
+            "is_life_threatening": is_lt,
+            "is_high_risk": not is_lt,
             "action_badge": badge_lbl,
+            "action_short": act_short,
             "badge_col": b_col,
             "badge_bg": b_bg,
+            "drug_names": drug_names,
             "drugs_highlighted": drug_highlight,
-            "clinical_rule": f"{crit_prefix}{ev_txt} Select a non-substrate alternative per CPIC."
+            "clinical_rule": rule_clean,
+            "gene_variant_header": f"<strong>{g_sym}</strong> · <span class='mono'>{dip}</span>" + (f" [<span class='mono'>{var_str}</span>]" if var_str else "") + f" ({pheno})"
         })
 
     # Step 3: Add Non-Wild-Type Pharmacogene DOSE_DOWN cards from THIS sample's pharma_data
@@ -785,30 +862,40 @@ def _build_pharma_sections(pharma_data, p_data, priority_pairs, mean_dp_fallback
         dip, pheno, var_str = _extract_pgx_defining_variant(g_info, callset_genes, g_sym)
         drug_names = ", ".join([c["drug"].title() for c in dcs[:6]])
         more_cnt = f" (+{len(dcs) - 6} more)" if len(dcs) > 6 else ""
-        ev_txt = dcs[0].get("evidence_text") or "Decreased metabolic clearance or transporter activity increases systemic drug exposure."
-        if len(ev_txt) > 150:
-            ev_txt = ev_txt[:147] + "…"
+        ev_raw = dcs[0].get("evidence_text") or "Decreased metabolic clearance or transporter activity increases systemic drug exposure."
+        ev_txt = _clean_complete_sentence(ev_raw, 135)
 
-        is_lt = any(w in ev_txt.lower() for w in ["fatal", "life-threatening", "death"]) or any(w in drug_names.lower() for w in ["fluorouracil", "capecitabine"])
+        is_lt = any(w in ev_raw.lower() for w in ["fatal", "life-threatening", "death"]) or any(w in drug_names.lower() for w in ["fluorouracil", "capecitabine"])
 
         if is_lt:
             badge_lbl = "🚨 LIFE-THREATENING RISK · REDUCE DOSE"
             b_col, b_bg = "#dc2626", "#fef2f2"
             drug_highlight = f"<strong style='color:#b91c1c;'>{drug_names}{more_cnt}</strong>"
             crit_prefix = "<strong>CRITICAL HAZARD:</strong> "
+            act_short = "REDUCE DOSE"
         else:
             badge_lbl = "⬇️ HIGH RISK · REDUCE DOSE"
             b_col, b_bg = "#b45309", "#fffbeb"
             drug_highlight = f"<strong>{drug_names}{more_cnt}</strong>"
             crit_prefix = ""
+            act_short = "REDUCE DOSE"
 
+        rule_clean = _clean_complete_sentence(f"{crit_prefix}{ev_txt} Initiate at reduced starting dose per CPIC.", 260)
         redbox_cards.append({
-            "gene_variant_header": f"<strong>{g_sym}</strong> · <span class='mono'>{dip}</span>" + (f" [<span class='mono'>{var_str}</span>]" if var_str else "") + f" ({pheno})",
+            "gene_sym": g_sym,
+            "dip_str": dip,
+            "var_str": var_str,
+            "phenotype": pheno,
+            "is_life_threatening": is_lt,
+            "is_high_risk": not is_lt,
             "action_badge": badge_lbl,
+            "action_short": act_short,
             "badge_col": b_col,
             "badge_bg": b_bg,
+            "drug_names": f"{drug_names}{more_cnt}",
             "drugs_highlighted": drug_highlight,
-            "clinical_rule": f"{crit_prefix}{ev_txt} Initiate at reduced starting dose per CPIC."
+            "clinical_rule": rule_clean,
+            "gene_variant_header": f"<strong>{g_sym}</strong> · <span class='mono'>{dip}</span>" + (f" [<span class='mono'>{var_str}</span>]" if var_str else "") + f" ({pheno})"
         })
 
     # Step 4: Add Non-Wild-Type Pharmacogene DOSE_UP / CAUTION cards from THIS sample's pharma_data
@@ -829,22 +916,32 @@ def _build_pharma_sections(pharma_data, p_data, priority_pairs, mean_dp_fallback
         act0 = str(dcs[0].get("action") or "CAUTION").upper()
         drug_names = ", ".join([c["drug"].title() for c in dcs[:6]])
         more_cnt = f" (+{len(dcs) - 6} more)" if len(dcs) > 6 else ""
-        ev_txt = dcs[0].get("evidence_text") or "Altered enzymatic clearance or transporter function requires dosing vigilance."
-        if len(ev_txt) > 150:
-            ev_txt = ev_txt[:147] + "…"
+        ev_raw = dcs[0].get("evidence_text") or "Altered enzymatic clearance or transporter function requires dosing vigilance."
+        ev_txt = _clean_complete_sentence(ev_raw, 135)
         if act0 == "DOSE_UP":
             badge_lbl, b_col, b_bg = "⬆️ RAPID CLEARANCE · DOSE UP", "#1e40af", "#eff6ff"
             rule_sfx = "Standard doses may be subtherapeutic; titrate or consider alternative per CPIC."
+            act_short = "INCREASE DOSE / MONITOR"
         else:
             badge_lbl, b_col, b_bg = "⚠️ USE WITH CAUTION", "#92400e", "#fffbeb"
             rule_sfx = "Monitor clinical response and consider dose adjustment per CPIC."
+            act_short = "CAUTION / MONITOR"
+        rule_clean = _clean_complete_sentence(f"{ev_txt} {rule_sfx}", 260)
         redbox_cards.append({
-            "gene_variant_header": f"<strong>{g_sym}</strong> · <span class='mono'>{dip}</span>" + (f" [<span class='mono'>{var_str}</span>]" if var_str else "") + f" ({pheno})",
+            "gene_sym": g_sym,
+            "dip_str": dip,
+            "var_str": var_str,
+            "phenotype": pheno,
+            "is_life_threatening": False,
+            "is_high_risk": False,
             "action_badge": badge_lbl,
+            "action_short": act_short,
             "badge_col": b_col,
             "badge_bg": b_bg,
+            "drug_names": f"{drug_names}{more_cnt}",
             "drugs_highlighted": f"<strong>{drug_names}{more_cnt}</strong>",
-            "clinical_rule": f"{ev_txt} {rule_sfx}"
+            "clinical_rule": rule_clean,
+            "gene_variant_header": f"<strong>{g_sym}</strong> · <span class='mono'>{dip}</span>" + (f" [<span class='mono'>{var_str}</span>]" if var_str else "") + f" ({pheno})"
         })
 
     # Build Section 4 Part A: Medication Action Tier Summary Rows
@@ -876,9 +973,7 @@ def _build_pharma_sections(pharma_data, p_data, priority_pairs, mean_dp_fallback
             grouped_str_parts.append(f"{gk}: <strong>{', '.join(dlist[:6])}</strong>")
         drugs_summary_html = " · ".join(grouped_str_parts)
 
-        sample_ev = cards[0].get("evidence_text") or default_desc
-        if len(sample_ev) > 180:
-            sample_ev = sample_ev[:177] + "…"
+        sample_ev = _clean_complete_sentence(cards[0].get("evidence_text") or default_desc, 170)
 
         pgx_action_rows_html += f"""
         <tr>
@@ -945,9 +1040,8 @@ def _build_pharma_sections(pharma_data, p_data, priority_pairs, mean_dp_fallback
         if not sub_parts:
             sub_parts.append("Standard CPIC substrate dosing")
 
-        guidance_text = g_cards[0].get("evidence_text") if g_cards else "Standard dosing guidelines apply based on diplotype."
-        if guidance_text and len(guidance_text) > 150:
-            guidance_text = guidance_text[:147] + "…"
+        raw_guidance = g_cards[0].get("evidence_text") if g_cards else "Standard dosing guidelines apply based on diplotype."
+        guidance_text = _clean_complete_sentence(raw_guidance, 150)
         var_line = f"<div style='font-size:7.0pt;color:#475569;'>{var_str}</div>" if var_str else ""
         pgx_gene_rows_html += f"""
         <tr>
@@ -1063,10 +1157,10 @@ def _get_local_ai_clinical_enhancements(p_data, priority_pairs, redbox_cards, ph
             parts.append(f"adjust starting doses or monitor {', '.join(adjust_meds[:3])}")
         b2 = f"<strong>Actionable Medication Safety (CPIC / FDA):</strong> Key prescribing precautions are identified — {'; and '.join(parts)}."
     else:
-        b2 = "<strong>Actionable Medication Safety (CPIC / FDA):</strong> Standard pharmacogenomic baseline across primary screened medications; see Section 4 for full substrate reference."
+        b2 = "<strong>Actionable Medication Safety (CPIC / FDA):</strong> Standard pharmacogenomic baseline across primary screened medications; see Section 2 for full substrate reference."
 
     b3 = (
-        "<strong>Preventive Care Takeaway:</strong> Focus annual primary care discussions on the high-level wellness and screening topics in Section 2; "
+        "<strong>Preventive Care Takeaway:</strong> Focus annual primary care discussions on the high-level wellness and screening topics in Section 3; "
         "single-copy carrier findings do not require invasive diagnostic procedures."
     )
 
@@ -1209,15 +1303,45 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
         </tr>
         """
 
-    # Build Section 2 High-Priority Medication & Exposure Precautions Table
+    # Build Section 2 High-Priority Medication & Pharmacogenomic Precautions Table (Combined Sections 2 & 4)
     sec2_table_rows_html = ""
-    for rc in redbox_cards[:5]:
+    for rc in redbox_cards[:6]:
+        g_sym = rc.get("gene_sym") or rc.get("gene_variant_header", "").split()[0]
+        dip_str = rc.get("dip_str") or ""
+        var_sub = f"<div class='mono' style='font-size:7.0pt;color:#475569;'>{rc.get('var_str', '')}</div>" if rc.get('var_str') else ""
+        gene_col = f"<strong>{g_sym}</strong>" + (f" · <span class='mono'>{dip_str}</span>" if dip_str else "") + var_sub
+        pheno_col = f"<strong>{rc.get('phenotype', 'Altered Function')}</strong>"
+
+        drugs_str = rc.get("drug_names") or re.sub(r"<[^>]+>", "", rc.get("drugs_highlighted", ""))
+        rule_str = rc.get("clinical_rule") or ""
+
+        if rc.get("is_life_threatening"):
+            td_style = 'style="background:#fef2f2;" class="font-bold"'
+            risk_tag = '<strong style="color:#b91c1c;display:block;font-size:7.0pt;text-transform:uppercase;letter-spacing:0.02em;margin-bottom:2px;">⚠️ LIFE-THREATENING RISK</strong>'
+            drug_html = f'{risk_tag}<span style="color:#7f1d1d;font-weight:700;">{drugs_str}</span>'
+            action_html = f'<strong style="color:#b91c1c;">CONTRAINDICATION (FATAL RISK):</strong> {rule_str}'
+        elif rc.get("is_high_risk"):
+            td_style = 'style="background:#fefce8;" class="font-bold"'
+            if "REDUCE" in str(rc.get("action_badge", "")).upper():
+                risk_tag = '<strong style="color:#92400e;display:block;font-size:7.0pt;text-transform:uppercase;letter-spacing:0.02em;margin-bottom:2px;">⬇️ HIGH RISK · REDUCE DOSE</strong>'
+                action_html = f'<strong style="color:#92400e;">REDUCE STARTING DOSE:</strong> {rule_str}'
+            else:
+                risk_tag = '<strong style="color:#92400e;display:block;font-size:7.0pt;text-transform:uppercase;letter-spacing:0.02em;margin-bottom:2px;">⚠️ HIGH RISK · AVOID</strong>'
+                action_html = f'<strong style="color:#92400e;">AVOID SUBSTRATE:</strong> {rule_str}'
+            drug_html = f'{risk_tag}<span style="color:#78350f;font-weight:700;">{drugs_str}</span>'
+        else:
+            td_style = 'style="background:#f8fafc;"'
+            act_short = rc.get("action_short") or "CAUTION / MONITOR"
+            risk_tag = f'<strong style="color:#1e40af;display:block;font-size:7.0pt;text-transform:uppercase;letter-spacing:0.02em;margin-bottom:2px;">{act_short}</strong>'
+            drug_html = f'{risk_tag}<span style="color:#334155;font-weight:600;">{drugs_str}</span>'
+            action_html = f'<strong style="color:#1e40af;">{act_short}:</strong> {rule_str}'
+
         sec2_table_rows_html += f"""
         <tr>
-          <td>{rc['gene_variant_header']}</td>
-          <td><span class="spec-badge" style="color:{rc['badge_col']};background:{rc['badge_bg']};">{rc['action_badge']}</span></td>
-          <td>{rc['drugs_highlighted']}</td>
-          <td>{rc['clinical_rule']}</td>
+          <td>{gene_col}</td>
+          <td>{pheno_col}</td>
+          <td {td_style}>{drug_html}</td>
+          <td>{action_html}</td>
         </tr>
         """
 
@@ -1242,8 +1366,8 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     dd_items = [re.sub(r"<[^>]+>", "", rc["drugs_highlighted"]) for rc in redbox_cards if "REDUCE DOSE" in rc["action_badge"]]
     du_items = [re.sub(r"<[^>]+>", "", rc["drugs_highlighted"]) for rc in redbox_cards if "DOSE UP" in rc["action_badge"] or "CAUTION" in rc["action_badge"]]
     avoid_summary = " · ".join(avoid_items) if avoid_items else "None identified"
-    dd_summary = " · ".join(dd_items) if dd_items else "See Section 4"
-    du_summary = " · ".join(du_items) if du_items else "See Section 4"
+    dd_summary = " · ".join(dd_items) if dd_items else "Standard Dosing (See Section 2)"
+    du_summary = " · ".join(du_items) if du_items else "Standard Dosing (See Section 2)"
     top_genes_summary = ", ".join([
         f"{g['symbol']} ({_format_variant_descriptor(v, g)['hgvs_line']}, {v.get('zygosity')})"
         for g, v in priority_pairs[:6]
@@ -1515,40 +1639,60 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     </table>
 
     <div style="font-size:7.2pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      {patient_name} ({patient_id}) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Medication Precautions &amp; Preventive Care Schedule
+      {patient_name} ({patient_id}) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Medication &amp; Pharmacogenomic Precautions
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: PRESCRIBING PRECAUTIONS & PREVENTIVE CARE ======================= -->
+  <!-- ======================= PAGE 2 OF 3: PRESCRIBING & PHARMACOGENOMIC PRECAUTIONS ======================= -->
   <div class="page page-2">
     <div class="brief-header">
       <div>
-        <div class="brief-title">PRESCRIBING SAFETY &amp; PREVENTIVE CARE SCHEDULE</div>
+        <div class="brief-title">PHARMACOGENOMICS &amp; PRESCRIBING SAFETY GUIDE</div>
         <div style="font-size:8.0pt;color:#334155;margin-top:2px;">
-          <strong>Patient:</strong> {patient_name} (<span class="mono">{patient_id}</span>) · High-Priority Prescribing Safety &amp; Annual Checkup Topics
+          <strong>Patient:</strong> {patient_name} (<span class="mono">{patient_id}</span>) · High-Priority Medication &amp; Pharmacogenomic Precautions (CPIC / FDA)
         </div>
       </div>
       <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
-        <div>Prescribing &amp; Preventive Care</div>
+        <div>Prescribing &amp; Pharmacogenomics</div>
         <div class="mono" style="color:#475569;">Page 2 of 3</div>
       </div>
     </div>
 
-    <!-- Section 2: High-Priority Medication & Exposure Precautions -->
-    <h2>Section 2 · High-Priority Medication &amp; Exposure Precautions (CPIC / FDA)</h2>
+    <!-- Section 2: High-Priority Medication & Pharmacogenomic Precautions -->
+    <h2>Section 2 · High-Priority Medication &amp; Pharmacogenomic Precautions (CPIC / FDA)</h2>
     <table>
       <thead>
         <tr>
           <th style="width:20%;">Gene &amp; Variant / Diplotype</th>
-          <th style="width:16%;">Prescribing Action</th>
-          <th style="width:26%;">Affected Medication(s)</th>
-          <th>Prescribing Rule &amp; Clinical Guidance</th>
+          <th style="width:16%;">Phenotype / Status</th>
+          <th style="width:28%;">Affected Medication(s)</th>
+          <th>Prescribing Action &amp; Clinical Guidance</th>
         </tr>
       </thead>
       <tbody>
         {sec2_table_rows_html}
       </tbody>
     </table>
+
+    <div style="font-size:7.2pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:6px;">
+      {patient_name} ({patient_id}) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Preventive Care &amp; Clinical Perspective
+    </div>
+  </div>
+
+  <!-- ======================= PAGE 3 OF 3: PREVENTIVE CARE, CLINICAL PERSPECTIVE & EHR SUMMARY ======================= -->
+  <div class="page page-3">
+    <div class="brief-header">
+      <div>
+        <div class="brief-title">PREVENTIVE CARE, CLINICAL PERSPECTIVE &amp; EHR SUMMARY</div>
+        <div style="font-size:8.0pt;color:#334155;margin-top:2px;">
+          <strong>Patient:</strong> {patient_name} (<span class="mono">{patient_id}</span>) · Annual Checkup Topics, Clinical Perspective &amp; Physician Handoff Note
+        </div>
+      </div>
+      <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
+        <div>Preventive Care &amp; Clinical Context</div>
+        <div class="mono" style="color:#475569;">Page 3 of 3</div>
+      </div>
+    </div>
 
     <!-- Section 3: High-Level Preventive Care & Annual Checkup Discussion Points -->
     <h2>Section 3 · High-Level Preventive Care &amp; Annual Checkup Discussion Points</h2>
@@ -1567,43 +1711,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
       </tbody>
     </table>
 
-    <div style="font-size:7.2pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      {patient_name} ({patient_id}) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Reference &amp; EHR Summary
-    </div>
-  </div>
-
-  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, CLINICAL PERSPECTIVE & EHR SUMMARY ======================= -->
-  <div class="page page-3">
-    <div class="brief-header">
-      <div>
-        <div class="brief-title">PHARMACOGENOMIC REFERENCE &amp; CLINICAL PERSPECTIVE</div>
-        <div style="font-size:8.0pt;color:#334155;margin-top:2px;">
-          <strong>Patient:</strong> {patient_name} (<span class="mono">{patient_id}</span>) · Actionable Pharmacogenomic Guide &amp; Physician Handoff Note
-        </div>
-      </div>
-      <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
-        <div>Pharmacogenomics &amp; Clinical Context</div>
-        <div class="mono" style="color:#475569;">Page 3 of 3</div>
-      </div>
-    </div>
-
-    <!-- Section 4: Actionable Pharmacogenomic Prescribing Reference -->
-    <h2>Section 4 · Actionable Pharmacogenomic Prescribing Guide (CPIC / DPWG)</h2>
-    <table>
-      <thead>
-        <tr>
-          <th style="width:20%;">Pharmacogene &amp; Diplotype</th>
-          <th style="width:16%;">Metabolizer Phenotype</th>
-          <th style="width:28%;">Actionable Medication Substrates</th>
-          <th>CPIC Clinical Dosing Guidance</th>
-        </tr>
-      </thead>
-      <tbody>
-        {pgx_gene_rows_html}
-      </tbody>
-    </table>
-
-    <h2>Section 5 · Clinical Perspective: Balancing Proactive Care vs. Over-Intervention</h2>
+    <h2>Section 4 · Clinical Perspective: Balancing Proactive Care vs. Over-Intervention</h2>
     <div class="calculus-grid">
       <div class="calculus-card" style="background:#f0fdf4;border-color:#bbf7d0;">
         <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:7.8pt;">✅ Why These Findings Are Useful</div>
@@ -1622,7 +1730,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
       </div>
     </div>
 
-    <h2>Section 6 · Copy-Paste Physician Handoff / EHR Chart Summary</h2>
+    <h2>Section 5 · Copy-Paste Physician Handoff / EHR Chart Summary</h2>
     <div class="ehr-note-box">CLINICAL GENOMICS &amp; PHARMACOGENOMICS SUMMARY ({patient_name} | ID: {patient_id})
 • PRIORITY GENOMIC &amp; CARRIER FINDINGS: {top_genes_summary}. Single-copy (heterozygous) recessive carrier states retain one functional gene copy and do not cause primary recessive disease.
 • MEDICATION &amp; EXPOSURE PRECAUTIONS (CPIC / FDA):
@@ -1709,7 +1817,7 @@ def verify_and_save_state_fingerprint(patient_id, p_data, out_dir):
         "priorHash": None,
         "currentHash": sha256_hash,
         "reclassifiedCount": 0,
-        "statusText": f"Baseline SHA-256 callset state fingerprint established ({sha256_hash[:16]}…); future annual pipeline runs will automatically report ClinVar/AlphaGenome delta reclassifications against this snapshot."
+        "statusText": f"Baseline SHA-256 callset state fingerprint established ({sha256_hash[:16]}); future annual pipeline runs will automatically report ClinVar/AlphaGenome delta reclassifications against this snapshot."
     }
 
     if os.path.exists(fp_path):
@@ -1730,9 +1838,9 @@ def verify_and_save_state_fingerprint(patient_id, p_data, out_dir):
                         reclass += 1
             delta_summary["reclassifiedCount"] = reclass
             if old_fp.get("sha256") == sha256_hash:
-                delta_summary["statusText"] = f"Verified 0 variant reclassifications since prior snapshot ({old_fp.get('timestamp')}; SHA-256 {sha256_hash[:16]}…)."
+                delta_summary["statusText"] = f"Verified 0 variant reclassifications since prior snapshot ({old_fp.get('timestamp')}; SHA-256 {sha256_hash[:16]})."
             else:
-                delta_summary["statusText"] = f"Detected {reclass} updated variant annotation states since prior snapshot ({old_fp.get('timestamp')}; SHA-256 {sha256_hash[:16]}…)."
+                delta_summary["statusText"] = f"Detected {reclass} updated variant annotation states since prior snapshot ({old_fp.get('timestamp')}; SHA-256 {sha256_hash[:16]})."
         except Exception:
             pass
 

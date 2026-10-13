@@ -112,7 +112,7 @@ def _build_old_pgx_table(p_data, pharma_data):
         <tr>
           <td class="font-bold text-slate-900">{sym} <div class="font-mono text-[7.8pt] text-slate-600">{vdesc['hgvs_line']}</div></td>
           <td>Mitochondrial Carrier</td>
-          <td><span class="inline-block bg-red-600 text-white font-extrabold px-1.5 py-0.5 rounded text-[6.8pt] uppercase tracking-wide mr-1">⚠️ LIFE-THREATENING RISK</span><strong class="text-red-700">Valproic Acid / Sodium Valproate</strong></td>
+          <td style="background:#fef2f2;" class="font-bold"><strong class="text-red-700 font-extrabold uppercase text-[7.0pt] block mb-0.5">⚠️ LIFE-THREATENING RISK</strong><strong class="text-red-950">Valproic Acid / Sodium Valproate</strong></td>
           <td><strong class="text-red-700">ABSOLUTE CONTRAINDICATION (FATAL RISK):</strong> High risk of fatal valproate-induced hepatic necrosis (FDA Boxed Warning / CPIC). Strictly avoid valproate formulations.</td>
         </tr>""")
                 seen.add(sym)
@@ -122,8 +122,8 @@ def _build_old_pgx_table(p_data, pharma_data):
         <tr>
           <td class="font-bold text-slate-900">{sym} <div class="font-mono text-[7.8pt] text-slate-600">{vdesc['hgvs_line']} ({v.get('id') or 'called'} {vdesc['zygosity']})</div></td>
           <td>APC Resistance</td>
-          <td><span class="inline-block bg-red-600 text-white font-extrabold px-1.5 py-0.5 rounded text-[6.8pt] uppercase tracking-wide mr-1">⚠️ LIFE-THREATENING RISK</span><strong class="text-red-700">Systemic Estrogens / Oral Contraceptives</strong></td>
-          <td><strong class="text-red-700">AVOID / THROMBOEMBOLISM RISK:</strong> Avoid prothrombotic estrogen regimens (35-fold VTE / pulmonary embolism risk amplification); implement situational perioperative VTE prophylaxis (major surgery/immobilization).</td>
+          <td style="background:#fefce8;" class="font-bold"><strong class="text-amber-800 font-extrabold uppercase text-[7.0pt] block mb-0.5">⚠️ HIGH RISK · AVOID ESTROGENS</strong><strong class="text-amber-950">Systemic Estrogens / Oral Contraceptives</strong></td>
+          <td><strong class="text-amber-800">AVOID / THROMBOEMBOLISM RISK:</strong> Avoid prothrombotic estrogen regimens (35-fold VTE / pulmonary embolism risk amplification); implement situational perioperative VTE prophylaxis (major surgery/immobilization).</td>
         </tr>""")
                 seen.add(sym)
                 break
@@ -153,24 +153,26 @@ def _build_old_pgx_table(p_data, pharma_data):
             any(w in rule_lower for w in ["fatal", "life-threatening", "death"])
             or any(w in drugs_lower for w in ["fluorouracil", "capecitabine"])
         )
+        is_high_risk = any(w in action.upper() for w in ["AVOID", "CONTRAINDICATED", "REDUCE"])
 
         if is_life_threatening:
-            lt_badge = '<span class="inline-block bg-red-600 text-white font-extrabold px-1.5 py-0.5 rounded text-[6.8pt] uppercase tracking-wide mr-1">🚨 LIFE-THREATENING RISK</span>'
-        elif any(w in action.upper() for w in ["AVOID", "CONTRAINDICATED"]):
-            lt_badge = '<span class="inline-block bg-amber-600 text-white font-bold px-1.5 py-0.5 rounded text-[6.8pt] uppercase tracking-wide mr-1">⚠️ HIGH RISK · AVOID</span>'
-        elif "REDUCE" in action.upper():
-            lt_badge = '<span class="inline-block bg-amber-600 text-white font-bold px-1.5 py-0.5 rounded text-[6.8pt] uppercase tracking-wide mr-1">⬇️ HIGH RISK · REDUCE DOSE</span>'
+            td_style = 'style="background:#fef2f2;" class="font-bold"'
+            risk_label = '<strong class="text-red-700 font-extrabold uppercase text-[7.0pt] block mb-0.5">⚠️ LIFE-THREATENING RISK</strong>'
+            drug_html = f'{risk_label}<span class="text-red-950 font-bold">{drugs}</span>'
+            action_html = f'<strong class="text-red-700">ABSOLUTE CONTRAINDICATION:</strong> {rule}'
+        elif is_high_risk:
+            td_style = 'style="background:#fefce8;" class="font-bold"'
+            if "REDUCE" in action.upper():
+                risk_label = '<strong class="text-amber-800 font-extrabold uppercase text-[7.0pt] block mb-0.5">⬇️ HIGH RISK · REDUCE DOSE</strong>'
+                action_html = f'<strong class="text-amber-800">REDUCE DOSE:</strong> {rule}'
+            else:
+                risk_label = '<strong class="text-amber-800 font-extrabold uppercase text-[7.0pt] block mb-0.5">⚠️ HIGH RISK · AVOID</strong>'
+                action_html = f'<strong class="text-amber-800">AVOID / CONTRAINDICATION:</strong> {rule}'
+            drug_html = f'{risk_label}<span class="text-amber-950 font-bold">{drugs}</span>'
         else:
-            lt_badge = f'<span class="inline-block bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded text-[6.8pt] uppercase tracking-wide mr-1">{action.upper()}</span>'
-
-        if any(w in action.upper() for w in ["AVOID", "CONTRAINDICATED"]):
-            drug_html = f'{lt_badge}<strong class="text-red-700">{drugs}</strong>'
-            action_html = f'<strong class="text-red-700">AVOID / CONTRAINDICATION:</strong> {rule}'
-        elif "REDUCE" in action.upper():
-            drug_html = f'{lt_badge}<strong class="text-red-700">{drugs}</strong>'
-            action_html = f'<strong class="text-red-700">REDUCE DOSE:</strong> {rule}'
-        else:
-            drug_html = f'{lt_badge}<strong class="text-amber-800">{drugs}</strong>'
+            td_style = ''
+            risk_label = f'<span class="text-blue-700 font-bold uppercase text-[7.0pt] block mb-0.5">{action.upper()}</span>'
+            drug_html = f'{risk_label}<span class="text-slate-900">{drugs}</span>'
             action_html = f'<strong>{action.upper()}:</strong> {rule}'
 
         var_cell = f"{dip_ext}" + (f" ({var_ext})" if var_ext else "")
@@ -178,7 +180,7 @@ def _build_old_pgx_table(p_data, pharma_data):
         <tr>
           <td class="font-bold text-slate-900">{pg_sym} <div class="font-mono text-[7.8pt] text-slate-600">{var_cell}</div></td>
           <td>{pheno_ext or pheno}</td>
-          <td>{drug_html}</td>
+          <td {td_style}>{drug_html}</td>
           <td>{action_html}</td>
         </tr>""")
         seen.add(pg_sym)
@@ -430,10 +432,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
         </div>
       </div>
       <div class="text-right">
-        <span class="inline-block bg-slate-900 text-white text-[8.0pt] font-bold px-2 py-0.5 rounded">
-          DETERMINISTIC BRIEF
-        </span>
-        <div class="text-[7.5pt] text-slate-500 mt-0.5">Page 1 of 3</div>
+        <div class="text-[8.0pt] font-bold text-slate-600">Page 1 of 3</div>
       </div>
     </div>
 
@@ -472,10 +471,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
         </div>
       </div>
       <div class="text-right">
-        <span class="inline-block bg-blue-50 text-blue-800 border border-blue-200 text-[7.8pt] font-bold px-2 py-0.5 rounded">
-          RX &amp; PREVENTIVE CARE
-        </span>
-        <div class="text-[7.5pt] text-slate-500 mt-0.5">Page 2 of 3</div>
+        <div class="text-[8.0pt] font-bold text-slate-600">Page 2 of 3</div>
       </div>
     </div>
 
@@ -527,10 +523,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
         </div>
       </div>
       <div class="text-right">
-        <span class="inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 text-[7.8pt] font-bold px-2 py-0.5 rounded">
-          CLINICAL SUMMARY
-        </span>
-        <div class="text-[7.5pt] text-slate-500 mt-0.5">Page 3 of 3</div>
+        <div class="text-[8.0pt] font-bold text-slate-600">Page 3 of 3</div>
       </div>
     </div>
 

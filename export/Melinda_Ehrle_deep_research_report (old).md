@@ -44,7 +44,7 @@ flowchart TD
 
 ###### 3. *ATM* `c.1236-2del · rs1565381646` (ATM)
 * **Molecular Impact & In Silico Concordance:** Coordinate `chr11:108250699` (rs1565381646); CADD **—**, REVEL **—**, AlphaGenome AVI **—**.
-* **Clinical Phenotype & Inheritance:** ATM · DNA Repair &amp; Hereditary Cancer Screening (Autosomal recessive). Canonical splice-site variant (c.1236-2del) in ATM (Hereditary cancer-predisposing syndrome). The protein encoded by this gene belongs to the PI3/PI4-kinase family. This protein is an important cell cycle checkpoint kinase that phosphorylates; thus, it functions as a regulator of a wide variety of downstream p… Clinical Impact: Heterozygous carriers have moderately elevated breast and hereditary cancer susceptibility; discuss NCCN-guided enhanced breast screening (such as annual breast MRI and mammography) and family history review.
+* **Clinical Phenotype & Inheritance:** ATM · DNA Repair &amp; Hereditary Cancer Screening (Autosomal recessive). Canonical splice-site variant (c.1236-2del) in ATM (Hereditary cancer-predisposing syndrome). The protein encoded by this gene belongs to the PI3/PI4-kinase family. This protein is an important cell cycle checkpoint kinase that phosphorylates; thus, it functions as a regulator of a wide variety. Clinical Impact: Heterozygous carriers have moderately elevated breast and hereditary cancer susceptibility; discuss NCCN-guided enhanced breast screening (such as annual breast MRI and mammography) and family history review.
 * **Suggested Next Steps:** Guideline-Directed Breast &amp; Cancer Screening Discussion (per NCCN)Preventive Screening Review (Annual Preventive Screening Review).
 
 ###### 4. *VDR* `c.-1172A>G · rs4516035` (VDR)
