@@ -18,6 +18,9 @@ This clinical genomics research dossier evaluates **1653 prioritized variants ac
 | **MC1R** | `p.Asp294His` (`chr16:89920138`) | Heterozygous (Paternal) | `25x` / `0.52` | **Conflicting classifications of pathogenicity|risk factor** | 26.9 / 0.61 | 24.5 (Cactus) | **0.82** |
 | **AMPD1** | `p.Glu435Gly` (`chr1:114677435`) | Heterozygous (Unphased) | `41x` / `0.49` | **Uncertain significance** | 32.0 / 0.95 | 28.2 (AlphaMissense) | **0.88** |
 | **CTH** | `p.Thr67Ile` (`chr1:70415987`) | Heterozygous (Unphased) | `39x` / `0.46` | **Conflicting classifications of pathogenicity** | 25.5 / 0.93 | 27.8 (AlphaMissense) | **0.88** |
+| **PLK4** | `p.Gly6Glu` (`chr4:127881151`) | Heterozygous (Unphased) | `31x` / `0.45` | **Conflicting classifications of pathogenicity** | 28.5 / 0.36 | 29.8 (AlphaMissense) | **0.88** |
+| **TMEM43** | `p.Trp316Ser` (`chr3:14139244`) | Heterozygous (Paternal) | `41x` / `0.44` | **Conflicting classifications of pathogenicity** | 32.0 / 0.53 | 26.5 (AlphaMissense) | **0.88** |
+| **SUMF1** | `p.Asn352Lys` (`chr3:4362213`) | Heterozygous (Unphased) | `35x` / `0.66` | **Uncertain significance** | 23.9 / 0.64 | 25.9 (AlphaMissense) | **0.81** |
 
 #### 2. Mechanistic Causality vs. Statistical Correlation Matrix
 To prevent clinical over-interpretation of statistical GWAS proxies, cohort findings are stratified across four epistemic tiers:
@@ -89,7 +92,7 @@ Parental and read-backed phasing across all multi-variant genes in **Melinda Ehr
 
 1. **Primary Care Preventive Blood Panel:** Incorporate the sample-specific venous blood panels and preventive evaluations from Section 2 of the Clinical Brief into the annual PCP physical.
 2. **Cryptic Splice & Regulatory Functional Validation (Quadrant 2):** The **159 Cryptic AI Disruptors** exhibiting high AlphaGenome `AVI` scores driven by splicing or RNA-seq modalities can be inspected via the AlphaGenome Ref vs. Alt Track Predictions view.
-3. **Automated Annual Re-Annotation & SHA-256 State Fingerprint:** Verified 0 variant reclassifications since prior snapshot (2026-10-13 11:57:25; SHA-256 c49df28612de0eff).
+3. **Automated Annual Re-Annotation & SHA-256 State Fingerprint:** Verified 0 variant reclassifications since prior snapshot (2026-10-13 12:23:14; SHA-256 c49df28612de0eff).
 
 ### Confidence & Uncertainty Assessment
 - **Analytical WGS Callset & Phasing Confidence:** **0.98** (BAM Mean Depth `33.4x`).
@@ -108,3 +111,8 @@ Parental and read-backed phasing across all multi-variant genes in **Melinda Ehr
 | **MC1R** | `p.Asp294His` | `chr16:89920138` | [VCV14307](https://www.ncbi.nlm.nih.gov/clinvar/variation/14307/) | [rs1805009](https://www.ncbi.nlm.nih.gov/snp/rs1805009) | [MIM:203200](https://www.omim.org/entry/203200) | [MC1R](https://search.clinicalgenome.org/kb/genes/MC1R) | [Atlas](https://alphagenome.deepmind.com/variant/chr16:89920138) |
 | **AMPD1** | `p.Glu435Gly` | `chr1:114677435` | [VCV2173226](https://www.ncbi.nlm.nih.gov/clinvar/variation/2173226/) | [rs764950035](https://www.ncbi.nlm.nih.gov/snp/rs764950035) | — | [AMPD1](https://search.clinicalgenome.org/kb/genes/AMPD1) | [Atlas](https://alphagenome.deepmind.com/variant/chr1:114677435) |
 | **CTH** | `p.Thr67Ile` | `chr1:70415987` | [VCV2939](https://www.ncbi.nlm.nih.gov/clinvar/variation/2939/) | [rs28941785](https://www.ncbi.nlm.nih.gov/snp/rs28941785) | [MIM:219500](https://www.omim.org/entry/219500) | [CTH](https://search.clinicalgenome.org/kb/genes/CTH) | [Atlas](https://alphagenome.deepmind.com/variant/chr1:70415987) |
+| **PLK4** | `p.Gly6Glu` | `chr4:127881151` | [VCV436338](https://www.ncbi.nlm.nih.gov/clinvar/variation/436338/) | [rs149003893](https://www.ncbi.nlm.nih.gov/snp/rs149003893) | — | [PLK4](https://search.clinicalgenome.org/kb/genes/PLK4) | [Atlas](https://alphagenome.deepmind.com/variant/chr4:127881151) |
+| **TMEM43** | `p.Trp316Ser` | `chr3:14139244` | [VCV46155](https://www.ncbi.nlm.nih.gov/clinvar/variation/46155/) | [rs199526104](https://www.ncbi.nlm.nih.gov/snp/rs199526104) | [MIM:604400](https://www.omim.org/entry/604400) | [TMEM43](https://search.clinicalgenome.org/kb/genes/TMEM43) | [Atlas](https://alphagenome.deepmind.com/variant/chr3:14139244) |
+| **SUMF1** | `p.Asn352Lys` | `chr3:4362213` | [VCV2161926](https://www.ncbi.nlm.nih.gov/clinvar/variation/2161926/) | [rs376126385](https://www.ncbi.nlm.nih.gov/snp/rs376126385) | — | [SUMF1](https://search.clinicalgenome.org/kb/genes/SUMF1) | [Atlas](https://alphagenome.deepmind.com/variant/chr3:4362213) |
+| **CHST14** | `p.Gln349Pro` | `chr15:40472259` | [VCV3229028](https://www.ncbi.nlm.nih.gov/clinvar/variation/3229028/) | [rs1463514561](https://www.ncbi.nlm.nih.gov/snp/rs1463514561) | — | [CHST14](https://search.clinicalgenome.org/kb/genes/CHST14) | [Atlas](https://alphagenome.deepmind.com/variant/chr15:40472259) |
+| **NPC2** | `c.441+1G>A` | `chr14:74480701` | [VCV100734](https://www.ncbi.nlm.nih.gov/clinvar/variation/100734/) | [rs140130028](https://www.ncbi.nlm.nih.gov/snp/rs140130028) | [MIM:257220](https://www.omim.org/entry/257220) | [NPC2](https://search.clinicalgenome.org/kb/genes/NPC2) | [Atlas](https://alphagenome.deepmind.com/variant/chr14:74480701) |

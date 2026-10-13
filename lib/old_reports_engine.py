@@ -76,7 +76,7 @@ def get_pathology_table_spec(p_data, numeric_mean_dp=45.0):
             "ai_scores": ai_scores_str,
             "clinical_facts": clinical_facts
         })
-    return specs[:7]
+    return specs
 
 
 def _build_old_pgx_table(p_data, pharma_data):
@@ -195,7 +195,7 @@ def _build_old_surveillance_table_rows(priority_pairs, p_data, pharma_data, mean
     """
     surv_rows = _build_sample_isolated_surveillance_rows(priority_pairs, p_data, pharma_data, mean_dp_str)
     lines = []
-    for sr in surv_rows[:5]:
+    for sr in surv_rows:
         test_plain = re.sub(r"<[^>]+>", " ", sr["test_col"]).strip()
         test_plain = re.sub(r"\s+", " ", test_plain)
         target_plain = re.sub(r"<[^>]+>", " ", sr["gene_variant_col"]).strip()
@@ -375,18 +375,25 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
       width: 100% !important;
       max-width: 100% !important;
       height: auto !important;
-      min-height: 255mm !important;
-      max-height: 270mm !important;
+      min-height: 250mm !important;
       margin: 0 !important;
       padding: 4mm 5mm !important;
       box-shadow: none !important;
       page-break-after: always !important;
-      page-break-inside: avoid !important;
+      break-after: page !important;
       overflow: visible !important;
       box-sizing: border-box !important;
     }}
     .page-container:last-child {{
       page-break-after: auto !important;
+      break-after: auto !important;
+    }}
+    tr {{
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }}
+    thead {{
+      display: table-header-group !important;
     }}
     @page {{
       size: letter portrait;
@@ -432,7 +439,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
         </div>
       </div>
       <div class="text-right">
-        <div class="text-[8.0pt] font-bold text-slate-600">Page 1 of 3</div>
+        <div class="text-[8.0pt] font-bold text-slate-600">Section 1 · Genomic Findings</div>
       </div>
     </div>
 
@@ -456,11 +463,11 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     </table>
 
     <div class="text-[7.4pt] text-slate-500 text-center border-t border-slate-200 pt-1.5 mt-2">
-      {patient_name} Clinical Action Brief • Page 1 of 3 • Continue to Page 2 for Prescribing Precautions &amp; Preventive Care Topics
+      {patient_name} Clinical Action Brief • Priority Genomic Findings • Continue to Prescribing Precautions &amp; Preventive Care Topics
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: PRESCRIBING PRECAUTIONS & PREVENTIVE CARE ======================= -->
+  <!-- ======================= PAGE 2: PRESCRIBING PRECAUTIONS & PREVENTIVE CARE ======================= -->
   <div class="page-container">
     <div class="flex items-start justify-between border-b-2 border-slate-900 pb-1.5 mb-2.5">
       <div>
@@ -471,7 +478,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
         </div>
       </div>
       <div class="text-right">
-        <div class="text-[8.0pt] font-bold text-slate-600">Page 2 of 3</div>
+        <div class="text-[8.0pt] font-bold text-slate-600">Sections 2–3 · Prescribing &amp; Care</div>
       </div>
     </div>
 
@@ -508,11 +515,11 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     </table>
 
     <div class="text-[7.4pt] text-slate-500 text-center border-t border-slate-200 pt-1.5 mt-2">
-      {patient_name} Clinical Action Brief • Page 2 of 3 • Continue to Page 3 for Clinical Perspective &amp; EHR Summary Note
+      {patient_name} Clinical Action Brief • Prescribing Precautions &amp; Preventive Care Topics • Continue to Clinical Perspective &amp; EHR Summary Note
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: CLINICAL PERSPECTIVE & EHR SUMMARY NOTE ======================= -->
+  <!-- ======================= PAGE 3: CLINICAL PERSPECTIVE & EHR SUMMARY NOTE ======================= -->
   <div class="page-container">
     <div class="flex items-start justify-between border-b-2 border-slate-900 pb-1.5 mb-2.5">
       <div>
@@ -523,7 +530,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
         </div>
       </div>
       <div class="text-right">
-        <div class="text-[8.0pt] font-bold text-slate-600">Page 3 of 3</div>
+        <div class="text-[8.0pt] font-bold text-slate-600">Sections 4–6 · Decision &amp; Handoff</div>
       </div>
     </div>
 
@@ -686,7 +693,7 @@ def generate_old_deep_dossier_md_and_html(
             if avi >= 24.5 or rev >= 0.70 or cadd >= 25.0:
                 extra_candidates.append((avi + rev * 10.0 + cadd * 0.3, g, v))
     extra_candidates.sort(key=lambda x: x[0], reverse=True)
-    for _, g, v in extra_candidates[:8]:
+    for _, g, v in extra_candidates:
         secondary_mod_pairs.append((g, v))
 
     # Collect protective variants dynamically from JSON
@@ -869,7 +876,7 @@ def generate_old_deep_dossier_md_and_html(
     lines.append("*Ordering Logic: Strictly validated against source JSON and grounded in epidemiological literature.*")
     lines.append("")
     if protective_pairs:
-        for g, v in protective_pairs[:6]:
+        for g, v in protective_pairs:
             vdesc = _format_variant_descriptor(v, g, str(numeric_mean_dp))
             rs_str = v.get("id") if str(v.get("id") or "").startswith("rs") else "called"
             studies = v.get("studies") or []

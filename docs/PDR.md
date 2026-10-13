@@ -18,7 +18,7 @@ Standard secondary and tertiary WGS pipelines generate tens of thousands of vari
 3. **Actionability Disconnect:** Pharmacogenomic diplotypes and acute exposure contraindications are separated from routine primary care workflows, leading to avoidable adverse drug events.
 
 ### 1.2 The Solution
-The v5.3 engine transforms raw WGS data into **deterministic, highly structured, 3-page minimalist clinical action briefs**, supported by exhaustive deep research dossiers and FHIR-aligned EHR import bundles. Every finding is objectively weighted using calculated confidence metrics (0.00–1.00), strictly grounded in single-sample callset data, and curated with explicit single-copy carrier reassurance to avoid over-medicalization.
+The v5.3 engine transforms raw WGS data into **deterministic, highly structured clinical action briefs (typically 3 pages as a natural baseline)**, supported by exhaustive deep research dossiers and FHIR-aligned EHR import bundles. Every finding is objectively weighted using calculated confidence metrics (0.00–1.00), strictly grounded in single-sample callset data, filtered by documented clinical risk and functional impact (rather than arbitrary count caps), and curated with explicit single-copy carrier reassurance to avoid over-medicalization. As callsets and evidence bases expand over time, reports scale dynamically with documented clinical impact rather than being artificially truncated.
 
 ---
 
@@ -177,6 +177,6 @@ To prevent data leakage, cross-contamination, and static hardcoding, the reposit
 
 Every release and pipeline run must satisfy the following acceptance criteria:
 1. **Zero-Curation Guard:** `python3 lib/zero_curation_guard.py` outputs `ZERO_CURATION_GUARD_PASSED`.
-2. **Page Count Invariance:** All generated clinical brief PDFs must measure exactly 3 pages (`Pages: 3`, `612 x 792 pts`).
+2. **Page Flow & Budget Guidelines:** Clinical action briefs maintain a concise, clean portrait flow (3 pages for standard current callsets), dynamically accommodating expanded variant lists when driven by documented clinical risk without artificial clipping or row drops.
 3. **Telemetry Fidelity:** BAM autosomal mean alignment depth and median locus depth must match physical sequencing metrics (`48.8x` for DE, `33.4x` for ME).
 4. **Synchronization Completeness:** Deliverables must sync cleanly to `export/`, dated sample directories, and Google Drive directories.

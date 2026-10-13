@@ -25,17 +25,18 @@
   .page {
     width: 100%;
     max-width: 204mm;
-    min-height: 255mm;
+    min-height: 250mm;
     margin: 5mm auto;
     background: #ffffff;
     padding: 5mm 6mm;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     page-break-after: always;
-    page-break-inside: avoid;
+    break-after: page;
     box-sizing: border-box;
   }
   .page:last-child {
     page-break-after: auto;
+    break-after: auto;
   }
   @media print {
     body { background: #ffffff; }
@@ -43,18 +44,25 @@
       width: 100% !important;
       max-width: 100% !important;
       height: auto !important;
-      min-height: 255mm !important;
-      max-height: 270mm !important;
+      min-height: 250mm !important;
       margin: 0 !important;
       padding: 4mm 5mm !important;
       box-shadow: none !important;
       overflow: visible !important;
       page-break-after: always !important;
-      page-break-inside: avoid !important;
+      break-after: page !important;
       box-sizing: border-box !important;
     }
     .page:last-child {
       page-break-after: auto !important;
+      break-after: auto !important;
+    }
+    tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    thead {
+      display: table-header-group !important;
     }
   }
   .brief-header {
@@ -232,7 +240,7 @@
     </div>
   </div>
 
-  <!-- ======================= PAGE 1 OF 3: PRIORITY GENOMIC FINDINGS & CARRIER STATUS ======================= -->
+  <!-- ======================= PAGE 1: PRIORITY GENOMIC FINDINGS & CARRIER STATUS ======================= -->
   <div class="page page-1">
     <div class="brief-header">
       <div>
@@ -243,7 +251,7 @@
       </div>
       <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
         <div>Clinical Findings &amp; Prescribing Guide</div>
-        <div class="mono" style="color:#475569;">Page 1 of 3</div>
+        <div class="mono" style="color:#475569;">Section 1 · Genomic Findings</div>
       </div>
     </div>
 
@@ -400,15 +408,115 @@
           </td>
         </tr>
         
+        <tr>
+          <td>
+            <strong style="font-size:8.4pt;color:#123f41;">C19orf12</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">C19orf12</div>
+            <div style="font-size:7.0pt;color:#64748b;">Multisystem</div>
+          </td>
+          <td>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">p.Gly42Arg · c.124G>A · rs200133991</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Autosomal Recessive</div>
+          </td>
+          <td>
+            <strong style="color:#0f172a;">Conflicting classifications of pathogenicity</strong>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Neurodegeneration with Brain Iron Accumulation 4</div>
+          </td>
+          <td>
+            <div>Single-copy heterozygous finding; review in the context of standard annual wellness labs and personal clinical history.</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <strong style="font-size:8.4pt;color:#123f41;">LRP5</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">LRP5</div>
+            <div style="font-size:7.0pt;color:#64748b;">Heart & Cardiovascular</div>
+          </td>
+          <td>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">p.Val233Glu · c.698T>A · rs1177484229</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Pathway Modifier</div>
+          </td>
+          <td>
+            <strong style="color:#0f172a;">Uncertain significance</strong>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Retinal dystrophy</div>
+          </td>
+          <td>
+            <div>Modulates lipoprotein clearance. Review routine fasting lipid panel and cardiovascular wellness goals at annual checkup.</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <strong style="font-size:8.4pt;color:#123f41;">BLM</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">BLM</div>
+            <div style="font-size:7.0pt;color:#64748b;">Multisystem</div>
+          </td>
+          <td>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">p.Val724Ala · c.2171T>C · rs750687788</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Autosomal recessive</div>
+          </td>
+          <td>
+            <strong style="color:#0f172a;">Uncertain significance</strong>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Hereditary cancer-predisposing syndrome</div>
+          </td>
+          <td>
+            <div>Moderately elevated cancer susceptibility. Discuss guideline-directed breast/preventive screening (annual MRI/mammogram) with PCP.</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <strong style="font-size:8.4pt;color:#123f41;">ANK2</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">ANK2</div>
+            <div style="font-size:7.0pt;color:#64748b;">Multisystem</div>
+          </td>
+          <td>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">p.Arg3906Trp · c.11716C>T · rs121912706</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Pathway Modifier</div>
+          </td>
+          <td>
+            <strong style="color:#0f172a;">Conflicting classifications of pathogenicity</strong>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">ANK2-related disorder</div>
+          </td>
+          <td>
+            <div>Modulates cardiac repolarization. Consider baseline ECG at routine physical; review QT-prolonging medications.</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <strong style="font-size:8.4pt;color:#123f41;">NOD2</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">NOD2</div>
+            <div style="font-size:7.0pt;color:#64748b;">Multisystem</div>
+          </td>
+          <td>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">p.Arg675Trp · c.2023C>T · rs2066844</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Pathway Modifier</div>
+          </td>
+          <td>
+            <strong style="color:#0f172a;">Conflicting classifications of pathogenicity|association</strong>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Regional enteritis</div>
+          </td>
+          <td>
+            <div>Single-copy heterozygous finding; review in the context of standard annual wellness labs and personal clinical history.</div>
+          </td>
+        </tr>
+        
       </tbody>
     </table>
 
     <div style="font-size:7.2pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Medication &amp; Pharmacogenomic Precautions
+      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Priority Genomic Findings · Continue to Medication &amp; Pharmacogenomic Precautions
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: PRESCRIBING & PHARMACOGENOMIC PRECAUTIONS ======================= -->
+  <!-- ======================= PAGE 2: PRESCRIBING & PHARMACOGENOMIC PRECAUTIONS ======================= -->
   <div class="page page-2">
     <div class="brief-header">
       <div>
@@ -419,7 +527,7 @@
       </div>
       <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
         <div>Prescribing &amp; Pharmacogenomics</div>
-        <div class="mono" style="color:#475569;">Page 2 of 3</div>
+        <div class="mono" style="color:#475569;">Section 2 · Prescribing &amp; PGx</div>
       </div>
     </div>
 
@@ -482,11 +590,11 @@
     </table>
 
     <div style="font-size:7.2pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:6px;">
-      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Preventive Care &amp; Clinical Perspective
+      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Medication &amp; Pharmacogenomic Precautions · Continue to Preventive Care &amp; Clinical Perspective
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: PREVENTIVE CARE, CLINICAL PERSPECTIVE & EHR SUMMARY ======================= -->
+  <!-- ======================= PAGE 3: PREVENTIVE CARE, CLINICAL PERSPECTIVE & EHR SUMMARY ======================= -->
   <div class="page page-3">
     <div class="brief-header">
       <div>
@@ -497,7 +605,7 @@
       </div>
       <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
         <div>Preventive Care &amp; Clinical Context</div>
-        <div class="mono" style="color:#475569;">Page 3 of 3</div>
+        <div class="mono" style="color:#475569;">Sections 3–5 · Care &amp; Handoff</div>
       </div>
     </div>
 
@@ -587,7 +695,7 @@
 • PREVENTIVE CARE PLAN: Review high-level wellness and screening topics in Section 3 during routine primary care checkups.</div>
 
     <div style="font-size:7.0pt;color:#64748b;margin-top:3px;border-top:1px solid #e2e8f0;padding-top:2px;text-align:center;">
-      <strong>Technical Telemetry Footnote:</strong> GRCh38.p14 Phased WGS · BAM Autosomal Mean Alignment Depth: <code>48.8x</code> (Median Locus DP: <code>50.0x</code>) · Modality: 150bp PE (panSN GBZ aligned) · Scope: 1407 Prioritized Variants across 1002 Genes &amp; 41 Pharmacogenes · Full coordinates &amp; in silico telemetry in Deep Research Report (<code>Daniel_Ehrle_deep_research_report.html</code>) · Page 3 of 3
+      <strong>Technical Telemetry Footnote:</strong> GRCh38.p14 Phased WGS · BAM Autosomal Mean Alignment Depth: <code>48.8x</code> (Median Locus DP: <code>50.0x</code>) · Modality: 150bp PE (panSN GBZ aligned) · Scope: 1407 Prioritized Variants across 1002 Genes &amp; 41 Pharmacogenes · Full coordinates &amp; in silico telemetry in Deep Research Report (<code>Daniel_Ehrle_deep_research_report.html</code>)
     </div>
   </div>
 

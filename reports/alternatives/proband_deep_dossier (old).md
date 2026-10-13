@@ -69,10 +69,10 @@ flowchart TD
 | **PEX6** | `p.Val788Met · c.2362G>A · rs267608240` | `chr6:42966044` rs267608240 | Heterozygous | Conflicting classifications of pathogenicity | 35.0 | 0.921 | **32.3** (Cactus) | Heart & Cardiovascular — PEX6 · Peroxisomal &amp; Lipid Metabolism |
 | **GJB3** | `p.Arg75Cys · c.223C>T · rs370476720` | `chr1:34784985` rs370476720 | Heterozygous | Conflicting classifications of pathogenicity | 26.2 | 0.943 | **32.4** (AlphaMissense) | Heart & Cardiovascular — GJB3 · Cochlear Gap Junction &amp; Hearing Health |
 | **SCN4A** | `p.His599Arg · c.1796A>G · rs187401185` | `chr17:63961242` rs187401185 | Heterozygous | Conflicting classifications of pathogenicity | 24.4 | 0.925 | **27.8** (AlphaMissense) | Heart & Cardiovascular — SCN4A · Skeletal Muscle Ion-Channel Function |
-| **ALKBH3** | `p.Arg70Ter · c.208C>T · rs145265812` | `chr11:43884007` rs145265812 | Heterozygous | Not reviewed | 40.0 | — | **41.3** (Protein Termination) | Multisystem — ALKBH3 · DNA Repair &amp; Hereditary Cancer Screening |
-| **NSMCE1** | `p.Cys231Tyr · c.692G>A · rs774697446` | `chr16:27225755` rs774697446 | Heterozygous | Uncertain significance | 25.6 | 0.937 | **30.6** (AlphaMissense) | Multisystem — NSMCE1 · DNA Repair &amp; Hereditary Cancer Screening |
-| **FASTKD1** | `p.Ser768Ter · c.2303C>G · rs34291832` | `chr2:169531376` rs34291832 | Heterozygous | Benign | 39.0 | — | **35.5** (Protein Termination) | Multisystem — FASTKD1 · Multisystem Pathway (FASTKD1 pathway) |
-| **ELOVL7** | `p.Ser79Tyr · c.236C>A · rs368309905` | `chr5:60771922` rs368309905 | Heterozygous | Not reviewed | 27.5 | 0.695 | **31.4** (AlphaMissense) | Multisystem — ELOVL7 · Multisystem Pathway (ELOVL7 pathway) |
+| **C19orf12** | `p.Gly42Arg · c.124G>A · rs200133991` | `chr19:29708290` rs200133991 | Heterozygous | Conflicting classifications of pathogenicity | 24.3 | 0.778 | **29.4** (AlphaMissense) | Multisystem — C19orf12 · Multisystem Pathway (Neurodegeneration with Brain Iron Accumulation 4) |
+| **LRP5** | `p.Val233Glu · c.698T>A · rs1177484229` | `chr11:68363758` rs1177484229 | Heterozygous | Uncertain significance | 24.9 | 0.903 | **25.4** (AlphaMissense) | Heart & Cardiovascular — LRP5 · Cholesterol &amp; Lipoprotein Transport |
+| **BLM** | `p.Val724Ala · c.2171T>C · rs750687788` | `chr15:90765392` rs750687788 | Heterozygous | Uncertain significance | 27.5 | 0.473 | **26.1** (AlphaMissense) | Multisystem — BLM · DNA Repair &amp; Hereditary Cancer Screening |
+| **ANK2** | `p.Arg3906Trp · c.11716C>T · rs121912706` | `chr4:113373306` rs121912706 | Heterozygous | Conflicting classifications of pathogenicity | 27.7 | 0.722 | **25.2** (Splicing) | Multisystem — ANK2 · Cardiac Conduction &amp; Rhythm Homeostasis |
 
 #### 5. Endogenous Protective & Longevity Factors
 *Ordering Logic: Strictly validated against source JSON and grounded in epidemiological literature.*
@@ -83,6 +83,9 @@ flowchart TD
 * **CASP8 (c.-937_-932del · rs3834129, rs3834129):** Heterozygous carrier at `chr2:201232809` (CASP8). ClinVar: `protective`.
 * **MPO (c.-643G>A · rs2333227, rs2333227):** Homozygous carrier at `chr17:58281401` (MPO). ClinVar: `protective|risk factor` (GWAS protective association, PMID: 31604244).
 * **NOS3 (c.-51-762C>T · rs2070744, rs2070744):** Homozygous carrier at `chr7:150992991` (NOS3). ClinVar: `protective`.
+* **CDKN2B (c.*2619C>T · rs1063192, rs1063192):** Heterozygous carrier at `chr9:22003368` (CDKN2B). ClinVar: `Likely pathogenic|protective` (GWAS protective association, PMID: 30054458).
+* **CYP46A1 (c.357-124G>A · rs3742377, rs3742377):** Heterozygous carrier at `chr14:99699891` (CYP46A1). ClinVar: `protective` (GWAS protective association, PMID: 26926045).
+* **LMO1 (c.26-3357G>T · rs2168101, rs2168101):** Heterozygous carrier at `chr11:8233861` (LMO1). ClinVar: `Benign|protective` (GWAS protective association, PMID: 28545128).
 
 ### Conclusions: Diagnostic & Clinical Decision Calculus
 

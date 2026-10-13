@@ -40,18 +40,25 @@
       width: 100% !important;
       max-width: 100% !important;
       height: auto !important;
-      min-height: 255mm !important;
-      max-height: 270mm !important;
+      min-height: 250mm !important;
       margin: 0 !important;
       padding: 4mm 5mm !important;
       box-shadow: none !important;
       page-break-after: always !important;
-      page-break-inside: avoid !important;
+      break-after: page !important;
       overflow: visible !important;
       box-sizing: border-box !important;
     }
     .page-container:last-child {
       page-break-after: auto !important;
+      break-after: auto !important;
+    }
+    tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    thead {
+      display: table-header-group !important;
     }
     @page {
       size: letter portrait;
@@ -97,7 +104,7 @@
         </div>
       </div>
       <div class="text-right">
-        <div class="text-[8.0pt] font-bold text-slate-600">Page 1 of 3</div>
+        <div class="text-[8.0pt] font-bold text-slate-600">Section 1 · Genomic Findings</div>
       </div>
     </div>
 
@@ -179,15 +186,60 @@
             <div>Preserves baseline homocysteine clearance. Review routine B-vitamin intake (B6, B12, folate) during annual wellness checks.</div>
           </td>
         </tr>
+        <tr>
+          <td class="font-bold text-slate-900">PLK4</td>
+          <td class="font-mono text-[8.0pt]">p.Gly6Glu · c.17G>A · rs149003893</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-blue">Modifier</span></td>
+          <td>
+            <div>Single-copy heterozygous finding; review in the context of standard annual wellness labs and personal clinical history.</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="font-bold text-slate-900">TMEM43</td>
+          <td class="font-mono text-[8.0pt]">p.Trp316Ser · c.947G>C · rs199526104</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-blue">Modifier</span></td>
+          <td>
+            <div>Single-copy heterozygous carrier maintains normal adult hearing. Consider baseline hearing check; avoid unnecessary ototoxic aminoglycosides.</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="font-bold text-slate-900">SUMF1</td>
+          <td class="font-mono text-[8.0pt]">p.Asn352Lys · c.1056C>G · rs376126385</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-blue">VUS</span></td>
+          <td>
+            <div>Single-copy heterozygous finding; review in the context of standard annual wellness labs and personal clinical history.</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="font-bold text-slate-900">CHST14</td>
+          <td class="font-mono text-[8.0pt]">p.Gln349Pro · c.1046A>C · rs1463514561</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-blue">VUS</span></td>
+          <td>
+            <div>Single-copy heterozygous finding; review in the context of standard annual wellness labs and personal clinical history.</div>
+          </td>
+        </tr>
+        <tr>
+          <td class="font-bold text-slate-900">NPC2</td>
+          <td class="font-mono text-[8.0pt]">c.441+1G>A · rs140130028</td>
+          <td>Heterozygous</td>
+          <td><span class="badge-blue">Modifier</span></td>
+          <td>
+            <div>Modulates lipoprotein clearance. Review routine fasting lipid panel and cardiovascular wellness goals at annual checkup.</div>
+          </td>
+        </tr>
       </tbody>
     </table>
 
     <div class="text-[7.4pt] text-slate-500 text-center border-t border-slate-200 pt-1.5 mt-2">
-      Melinda Ehrle Clinical Action Brief • Page 1 of 3 • Continue to Page 2 for Prescribing Precautions &amp; Preventive Care Topics
+      Melinda Ehrle Clinical Action Brief • Priority Genomic Findings • Continue to Prescribing Precautions &amp; Preventive Care Topics
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: PRESCRIBING PRECAUTIONS & PREVENTIVE CARE ======================= -->
+  <!-- ======================= PAGE 2: PRESCRIBING PRECAUTIONS & PREVENTIVE CARE ======================= -->
   <div class="page-container">
     <div class="flex items-start justify-between border-b-2 border-slate-900 pb-1.5 mb-2.5">
       <div>
@@ -198,7 +250,7 @@
         </div>
       </div>
       <div class="text-right">
-        <div class="text-[8.0pt] font-bold text-slate-600">Page 2 of 3</div>
+        <div class="text-[8.0pt] font-bold text-slate-600">Sections 2–3 · Prescribing &amp; Care</div>
       </div>
     </div>
 
@@ -303,11 +355,11 @@
     </table>
 
     <div class="text-[7.4pt] text-slate-500 text-center border-t border-slate-200 pt-1.5 mt-2">
-      Melinda Ehrle Clinical Action Brief • Page 2 of 3 • Continue to Page 3 for Clinical Perspective &amp; EHR Summary Note
+      Melinda Ehrle Clinical Action Brief • Prescribing Precautions &amp; Preventive Care Topics • Continue to Clinical Perspective &amp; EHR Summary Note
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: CLINICAL PERSPECTIVE & EHR SUMMARY NOTE ======================= -->
+  <!-- ======================= PAGE 3: CLINICAL PERSPECTIVE & EHR SUMMARY NOTE ======================= -->
   <div class="page-container">
     <div class="flex items-start justify-between border-b-2 border-slate-900 pb-1.5 mb-2.5">
       <div>
@@ -318,7 +370,7 @@
         </div>
       </div>
       <div class="text-right">
-        <div class="text-[8.0pt] font-bold text-slate-600">Page 3 of 3</div>
+        <div class="text-[8.0pt] font-bold text-slate-600">Sections 4–6 · Decision &amp; Handoff</div>
       </div>
     </div>
 

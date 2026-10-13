@@ -627,7 +627,7 @@ def _select_sample_isolated_priority_variants(p_data, numeric_mean_dp):
                 continue
 
             is_splice = any(k in csq_str for k in ["spl", "splice", "donor", "acceptor"]) or any(k in cchg for k in ["+1", "+2", "-1", "-2", "del"])
-            is_coding = bool(achg and not achg.endswith("=")) or any(k in csq_str for k in ["missense", "stop", "frameshift", "inframe", "start_lost", "regulatory", "5_prime_utr", "2ku"])
+            is_coding = bool(achg and not achg.endswith("=")) or any(k in csq_str for k in ["missense", "stop", "frameshift", "inframe", "start_lost", "regulatory", "5_prime_utr", "2ku", "mis"])
 
             is_syn = ("synonymous" in csq_str and "missense" not in csq_str and not is_splice) or (achg and achg.endswith("="))
             sp = float(v.get("spliceai") if v.get("spliceai") is not None else 0.0)
@@ -657,18 +657,30 @@ def _select_sample_isolated_priority_variants(p_data, numeric_mean_dp):
             rarity_bonus = 10.0 if maf < 0.01 else (5.0 if maf < 0.05 else 0.0)
             score = base + cadd + avi + revel + am + omim_bonus + rarity_bonus
 
-            if is_plp or is_risk or ((is_coding or is_splice) and (cadd >= 20.0 or avi >= 20.0 or tier in ("Tier1", "Tier2"))):
+            has_pathology = bool(g.get("associatedPathology") or has_omim)
+            has_documented_pathogenicity = is_plp or is_risk or ("association" in cv and tier in ("Tier1", "Tier2"))
+            has_high_impact_monogenic = (
+                tier == "Tier1"
+                and has_pathology
+                and (is_coding or is_splice)
+                and (cadd >= 24.0 or avi >= 24.0)
+                and not any(b in cv for b in ["benign", "likely benign", "not reviewed"])
+                and score >= 120.0
+            )
+            is_pure_pgx = sym.startswith("CYP") and not is_plp
+
+            if (has_documented_pathogenicity or has_high_impact_monogenic) and not is_pure_pgx and not any(b in cv for b in ["benign", "likely benign"]):
                 candidates.append((g, vc, score))
 
     candidates.sort(key=lambda x: x[2], reverse=True)
     selected = []
     seen_genes = set()
     for g, vc, _ in candidates:
-        if g["symbol"] not in seen_genes and len(selected) < 7:
+        if g["symbol"] not in seen_genes:
             seen_genes.add(g["symbol"])
             selected.append((g, vc))
 
-    return selected[:7]
+    return selected
 
 
 def _build_pharma_sections(pharma_data, p_data, priority_pairs, mean_dp_fallback="45"):
@@ -1271,7 +1283,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
 
     # Build Section 1 Priority Genomic Findings & Carrier Status Rows (concise clinical impact & guidance)
     priority_rows_html = ""
-    for g, v in priority_pairs[:7]:
+    for g, v in priority_pairs:
         sym = g["symbol"]
         gname = g.get("name") or sym
         vdesc = _format_variant_descriptor(v, g, bam_mean_dp.replace("x", ""))
@@ -1305,7 +1317,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
 
     # Build Section 2 High-Priority Medication & Pharmacogenomic Precautions Table (Combined Sections 2 & 4)
     sec2_table_rows_html = ""
-    for rc in redbox_cards[:6]:
+    for rc in redbox_cards:
         g_sym = rc.get("gene_sym") or rc.get("gene_variant_header", "").split()[0]
         dip_str = rc.get("dip_str") or ""
         var_sub = f"<div class='mono' style='font-size:7.0pt;color:#475569;'>{rc.get('var_str', '')}</div>" if rc.get('var_str') else ""
@@ -1350,7 +1362,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
         priority_pairs, p_data, pharma_data, bam_mean_dp.replace("x", "")
     )
     surv_rows_html = ""
-    for sr in surv_rows[:5]:
+    for sr in surv_rows:
         surv_rows_html += f"""
         <tr>
           <td>{sr['gene_variant_col']}</td>
@@ -1400,17 +1412,18 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
   .page {{
     width: 100%;
     max-width: 204mm;
-    min-height: 255mm;
+    min-height: 250mm;
     margin: 5mm auto;
     background: #ffffff;
     padding: 5mm 6mm;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     page-break-after: always;
-    page-break-inside: avoid;
+    break-after: page;
     box-sizing: border-box;
   }}
   .page:last-child {{
     page-break-after: auto;
+    break-after: auto;
   }}
   @media print {{
     body {{ background: #ffffff; }}
@@ -1418,18 +1431,25 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
       width: 100% !important;
       max-width: 100% !important;
       height: auto !important;
-      min-height: 255mm !important;
-      max-height: 270mm !important;
+      min-height: 250mm !important;
       margin: 0 !important;
       padding: 4mm 5mm !important;
       box-shadow: none !important;
       overflow: visible !important;
       page-break-after: always !important;
-      page-break-inside: avoid !important;
+      break-after: page !important;
       box-sizing: border-box !important;
     }}
     .page:last-child {{
       page-break-after: auto !important;
+      break-after: auto !important;
+    }}
+    tr {{
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }}
+    thead {{
+      display: table-header-group !important;
     }}
   }}
   .brief-header {{
@@ -1607,7 +1627,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     </div>
   </div>
 
-  <!-- ======================= PAGE 1 OF 3: PRIORITY GENOMIC FINDINGS & CARRIER STATUS ======================= -->
+  <!-- ======================= PAGE 1: PRIORITY GENOMIC FINDINGS & CARRIER STATUS ======================= -->
   <div class="page page-1">
     <div class="brief-header">
       <div>
@@ -1618,7 +1638,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
       </div>
       <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
         <div>Clinical Findings &amp; Prescribing Guide</div>
-        <div class="mono" style="color:#475569;">Page 1 of 3</div>
+        <div class="mono" style="color:#475569;">Section 1 · Genomic Findings</div>
       </div>
     </div>
 
@@ -1639,11 +1659,11 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     </table>
 
     <div style="font-size:7.2pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      {patient_name} ({patient_id}) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Medication &amp; Pharmacogenomic Precautions
+      {patient_name} ({patient_id}) — Clinical Action Brief · Priority Genomic Findings · Continue to Medication &amp; Pharmacogenomic Precautions
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: PRESCRIBING & PHARMACOGENOMIC PRECAUTIONS ======================= -->
+  <!-- ======================= PAGE 2: PRESCRIBING & PHARMACOGENOMIC PRECAUTIONS ======================= -->
   <div class="page page-2">
     <div class="brief-header">
       <div>
@@ -1654,7 +1674,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
       </div>
       <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
         <div>Prescribing &amp; Pharmacogenomics</div>
-        <div class="mono" style="color:#475569;">Page 2 of 3</div>
+        <div class="mono" style="color:#475569;">Section 2 · Prescribing &amp; PGx</div>
       </div>
     </div>
 
@@ -1675,11 +1695,11 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     </table>
 
     <div style="font-size:7.2pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:6px;">
-      {patient_name} ({patient_id}) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Preventive Care &amp; Clinical Perspective
+      {patient_name} ({patient_id}) — Clinical Action Brief · Medication &amp; Pharmacogenomic Precautions · Continue to Preventive Care &amp; Clinical Perspective
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: PREVENTIVE CARE, CLINICAL PERSPECTIVE & EHR SUMMARY ======================= -->
+  <!-- ======================= PAGE 3: PREVENTIVE CARE, CLINICAL PERSPECTIVE & EHR SUMMARY ======================= -->
   <div class="page page-3">
     <div class="brief-header">
       <div>
@@ -1690,7 +1710,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
       </div>
       <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
         <div>Preventive Care &amp; Clinical Context</div>
-        <div class="mono" style="color:#475569;">Page 3 of 3</div>
+        <div class="mono" style="color:#475569;">Sections 3–5 · Care &amp; Handoff</div>
       </div>
     </div>
 
@@ -1740,7 +1760,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
 • PREVENTIVE CARE PLAN: Review high-level wellness and screening topics in Section 3 during routine primary care checkups.</div>
 
     <div style="font-size:7.0pt;color:#64748b;margin-top:3px;border-top:1px solid #e2e8f0;padding-top:2px;text-align:center;">
-      <strong>Technical Telemetry Footnote:</strong> GRCh38.p14 Phased WGS · BAM Autosomal Mean Alignment Depth: <code>{bam_mean_dp}</code> (Median Locus DP: <code>{median_dp_called}</code>) · Modality: 150bp PE (panSN GBZ aligned) · Scope: {p_data["meta"]["totalVariants"]} Prioritized Variants across {p_data["meta"]["totalGenes"]} Genes &amp; 41 Pharmacogenes · Full coordinates &amp; in silico telemetry in Deep Research Report (<code>{patient_id}_deep_research_report.html</code>) · Page 3 of 3
+      <strong>Technical Telemetry Footnote:</strong> GRCh38.p14 Phased WGS · BAM Autosomal Mean Alignment Depth: <code>{bam_mean_dp}</code> (Median Locus DP: <code>{median_dp_called}</code>) · Modality: 150bp PE (panSN GBZ aligned) · Scope: {p_data["meta"]["totalVariants"]} Prioritized Variants across {p_data["meta"]["totalGenes"]} Genes &amp; 41 Pharmacogenes · Full coordinates &amp; in silico telemetry in Deep Research Report (<code>{patient_id}_deep_research_report.html</code>)
     </div>
   </div>
 

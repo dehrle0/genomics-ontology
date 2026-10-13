@@ -75,11 +75,11 @@ flowchart TD
 | **MC1R** | `p.Asp294His · c.880G>C · rs1805009` | `chr16:89920138` rs1805009 | Heterozygous | Conflicting classifications of pathogenicity|risk factor | 26.9 | 0.608 | **24.5** (Cactus) | Multisystem — MC1R · Skin Pigmentation &amp; UV Sensitivity |
 | **AMPD1** | `p.Glu435Gly · c.1304A>G · rs764950035` | `chr1:114677435` rs764950035 | Heterozygous | Uncertain significance | 32.0 | 0.949 | **28.2** (AlphaMissense) | Multisystem — AMPD1 · Skeletal Muscle Energy Metabolism |
 | **CTH** | `p.Thr67Ile · c.200C>T · rs28941785` | `chr1:70415987` rs28941785 | Heterozygous | Conflicting classifications of pathogenicity | 25.5 | 0.931 | **27.8** (AlphaMissense) | Multisystem — CTH · Methionine &amp; Homocysteine Clearance |
-| **VWA3B** | `p.Glu372Ter · c.1114G>T · rs62154921` | `chr2:98162976` rs62154921 | Heterozygous | Benign | 46.0 | — | **50.8** (Protein Termination) | Multisystem — VWA3B · Multisystem Pathway (VWA3B-related disorder) |
-| **CEP63** | `p.Gln185His · c.555G>C · rs114108011` | `chr3:134537268` rs114108011 | Heterozygous | Benign | 34.0 | 0.276 | **38.6** (Splicing) | Multisystem — CEP63 · DNA Repair &amp; Hereditary Cancer Screening |
-| **PHKB** | `p.Met185Ile · c.555G>T · rs56257827` | `chr16:47515562` rs56257827 | Heterozygous | Benign/Likely benign | 26.2 | 0.773 | **30.0** (AlphaMissense) | Multisystem — PHKB · Multisystem Pathway (Glycogen storage disease IXb) |
-| **P3H3** | `p.Arg199Ter · c.595C>T · rs1225283465` | `chr12:6829955` rs1225283465 | Heterozygous | Not reviewed | 35.0 | — | **33.7** (Protein Termination) | Multisystem — P3H3 · Multisystem Pathway (P3H3 pathway) |
-| **OGFOD3** | `c.380+1G>A · rs150938774` | `chr17:82411454` rs150938774 | Heterozygous | Not reviewed | 34.0 | — | **33.8** (Splicing) | Multisystem — OGFOD3 · Multisystem Pathway (OGFOD3 pathway) |
+| **PLK4** | `p.Gly6Glu · c.17G>A · rs149003893` | `chr4:127881151` rs149003893 | Heterozygous | Conflicting classifications of pathogenicity | 28.5 | 0.356 | **29.8** (AlphaMissense) | Multisystem — PLK4 · Multisystem Pathway (Inborn genetic diseases) |
+| **TMEM43** | `p.Trp316Ser · c.947G>C · rs199526104` | `chr3:14139244` rs199526104 | Heterozygous | Conflicting classifications of pathogenicity | 32.0 | 0.533 | **26.5** (AlphaMissense) | Heart & Cardiovascular — TMEM43 · Cochlear Gap Junction &amp; Hearing Health |
+| **SUMF1** | `p.Asn352Lys · c.1056C>G · rs376126385` | `chr3:4362213` rs376126385 | Heterozygous | Uncertain significance | 23.9 | 0.641 | **25.9** (AlphaMissense) | Multisystem — SUMF1 · Multisystem Pathway (Multiple sulfatase deficiency) |
+| **CHST14** | `p.Gln349Pro · c.1046A>C · rs1463514561` | `chr15:40472259` rs1463514561 | Heterozygous | Uncertain significance | 24.3 | 0.540 | **22.9** (Cactus) | Heart & Cardiovascular — CHST14 · Heart & Cardiovascular Pathway (Cardiovascular phenotype) |
+| **NPC2** | `c.441+1G>A · rs140130028` | `chr14:74480701` rs140130028 | Heterozygous | Conflicting classifications of pathogenicity | 23.2 | 0.207 | **26.3** (Splicing) | Multisystem — NPC2 · Cholesterol &amp; Lipoprotein Transport |
 
 #### 5. Endogenous Protective & Longevity Factors
 *Ordering Logic: Strictly validated against source JSON and grounded in epidemiological literature.*
@@ -90,6 +90,10 @@ flowchart TD
 * **GNPTAB (c.117+3554G>C · rs7964859, rs7964859):** Heterozygous carrier at `chr12:101827005` (GNPTAB). ClinVar: `Not reviewed` (GWAS protective association, PMID: 29875488).
 * **TLR1 (p.Ser602Ile · c.1805G>T · rs5743618, rs5743618):** Heterozygous carrier at `chr4:38797027` (TLR1). ClinVar: `Conflicting classifications of pathogenicity|protective` (GWAS protective association, PMID: 29083406).
 * **CASP8 (c.-937_-932del · rs3834129, rs3834129):** Heterozygous carrier at `chr2:201232809` (CASP8). ClinVar: `protective`.
+* **EDNRA (c.-230G>A · rs1801708, rs1801708):** Heterozygous carrier at `chr4:147481217` (EDNRA). ClinVar: `protective`.
+* **FCGR2B (p.Ile232Thr · c.695T>C · rs1050501, rs1050501):** Homozygous carrier at `chr1:161674008` (FCGR2B). ClinVar: `protective|risk factor`.
+* **CD209 (c.-336T>C · rs4804803, rs4804803):** Heterozygous carrier at `chr19:7747847` (CD209). ClinVar: `protective|risk factor`.
+* **CDKN2B (c.*2619C>T · rs1063192, rs1063192):** Heterozygous carrier at `chr9:22003368` (CDKN2B). ClinVar: `Likely pathogenic|protective` (GWAS protective association, PMID: 30054458).
 
 ### Conclusions: Diagnostic & Clinical Decision Calculus
 
