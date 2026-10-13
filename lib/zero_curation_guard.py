@@ -99,6 +99,7 @@ def audit_codebase_and_skills(root_dir=None, quiet=False):
         glob.glob(os.path.join(root_dir, "*.py"))
         + glob.glob(os.path.join(root_dir, "lib/*.py"))
         + glob.glob(os.path.join(root_dir, "scripts/*.py"))
+        + glob.glob(os.path.join(root_dir, "skills/**/*"), recursive=True)
         + glob.glob(os.path.join(HOME_DIR, ".gemini/config/skills/**/*"), recursive=True)
     )
     target_files = [f for f in target_files if os.path.isfile(f) and not f.endswith(".pyc")]

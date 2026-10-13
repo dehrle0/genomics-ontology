@@ -1,16 +1,17 @@
-# Genomic Ontology Reporting Engine & Visual Explorer (v5.2)
+# Genomic Ontology Reporting Engine & Visual Explorer (v5.3)
 
 An ontology-driven clinical genomics interpretation engine powered by **OpenCRAVAT 3.1.1**, **LinkML**, **Pydantic v2**, and modern **vanilla Web Standards**.
 
-This system bridges raw genomic variants with biomedical ontologies (**HPO**, **GO**, **Anatomical Organ Systems**), multi-predictor in-silico scores (**AlphaMissense**, **CADD**, **SpliceAI**, **REVEL**, **LINSIGHT**), whole-genome pedigree phasing (**Approach 4D Trio/Duo**), polygenic risk scores (**PRS**), pharmacogenomics (**CPIC / DPWG**), automated **Google DeepMind AlphaGenome Atlas** candidate triage, and publication-grade **Deep Genomic Research Evidence Synthesis Reports**.
+This system bridges raw genomic variants with biomedical ontologies (**HPO**, **GO**, **Anatomical Organ Systems**), multi-predictor in-silico scores (**AlphaMissense**, **CADD**, **SpliceAI**, **REVEL**, **LINSIGHT**), whole-genome pedigree phasing (**Approach 4D Trio/Duo**), polygenic risk scores (**PRS**), pharmacogenomics (**CPIC / DPWG**), automated **Google DeepMind AlphaGenome Atlas** candidate triage, publication-grade **Deep Genomic Research Evidence Synthesis Reports**, and **Canonical 3-Page Minimalist Clinician Action Briefs**.
 
 ---
 
 ## 📚 Core Documentation Links
+- 📘 **[Product Definition Report (PDR)](docs/PDR.md)**: Master architectural specification, clinical value proposition, VSCP-DF cognitive profile, and deliverable hierarchy.
+- 📖 **[User Guide & Pipelines](docs/User_Guide.md)**: Detailed instructions on running the standard reporting pipeline and OpenCRAVAT annotation.
 - 📋 **[Pull Request Document](docs/PULL_REQUEST.md)**: Full clinical and engineering specifications, requirements, architecture, and verification results.
 - 📝 **[Implementation Step Notes](docs/STEP_NOTES.md)**: Detailed step-by-step engineering log across Increments I0 through I8.
 - 🚀 **[Brainstorming & Strategic Opportunities](docs/OPPORTUNITIES_BRAINSTORMING.md)**: Visionary blueprint covering Multimodal Audio/Visual AI, Agent Skills, 3D AlphaFold mapping, and single-cell epigenomics.
-- 📖 **[User Guide & Pipelines](docs/User_Guide.md)**: Detailed instructions on running the orchestrator against OpenCRAVAT SQLite databases and phased VCFs.
 
 ---
 
@@ -154,17 +155,19 @@ Automated single-command CLI executing the entire clinical reporting lifecycle:
 
 ```
 ontology_report/
-├── run_ontology_pipeline.py            # Master 7-stage Python pipeline orchestrator (v5.2)
 ├── run_standard_reporting.py           # Standardized multi-cohort clinical reporting orchestrator (v5.3)
+├── run_ontology_pipeline.py            # Master 7-stage Python pipeline orchestrator (v5.2)
+├── build_landscape_report.py           # Standalone visual explorer & landscape report builder
 ├── generate_flow_pipeline.py           # CLI compatibility orchestrator for end-to-end evidence reporting
 ├── generate_ehr_export.py              # FHIR-compliant structured EHR bundle generator
-├── generate_me_reports.py              # Clinician brief and deep dossier builder for Melinda Ehrle
-├── generate_claude_v2_report.py        # Python ETL pipeline for generating DAG JSON data
-├── cloud_delivery_service.py           # Dual Google Drive cloud delivery and rclone synchronizer
+├── requirements.txt                    # Production runtime Python dependencies
 ├── index.html                          # 5-view web application shell
 ├── js/                                 # Client-side reactive router, tree, and graph engine
 ├── css/                                # Clinical design tokens, responsive grids, and print CSS
 ├── lib/
+│   ├── clinical_brief_engine.py        # Canonical 3-page minimalist brief & deep research dossier engine
+│   ├── old_reports_engine.py           # Deprecated baseline brief engine (archival benchmark)
+│   ├── zero_curation_guard.py          # Permanent automated gate enforcing zero static curation & zero PII
 │   ├── ensemble_clinical_orchestrator.py # Multi-model local ensemble orchestrator (Gemma, MedGemma, QwQ, Mistral)
 │   ├── genomic_privacy_broker.py       # Differential privacy & HMAC chaffing/winnowing broker
 │   ├── genomics_utils.py               # Shared coordinate, numeric, and clinical string utilities
@@ -178,14 +181,8 @@ ontology_report/
 │   └── schema_probe.py                 # OpenCRAVAT SQLite schema probe
 ├── skills/
 │   └── deep-variant-research-report/   # Version-controlled Antigravity agent skill
-├── scripts/
-│   └── sync_skills.sh                  # Automated skill synchronizer (repo <-> system config)
-├── reports/
-│   └── alternatives/                   # De-identified clinical reference templates (Alt B & Alt C)
-├── archive/
-│   ├── generators/                     # Archived intermediate generator scripts
-│   └── legacy/                         # Retired historical renderers and scripts
-├── docs/                               # Engineering documentation, step notes, and specifications
+├── export/                             # Standardized compiled deliverables (HTML, PDF, MD)
+├── docs/                               # Engineering documentation (PDR.md, User_Guide.md, etc.)
 └── data/                               # Reference gene panels, caches, and mock payloads
 ```
 
@@ -193,34 +190,23 @@ ontology_report/
 
 ## 🚀 Quick Start
 
-### 1. Run the Unified End-to-End Pipeline
-
-Execute the full 7-stage pipeline against an OpenCRAVAT SQLite database and phased VCFs:
+### 1. Environment Setup & Dependency Installation
 
 ```bash
-# Daniel Ehrle (with Tri-VCF Phasing & Optional Upstream VEP + AlphaGenome Pre-Annotation):
-python3 run_ontology_pipeline.py \
-  --sample Daniel_Ehrle \
-  --input reports/Daniel_Ehrle-02-10-2026/Daniel_Ehrle.sqlite \
-  --vcf "/data/Genomes/DE/Approach4D_Output/DE_grch38_wgs_phased.vcf.gz,/data/Genomes/DE/Approach4D_Output/DE_grch38_sv_phased.vcf.gz,/data/Genomes/DE/Approach4D_Output/DE_grch38_cnv_phased.vcf.gz" \
-  --run-vep \
-  --local-only
+# Activate your Python environment:
+micromamba activate cravat_env
 
-# Melinda Ehrle (with Tri-VCF Phasing & Optional Upstream VEP + AlphaGenome Pre-Annotation):
-python3 run_ontology_pipeline.py \
-  --sample Melinda_Ehrle \
-  --input reports/Melinda_Ehrle-03-10-2026/Melinda_Ehrle.sqlite \
-  --vcf "/data/Genomes/ME/Approach4D_Output/ME_grch38_wgs_phased.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_sv_phased.vcf.gz,/data/Genomes/ME/Approach4D_Output/ME_grch38_cnv_phased.vcf.gz" \
-  --run-vep \
-  --local-only
+# Install runtime dependencies:
+pip install -r requirements.txt
 
-# Or via the master wrapper with -a (VEP + AlphaGenome):
-./run_ontology_master_pipeline.sh -a -l Daniel_Ehrle reports/Daniel_Ehrle-02-10-2026/Daniel_Ehrle.sqlite
+# Run the automated Zero Static Curation Guard:
+python3 lib/zero_curation_guard.py
+# Output: ZERO_CURATION_GUARD_PASSED
 ```
 
 ### 2. Run Standardized Multi-Cohort Reporting (v5.3)
 
-Synthesize the synchronized clinical deliverables (3-Page Clinician Action Brief [Alt C], Deep Research Dossier [Alt B], and FHIR EHR Import JSON):
+Synthesize synchronized clinical deliverables (Canonical 3-Page Minimalist Brief, Deep Research Dossier, and FHIR EHR Import JSON):
 
 ```bash
 # Execute for Daniel Ehrle:
@@ -228,12 +214,6 @@ python3 run_standard_reporting.py de
 
 # Execute for Melinda Ehrle:
 python3 run_standard_reporting.py me
-
-# Or run via the flow pipeline CLI:
-python3 generate_flow_pipeline.py \
-  --sample-id Daniel_Ehrle-07-10-2026 \
-  --patient-name "Daniel Ehrle" \
-  --patient-id "Daniel_Ehrle"
 ```
 
 ### 3. Generate Standalone Deep Research Synthesis Reports

@@ -14,8 +14,8 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Arial, sans-serif;
     color: #0f172a;
     background: #f1f5f9;
-    font-size: 8.3pt;
-    line-height: 1.32;
+    font-size: 8.0pt;
+    line-height: 1.28;
     padding: 0;
     margin: 0;
     -webkit-print-color-adjust: exact !important;
@@ -25,10 +25,10 @@
   .page {
     width: 100%;
     max-width: 204mm;
-    min-height: 266mm;
-    margin: 6mm auto;
+    min-height: 255mm;
+    margin: 5mm auto;
     background: #ffffff;
-    padding: 5.5mm 6.5mm;
+    padding: 5mm 6mm;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     page-break-after: always;
     page-break-inside: avoid;
@@ -42,14 +42,16 @@
     .page {
       width: 100% !important;
       max-width: 100% !important;
-      height: 266mm !important;
-      max-height: 266mm !important;
+      height: auto !important;
+      min-height: 255mm !important;
+      max-height: 270mm !important;
       margin: 0 !important;
       padding: 4mm 5mm !important;
       box-shadow: none !important;
-      overflow: hidden !important;
+      overflow: visible !important;
       page-break-after: always !important;
       page-break-inside: avoid !important;
+      box-sizing: border-box !important;
     }
     .page:last-child {
       page-break-after: auto !important;
@@ -57,13 +59,13 @@
   }
   .brief-header {
     border-bottom: 2px solid #123f41;
-    padding-bottom: 4px;
-    margin-bottom: 5px;
+    padding-bottom: 3px;
+    margin-bottom: 4px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
   }
-  .brief-title { font-size: 11.5pt; font-weight: 800; color: #123f41; letter-spacing: -0.01em; }
+  .brief-title { font-size: 11.0pt; font-weight: 800; color: #123f41; letter-spacing: -0.01em; }
   .exec-summary-box {
     background: #f0fdfa;
     border: 1px solid #99f6e4;
@@ -76,33 +78,33 @@
     line-height: 1.32;
   }
   h2 {
-    font-size: 9.0pt;
+    font-size: 8.8pt;
     font-weight: 800;
     color: #123f41;
     text-transform: uppercase;
     letter-spacing: 0.02em;
     border-bottom: 1.5px solid #cbd5e1;
     padding-bottom: 2px;
-    margin: 5px 0 4px 0;
+    margin: 4px 0 3px 0;
   }
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 8.1pt;
-    line-height: 1.30;
-    margin-bottom: 5px;
+    font-size: 7.8pt;
+    line-height: 1.26;
+    margin-bottom: 4px;
   }
   th {
     background: #f1f5f9;
     color: #1e293b;
     text-align: left;
-    padding: 3.5px 5px;
+    padding: 3px 5px;
     border: 1px solid #cbd5e1;
-    font-size: 7.5pt;
+    font-size: 7.2pt;
     text-transform: uppercase;
   }
   td {
-    padding: 3.5px 5px;
+    padding: 3px 5px;
     border: 1px solid #e2e8f0;
     vertical-align: top;
   }
@@ -223,7 +225,6 @@
       <strong>Daniel Ehrle (Daniel_Ehrle) — Genomic &amp; Pharmacogenomic Summary</strong>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-      <a href="Daniel_Ehrle_clinical_brief (old).html" class="no-print-btn" style="background:#b45309;color:#ffffff;">Switch to Deterministic Baseline (old) ↗</a>
       <a href="Daniel_Ehrle_deep_research_report.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Deep Research Report</a>
       <a href="Daniel_Ehrle_landscape_dashboard.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Command Center</a>
       <button onclick="window.print()" class="no-print-btn" style="background:#2563eb;color:#ffffff;">🖨️ Print Report</button>
@@ -231,13 +232,13 @@
     </div>
   </div>
 
-  <!-- ======================= PAGE 1 OF 3: EXECUTIVE OVERVIEW & PRIORITY GENOMIC FINDINGS ======================= -->
+  <!-- ======================= PAGE 1 OF 3: PRIORITY GENOMIC FINDINGS & CARRIER STATUS ======================= -->
   <div class="page page-1">
     <div class="brief-header">
       <div>
         <div class="brief-title">CLINICAL GENOMICS &amp; PHARMACOGENOMICS ACTION BRIEF</div>
-        <div style="font-size:8.2pt;color:#334155;margin-top:2px;">
-          <strong>Patient:</strong> Daniel Ehrle (<span class="mono">Daniel_Ehrle</span>) · <strong>Date:</strong> October 12, 2026 · <strong>Primary Audience:</strong> Patient, Primary Care Physician (PCP) &amp; Specialists
+        <div style="font-size:8.0pt;color:#334155;margin-top:2px;">
+          <strong>Patient:</strong> Daniel Ehrle (<span class="mono">Daniel_Ehrle</span>) · <strong>Date:</strong> October 13, 2026 · <strong>Primary Audience:</strong> Patient, Primary Care Physician (PCP) &amp; Specialists
         </div>
       </div>
       <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
@@ -246,485 +247,356 @@
       </div>
     </div>
 
-    <!-- Executive Findings Summary Box (Local AI Polished & JSON Verified) -->
-    <div class="exec-summary-box">
-      <div style="font-weight:800;color:#0f766e;text-transform:uppercase;font-size:7.5pt;letter-spacing:0.03em;margin-bottom:2px;">Executive Summary of Key Findings</div>
-      <ul style="padding-left:15px;margin:0;">
-        <li style='margin-bottom:2px;'><p>Genomic Findings &amp; Carrier Context:</p><ul><li>CBLIF (Intrinsic Factor Deficiency / Cobalamin Malabsorption) - heterozygous carrier status</li><li>F5 (Congenital factor V deficiency) - heterozygous carrier status, with implications for systemic estrogens and combined oral contraceptives use.</li><li>PEX6 (Peroxisome biogenesis disorder 4A / Zellweger) - heterozygous carrier status</li></ul></li><li style='margin-bottom:2px;'><p>Actionable Medication Safety:</p><ul><li>Avoid or select alternatives for F5 due to systemic estrogens, combined oral contraceptives, and HRT use.</li><li>Adjust starting doses or monitor CYP2C9 (Celecoxib), CYP2C19 (Voriconazole), CYP3A5 (Ondansetron) medications</li></ul></li><li style='margin-bottom:2px;'><p>Preventive Care Takeaway:</p><ul><li>No invasive diagnostic procedures are required for single-copy carrier findings.</li><li>Focus on high-level wellness and screening topics in Section 2 of the patient's care plan.</li></ul></li>
-      </ul>
-    </div>
-
     <!-- Section 1: Priority Genomic Findings, Carrier Status & Clinical Meaning -->
     <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Clinical Meaning</h2>
     <table>
       <thead>
         <tr>
-          <th style="width:16%;">Gene &amp; Biological System</th>
+          <th style="width:18%;">Gene &amp; Biological System</th>
           <th style="width:18%;">Variant &amp; Zygosity</th>
-          <th style="width:17%;">Classification &amp; Condition</th>
-          <th>Clinical Meaning &amp; Practical Takeaway</th>
+          <th style="width:18%;">Classification &amp; Condition</th>
+          <th>Clinical Impact &amp; Practical Guidance</th>
         </tr>
       </thead>
       <tbody>
         
         <tr>
           <td>
-            <strong style="font-size:8.6pt;color:#123f41;">CBLIF</strong>
-            <div style="font-size:7.3pt;color:#334155;font-weight:600;">CBLIF</div>
-            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
+            <strong style="font-size:8.4pt;color:#123f41;">CBLIF</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">CBLIF</div>
+            <div style="font-size:7.0pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <div class="mono" style="font-weight:700;color:#0f172a;">c.79+1G>A · rs147785187</div>
-            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
-            <div style="font-size:7.1pt;color:#475569;">Autosomal Recessive</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">c.79+1G>A · rs147785187</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Autosomal Recessive</div>
           </td>
           <td>
             <strong style="color:#0f172a;">Pathogenic</strong>
-            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Intrinsic Factor Deficiency / Cobalamin Malabsorption</div>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Intrinsic Factor Deficiency / Cobalamin Malabsorption</div>
           </td>
           <td>
-            <div><strong>CBLIF · Vitamin B12 (Cobalamin) &amp; Folate Absorption:</strong> Canonical splice-site variant (c.79+1G>A) in CBLIF (autosomal recessive <strong>Intrinsic Factor Deficiency / Cobalamin Malabsorption (OMIM #261000)</strong>). This gene is a member of the cobalamin transport protein family. It encodes a glycoprotein secreted by parietal cells of the gastric mucosa and is required for adequate absorption of vitamin B12. <strong>Clinical Impact:</strong> Heterozygous carriers preserve intrinsic factor production from the functional allele; periodic Vitamin B12 checks during routine physicals help confirm healthy cellular stores.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Recessive Carrier:</strong> Retains one functional gene copy with normal baseline physiological capacity; does not cause the classic biallelic condition.</div>
+            <div>Single-copy heterozygous carrier preserves intrinsic factor production. Check periodic serum B12 during routine wellness visits.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong style="font-size:8.6pt;color:#123f41;">GJB2</strong>
-            <div style="font-size:7.3pt;color:#334155;font-weight:600;">GJB2</div>
-            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
+            <strong style="font-size:8.4pt;color:#123f41;">GJB2</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">GJB2</div>
+            <div style="font-size:7.0pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <div class="mono" style="font-weight:700;color:#0f172a;">p.Met34Thr · c.101T>C · rs35887622</div>
-            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
-            <div style="font-size:7.1pt;color:#475569;">Autosomal Recessive, Autosomal Dominant</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">p.Met34Thr · c.101T>C · rs35887622</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Autosomal Recessive, Autosomal Dominant</div>
           </td>
           <td>
             <strong style="color:#0f172a;">Pathogenic</strong>
-            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Autosomal Recessive Deafness 1A / Dominant 3A</div>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Autosomal Recessive Deafness 1A / Dominant 3A</div>
           </td>
           <td>
-            <div><strong>GJB2 · Cochlear Gap Junction &amp; Hearing Health:</strong> Coding missense variant (p.Met34Thr) in GJB2 (Autosomal Recessive Deafness 1A / Dominant 3A (OMIM #121011)). This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing; consider a baseline hearing check and avoid unnecessary ototoxic aminoglycoside antibiotics when alternatives exist.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Susceptibility Finding:</strong> Associated with increased lifetime risk; manage proactively through guideline-recommended preventive screening.</div>
+            <div>Single-copy heterozygous carrier maintains normal adult hearing. Consider baseline hearing check; avoid unnecessary ototoxic aminoglycosides.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong style="font-size:8.6pt;color:#123f41;">VDR</strong>
-            <div style="font-size:7.3pt;color:#334155;font-weight:600;">VDR</div>
-            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
+            <strong style="font-size:8.4pt;color:#123f41;">VDR</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">VDR</div>
+            <div style="font-size:7.0pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <div class="mono" style="font-weight:700;color:#0f172a;">c.-1172A>G · rs4516035</div>
-            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Homozygous</div>
-            <div style="font-size:7.1pt;color:#475569;">Pathway Modifier</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">c.-1172A>G · rs4516035</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Homozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Pathway Modifier</div>
           </td>
           <td>
             <strong style="color:#0f172a;">Likely pathogenic</strong>
-            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Chronic obstructive pulmonary disease</div>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Chronic obstructive pulmonary disease</div>
           </td>
           <td>
-            <div><strong>VDR · Vitamin D Signaling &amp; Bone Health:</strong> Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. <strong>Clinical Impact:</strong> Modulates Vitamin D receptor signaling; checking routine Vitamin D levels at the annual physical helps guide standard supplementation.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Homozygous Physiological Modifier:</strong> Influences baseline pathway activity without causing a primary monogenic disorder.</div>
+            <div>Modulates calcitriol receptor signaling. Check routine 25(OH)D at annual checkup to guide standard vitamin D3 supplementation.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong style="font-size:8.6pt;color:#123f41;">F5</strong>
-            <div style="font-size:7.3pt;color:#334155;font-weight:600;">F5</div>
-            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
+            <strong style="font-size:8.4pt;color:#123f41;">F5</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">F5</div>
+            <div style="font-size:7.0pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <div class="mono" style="font-weight:700;color:#0f172a;">p.Arg534Gln · c.1601G>A · rs6025</div>
-            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
-            <div style="font-size:7.1pt;color:#475569;">Autosomal recessive / AD</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">p.Arg534Gln · c.1601G>A · rs6025</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Autosomal recessive / AD</div>
           </td>
           <td>
             <strong style="color:#0f172a;">drug response</strong>
-            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Congenital factor V deficiency</div>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Congenital factor V deficiency</div>
           </td>
           <td>
-            <div><strong>F5 · Blood Coagulation &amp; Clot Risk Management:</strong> Coding missense variant (p.Arg534Gln) in F5 (Congenital factor V deficiency). This gene encodes an essential cofactor of the blood coagulation cascade. This factor circulates in plasma, and is converted to the active form by the release of the activation peptide by thrombin during coagulation. <strong>Clinical Impact:</strong> Daily anticoagulation is <strong>not</strong> needed in asymptomatic heterozygous individuals; avoid systemic oral estrogen therapy and use standard clot prophylaxis during major surgery or prolonged immobilization.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
-          </td>
-        </tr>
-        
-        <tr>
-          <td>
-            <strong style="font-size:8.6pt;color:#123f41;">PEX6</strong>
-            <div style="font-size:7.3pt;color:#334155;font-weight:600;">PEX6</div>
-            <div style="font-size:7.1pt;color:#64748b;">Heart & Cardiovascular</div>
-          </td>
-          <td>
-            <div class="mono" style="font-weight:700;color:#0f172a;">p.Val788Met · c.2362G>A · rs267608240</div>
-            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
-            <div style="font-size:7.1pt;color:#475569;">Autosomal recessive</div>
-          </td>
-          <td>
-            <strong style="color:#0f172a;">Conflicting classifications of pathogenicity</strong>
-            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Peroxisome biogenesis disorder 4A (Zellweger)</div>
-          </td>
-          <td>
-            <div><strong>PEX6 · Peroxisomal &amp; Lipid Metabolism:</strong> Coding missense variant (p.Val788Met) in PEX6 (Peroxisome biogenesis disorder 4A (Zellweger) (OMIM #614862)). This gene encodes a member of the AAA (ATPases associated with diverse cellular activities) family of ATPases. This member is a predominantly cytoplasmic protein, which plays a direct role in peroxisomal protein impor… <strong>Clinical Impact:</strong> Single-copy heterozygous carriers maintain normal peroxisomal function via the healthy gene copy; covered by standard annual liver and lipid wellness panels.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
+            <div>Avoid systemic oral estrogen therapy (thromboembolism risk). Implement standard perioperative clot prophylaxis during major surgery.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong style="font-size:8.6pt;color:#123f41;">GJB3</strong>
-            <div style="font-size:7.3pt;color:#334155;font-weight:600;">GJB3</div>
-            <div style="font-size:7.1pt;color:#64748b;">Heart & Cardiovascular</div>
+            <strong style="font-size:8.4pt;color:#123f41;">PEX6</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">PEX6</div>
+            <div style="font-size:7.0pt;color:#64748b;">Heart & Cardiovascular</div>
           </td>
           <td>
-            <div class="mono" style="font-weight:700;color:#0f172a;">p.Arg75Cys · c.223C>T · rs370476720</div>
-            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
-            <div style="font-size:7.1pt;color:#475569;">Autosomal recessive</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">p.Val788Met · c.2362G>A · rs267608240</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Autosomal recessive</div>
           </td>
           <td>
             <strong style="color:#0f172a;">Conflicting classifications of pathogenicity</strong>
-            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Inborn genetic diseases</div>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Peroxisome biogenesis disorder 4A (Zellweger)</div>
           </td>
           <td>
-            <div><strong>GJB3 · Cochlear Gap Junction &amp; Hearing Health:</strong> Coding missense variant (p.Arg75Cys) in GJB3 (Inborn genetic diseases (OMIM #133200)). This gene is a member of the connexin gene family. The encoded protein is a component of gap junctions, which are composed of arrays of intercellular channels that provide a route for the diffusion of low molecular we… <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing; consider a baseline hearing check and avoid unnecessary ototoxic aminoglycoside antibiotics when alternatives exist.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
+            <div>Single-copy heterozygous carrier preserves normal peroxisomal function. Standard annual liver and lipid wellness panels.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong style="font-size:8.6pt;color:#123f41;">SCN4A</strong>
-            <div style="font-size:7.3pt;color:#334155;font-weight:600;">SCN4A</div>
-            <div style="font-size:7.1pt;color:#64748b;">Heart & Cardiovascular</div>
+            <strong style="font-size:8.4pt;color:#123f41;">GJB3</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">GJB3</div>
+            <div style="font-size:7.0pt;color:#64748b;">Heart & Cardiovascular</div>
           </td>
           <td>
-            <div class="mono" style="font-weight:700;color:#0f172a;">p.His599Arg · c.1796A>G · rs187401185</div>
-            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
-            <div style="font-size:7.1pt;color:#475569;">Autosomal dominant / AR</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">p.Arg75Cys · c.223C>T · rs370476720</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Autosomal recessive</div>
           </td>
           <td>
             <strong style="color:#0f172a;">Conflicting classifications of pathogenicity</strong>
-            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Paramyotonia congenita of Von Eulenburg</div>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Inborn genetic diseases</div>
           </td>
           <td>
-            <div><strong>SCN4A · Skeletal Muscle Ion-Channel Function:</strong> Coding missense variant (p.His599Arg) in SCN4A (Paramyotonia congenita of Von Eulenburg (OMIM #168300)). Voltage-gated sodium channels are transmembrane glycoprotein complexes composed of a large alpha subunit with 24 transmembrane domains and one or more regulatory beta subunits. <strong>Clinical Impact:</strong> Maintain normal electrolyte balance on routine checkups and inform anesthesiology regarding depolarizing muscle relaxants prior to general anesthesia if muscle stiffness is present.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
+            <div>Single-copy heterozygous carrier maintains normal adult hearing. Consider baseline hearing check; avoid unnecessary ototoxic aminoglycosides.</div>
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <strong style="font-size:8.4pt;color:#123f41;">SCN4A</strong>
+            <div style="font-size:7.2pt;color:#334155;font-weight:600;">SCN4A</div>
+            <div style="font-size:7.0pt;color:#64748b;">Heart & Cardiovascular</div>
+          </td>
+          <td>
+            <div class="mono" style="font-weight:700;color:#0f172a;font-size:7.8pt;">p.His599Arg · c.1796A>G · rs187401185</div>
+            <div style="font-size:7.2pt;color:#0f766e;font-weight:700;margin-top:1px;">Heterozygous</div>
+            <div style="font-size:7.0pt;color:#475569;">Autosomal dominant / AR</div>
+          </td>
+          <td>
+            <strong style="color:#0f172a;">Conflicting classifications of pathogenicity</strong>
+            <div style="font-size:7.2pt;color:#475569;margin-top:1px;">Paramyotonia congenita of Von Eulenburg</div>
+          </td>
+          <td>
+            <div>Maintain normal electrolyte balance. Inform anesthesiology regarding depolarizing muscle relaxants prior to general surgery.</div>
           </td>
         </tr>
         
       </tbody>
     </table>
 
-    <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Preventive Care Discussion Points &amp; Medication Precautions
+    <div style="font-size:7.2pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
+      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Medication Precautions &amp; Preventive Care Schedule
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: PREVENTIVE CARE DISCUSSION POINTS & MEDICATION PRECAUTIONS ======================= -->
+  <!-- ======================= PAGE 2 OF 3: PRESCRIBING PRECAUTIONS & PREVENTIVE CARE ======================= -->
   <div class="page page-2">
-    <!-- Section 2: High-Level Preventive Care & Annual Physical Discussion Points -->
-    <h2>Section 2 · High-Level Preventive Care &amp; Annual Checkup Discussion Points</h2>
-    <div style="font-size:7.8pt;color:#334155;margin-bottom:4px;">
-      High-level preventive care topics tailored for <strong>Daniel Ehrle</strong>’s routine annual checkup with the <strong>Primary Care Physician (PCP)</strong> or relevant specialist. (Page 2 of 3)
+    <div class="brief-header">
+      <div>
+        <div class="brief-title">PRESCRIBING SAFETY &amp; PREVENTIVE CARE SCHEDULE</div>
+        <div style="font-size:8.0pt;color:#334155;margin-top:2px;">
+          <strong>Patient:</strong> Daniel Ehrle (<span class="mono">Daniel_Ehrle</span>) · High-Priority Prescribing Safety &amp; Annual Checkup Topics
+        </div>
+      </div>
+      <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
+        <div>Prescribing &amp; Preventive Care</div>
+        <div class="mono" style="color:#475569;">Page 2 of 3</div>
+      </div>
     </div>
+
+    <!-- Section 2: High-Priority Medication & Exposure Precautions -->
+    <h2>Section 2 · High-Priority Medication &amp; Exposure Precautions (CPIC / FDA)</h2>
     <table>
       <thead>
         <tr>
-          <th style="width:17%;">Genomic Finding</th>
-          <th style="width:16%;">Biological Pathway</th>
-          <th style="width:20%;">Preventive Care Topic</th>
-          <th style="width:15%;">Care Setting &amp; Timing</th>
-          <th>Clinical Context &amp; Practical Summary</th>
+          <th style="width:20%;">Gene &amp; Variant / Diplotype</th>
+          <th style="width:16%;">Prescribing Action</th>
+          <th style="width:26%;">Affected Medication(s)</th>
+          <th>Prescribing Rule &amp; Clinical Guidance</th>
         </tr>
       </thead>
       <tbody>
         
         <tr>
-          <td><strong>CBLIF</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.79+1G>A · rs147785187</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal Recessive)</div></td>
-          <td><strong>CBLIF · Vitamin B12 (Cobalamin) &amp; Folate Absorption</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Pathogenic</div></td>
-          <td><strong>Periodic Vitamin B12 &amp; Folate Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Routine Wellness Lab Panel</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Routine Annual or Biennial Checkup</div></td>
-          <td>Canonical splice-site variant (c.79+1G>A) in CBLIF (autosomal recessive <strong>Intrinsic Factor Deficiency / Cobalamin Malabsorption (OMIM #261000)</strong>). This gene is a member of the cobalamin transport protein family. It encodes a glycoprotein secreted by parietal cells of the gastric mucosa and is required for adequate absorption of vitamin B12. <strong>Clinical Impact:</strong> Heterozygous carriers preserve intrinsic factor production from the functional allele; periodic Vitamin B12 checks during routine physicals help confirm healthy cellular stores.</td>
+          <td>F5 · <code>p.Arg534Gln · c.1601G>A · rs6025</code> (Heterozygous APC Resistance)</td>
+          <td><span class="spec-badge" style="color:#dc2626;background:#fef2f2;">🚨 LIFE-THREATENING RISK · AVOID ESTROGENS</span></td>
+          <td><span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Systemic Estrogens, Combined Oral Contraceptives, HRT</span></td>
+          <td><strong>CRITICAL HAZARD:</strong> Confers Activated Protein C (APC) resistance with 35-fold amplified risk of venous thromboembolism (VTE) and pulmonary embolism with systemic estrogen exposure. Avoid oral estrogen formulations; implement situational perioperative VTE prophylaxis.</td>
         </tr>
         
         <tr>
-          <td><strong>GJB2</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Met34Thr · c.101T>C · rs35887622</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal Recessive, Autosomal Dominant)</div></td>
-          <td><strong>GJB2 · Cochlear Gap Junction &amp; Hearing Health</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Pathogenic</div></td>
-          <td><strong>Baseline Hearing Check &amp; Ototoxic Medication Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Routine Preventive Care</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Baseline check; repeat if symptoms arise</div></td>
-          <td>Coding missense variant (p.Met34Thr) in GJB2 (Autosomal Recessive Deafness 1A / Dominant 3A (OMIM #121011)). This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing; consider a baseline hearing check and avoid unnecessary ototoxic aminoglycoside antibiotics when alternatives exist.</td>
+          <td><strong>CYP2C9</strong> · <span class='mono'>*1/*2</span> [<span class='mono'>R144C (rs1799853) C>T</span>] (Intermediate Metabolizer)</td>
+          <td><span class="spec-badge" style="color:#b45309;background:#fffbeb;">⬇️ HIGH RISK · REDUCE DOSE</span></td>
+          <td><strong>Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin)</strong></td>
+          <td>Moderate decrease in celecoxib clearance. Initiate therapy at lowest recommended dose and monitor for GI/cardiovascular adverse effects. Initiate at reduced starting dose per CPIC.</td>
         </tr>
         
         <tr>
-          <td><strong>VDR</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.-1172A>G · rs4516035</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Homozygous (Pathway Modifier)</div></td>
-          <td><strong>VDR · Vitamin D Signaling &amp; Bone Health</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Likely pathogenic</div></td>
-          <td><strong>Routine Vitamin D &amp; Calcium Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Annual Wellness Panel</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Annual PCP Checkup</div></td>
-          <td>Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. <strong>Clinical Impact:</strong> Modulates Vitamin D receptor signaling; checking routine Vitamin D levels at the annual physical helps guide standard supplementation.</td>
+          <td><strong>CYP2C19</strong> · <span class='mono'>*1/*17</span> [<span class='mono'>I331V (rs3758581) A>G, expression (rs12248560) C>T</span>] (Rapid Metabolizer)</td>
+          <td><span class="spec-badge" style="color:#b45309;background:#fffbeb;">⬇️ HIGH RISK · REDUCE DOSE</span></td>
+          <td><strong>Voriconazole</strong></td>
+          <td>Increased clearance and lower trough concentrations. Perform therapeutic drug monitoring (TDM) to avoid subtherapeutic levels. Initiate at reduced starting dose per CPIC.</td>
         </tr>
         
         <tr>
-          <td><strong>F5</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg534Gln · c.1601G>A · rs6025</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive / AD)</div></td>
-          <td><strong>F5 · Blood Coagulation &amp; Clot Risk Management</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>drug response</div></td>
-          <td><strong>Situational Clot Prevention (Surgery, Immobility, Estrogen Avoidance)</strong><div style='font-size:7.3pt;color:#0f766e;'>Perioperative &amp; Prescribing Precaution</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Situational (Before surgery, long travel, or hormone therapy)</div></td>
-          <td>Coding missense variant (p.Arg534Gln) in F5 (Congenital factor V deficiency). This gene encodes an essential cofactor of the blood coagulation cascade. This factor circulates in plasma, and is converted to the active form by the release of the activation peptide by thrombin during coagulation. <strong>Clinical Impact:</strong> Daily anticoagulation is <strong>not</strong> needed in asymptomatic heterozygous individuals; avoid systemic oral estrogen therapy and use standard clot prophylaxis during major surgery or prolonged immobilization.</td>
+          <td><strong>CYP3A5</strong> · <span class='mono'>*3/*3</span> [<span class='mono'>splice defect (rs776746) T>C</span>] (Poor Metabolizer)</td>
+          <td><span class="spec-badge" style="color:#b45309;background:#fffbeb;">⬇️ HIGH RISK · REDUCE DOSE</span></td>
+          <td><strong>Ondansetron</strong></td>
+          <td>Genotype CC is associated with decreased metabolism of ondansetron as compared to genotypes CT + TT. Initiate at reduced starting dose per CPIC.</td>
         </tr>
         
         <tr>
-          <td><strong>PEX6</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Val788Met · c.2362G>A · rs267608240</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
-          <td><strong>PEX6 · Peroxisomal &amp; Lipid Metabolism</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Conflicting classifications of pathogenicity</div></td>
-          <td><strong>Routine Liver &amp; Lipid Wellness Panel</strong><div style='font-size:7.3pt;color:#0f766e;'>Standard Annual Physical Bloodwork</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Annual PCP Checkup</div></td>
-          <td>Coding missense variant (p.Val788Met) in PEX6 (Peroxisome biogenesis disorder 4A (Zellweger) (OMIM #614862)). This gene encodes a member of the AAA (ATPases associated with diverse cellular activities) family of ATPases. This member is a predominantly cytoplasmic protein, which plays a direct role in peroxisomal protein impor… <strong>Clinical Impact:</strong> Single-copy heterozygous carriers maintain normal peroxisomal function via the healthy gene copy; covered by standard annual liver and lipid wellness panels.</td>
-        </tr>
-        
-        <tr>
-          <td><strong>GJB3</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg75Cys · c.223C>T · rs370476720</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
-          <td><strong>GJB3 · Cochlear Gap Junction &amp; Hearing Health</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Conflicting classifications of pathogenicity</div></td>
-          <td><strong>Baseline Hearing Check &amp; Ototoxic Medication Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Routine Preventive Care</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Baseline check; repeat if symptoms arise</div></td>
-          <td>Coding missense variant (p.Arg75Cys) in GJB3 (Inborn genetic diseases (OMIM #133200)). This gene is a member of the connexin gene family. The encoded protein is a component of gap junctions, which are composed of arrays of intercellular channels that provide a route for the diffusion of low molecular we… <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing; consider a baseline hearing check and avoid unnecessary ototoxic aminoglycoside antibiotics when alternatives exist.</td>
-        </tr>
-        
-        <tr>
-          <td><strong>SCN4A</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.His599Arg · c.1796A>G · rs187401185</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal dominant / AR)</div></td>
-          <td><strong>SCN4A · Skeletal Muscle Ion-Channel Function</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Conflicting classifications of pathogenicity</div></td>
-          <td><strong>Routine Electrolyte Balance &amp; Pre-Anesthesia Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Annual Checkup &amp; Surgical Precaution</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Anesthesiology</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Annual Checkup &amp; Pre-Surgery Review</div></td>
-          <td>Coding missense variant (p.His599Arg) in SCN4A (Paramyotonia congenita of Von Eulenburg (OMIM #168300)). Voltage-gated sodium channels are transmembrane glycoprotein complexes composed of a large alpha subunit with 24 transmembrane domains and one or more regulatory beta subunits. <strong>Clinical Impact:</strong> Maintain normal electrolyte balance on routine checkups and inform anesthesiology regarding depolarizing muscle relaxants prior to general anesthesia if muscle stiffness is present.</td>
+          <td><strong>UGT1A1</strong> · <span class='mono'>*1/*28_80</span> [<span class='mono'>5'UTR (rs887829) C>T, Promoter (rs3064744) insTA</span>] (Intermediate Metabolizer)</td>
+          <td><span class="spec-badge" style="color:#92400e;background:#fffbeb;">⚠️ USE WITH CAUTION</span></td>
+          <td><strong>Belinostat, Irinotecan (Camptosar)</strong></td>
+          <td>Monitor for increased hematologic toxicity. Monitor clinical response and consider dose adjustment per CPIC.</td>
         </tr>
         
       </tbody>
     </table>
 
-    <!-- Section 3: High-Priority Medication & Exposure Precautions -->
-    <div class="redbox-guardrail">
-      <div class="redbox-title">
-        <span>🚨 Section 3 · High-Priority Medication &amp; Exposure Precautions</span>
-        <span class="mono" style="font-size:7.2pt;">CPIC / FDA Prescribing Safety Highlights</span>
-      </div>
-      <div class="guardrail-grid">
+    <!-- Section 3: High-Level Preventive Care & Annual Checkup Discussion Points -->
+    <h2>Section 3 · High-Level Preventive Care &amp; Annual Checkup Discussion Points</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:18%;">Genomic Finding</th>
+          <th style="width:18%;">Biological Pathway</th>
+          <th style="width:22%;">Preventive Care Topic</th>
+          <th style="width:15%;">Care Setting &amp; Timing</th>
+          <th>Clinical Context &amp; Guidance</th>
+        </tr>
+      </thead>
+      <tbody>
         
-        <div class="guardrail-item">
-          <div class="guardrail-item__top">
-            <span class="guardrail-gene-highlight" style="color:#dc2626;">F5 · <code>p.Arg534Gln · c.1601G>A · rs6025</code> (Heterozygous APC Resistance)</span>
-            <span class="spec-badge" style="color:#dc2626;background:#fef2f2;">🚨 LIFE-THREATENING RISK · AVOID ESTROGENS</span>
-          </div>
-          <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
-            <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#dc2626;font-weight:700;"><span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Systemic Estrogens, Combined Oral Contraceptives, HRT</span></span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> <strong>CRITICAL HAZARD:</strong> Confers Activated Protein C (APC) resistance with 35-fold amplified risk of venous thromboembolism (VTE) and pulmonary embolism with systemic estrogen exposure. Avoid oral estrogen formulations; implement situational perioperative VTE prophylaxis.</div>
-          </div>
-        </div>
+        <tr>
+          <td><strong>CBLIF</strong><div class='mono' style='font-size:7.4pt;color:#0f172a;margin-top:1px;'><strong>c.79+1G>A · rs147785187</strong></div><div style='font-size:7.1pt;color:#0f766e;font-weight:700;'>Heterozygous (Autosomal Recessive)</div></td>
+          <td><strong>CBLIF · Vitamin B12 (Cobalamin) &amp; Folate Absorption</strong><div style='font-size:7.1pt;color:#475569;'>Pathogenic</div></td>
+          <td><strong>Periodic Vitamin B12 &amp; Folate Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Routine Wellness Lab Panel</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:1px;font-weight:600;">Routine Annual or Biennial Checkup</div></td>
+          <td>Single-copy heterozygous carrier preserves intrinsic factor production. Check periodic serum B12 during routine wellness visits.</td>
+        </tr>
         
-        <div class="guardrail-item">
-          <div class="guardrail-item__top">
-            <span class="guardrail-gene-highlight" style="color:#dc2626;">CYP2C9 · <code>*1/*2</code> [<code>R144C (rs1799853) C>T</code>] (Intermediate Metabolizer)</span>
-            <span class="spec-badge" style="color:#dc2626;background:#fef2f2;">🚨 LIFE-THREATENING RISK · REDUCE DOSE</span>
-          </div>
-          <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
-            <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#dc2626;font-weight:700;"><span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin)</span></span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> <strong>CRITICAL HAZARD:</strong> Moderate decrease in celecoxib clearance. Initiate therapy at lowest recommended dose and monitor for GI/cardiovascular adverse effects. Initiate at reduced dose or titrate cautiously per CPIC.</div>
-          </div>
-        </div>
+        <tr>
+          <td><strong>GJB2</strong><div class='mono' style='font-size:7.4pt;color:#0f172a;margin-top:1px;'><strong>p.Met34Thr · c.101T>C · rs35887622</strong></div><div style='font-size:7.1pt;color:#0f766e;font-weight:700;'>Heterozygous (Autosomal Recessive, Autosomal Dominant)</div></td>
+          <td><strong>GJB2 · Cochlear Gap Junction &amp; Hearing Health</strong><div style='font-size:7.1pt;color:#475569;'>Pathogenic</div></td>
+          <td><strong>Baseline Hearing Check &amp; Ototoxic Medication Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Routine Preventive Care</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:1px;font-weight:600;">Baseline check; repeat if symptoms arise</div></td>
+          <td>Single-copy heterozygous carrier maintains normal adult hearing. Consider baseline hearing check; avoid unnecessary ototoxic aminoglycosides.</td>
+        </tr>
         
-        <div class="guardrail-item">
-          <div class="guardrail-item__top">
-            <span class="guardrail-gene-highlight" style="color:#9a3412;">CYP2C19 · <code>*1/*17</code> [<code>I331V (rs3758581) A>G, expression (rs12248560) C>T</code>] (Rapid Metabolizer)</span>
-            <span class="spec-badge" style="color:#9a3412;background:#fff7ed;">⬇️ REDUCE DOSE · PCP / Prescriber</span>
-          </div>
-          <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
-            <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#9a3412;font-weight:700;">Voriconazole</span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> Increased clearance and lower trough concentrations. Perform therapeutic drug monitoring (TDM) to avoid subtherapeutic levels. Initiate at reduced dose or titrate cautiously per CPIC.</div>
-          </div>
-        </div>
+        <tr>
+          <td><strong>VDR</strong><div class='mono' style='font-size:7.4pt;color:#0f172a;margin-top:1px;'><strong>c.-1172A>G · rs4516035</strong></div><div style='font-size:7.1pt;color:#0f766e;font-weight:700;'>Homozygous (Pathway Modifier)</div></td>
+          <td><strong>VDR · Vitamin D Signaling &amp; Bone Health</strong><div style='font-size:7.1pt;color:#475569;'>Likely pathogenic</div></td>
+          <td><strong>Routine Vitamin D &amp; Calcium Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Annual Wellness Panel</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:1px;font-weight:600;">Annual PCP Checkup</div></td>
+          <td>Modulates calcitriol receptor signaling. Check routine 25(OH)D at annual checkup to guide standard vitamin D3 supplementation.</td>
+        </tr>
         
-        <div class="guardrail-item">
-          <div class="guardrail-item__top">
-            <span class="guardrail-gene-highlight" style="color:#9a3412;">CYP3A5 · <code>*3/*3</code> [<code>splice defect (rs776746) T>C</code>] (Poor Metabolizer)</span>
-            <span class="spec-badge" style="color:#9a3412;background:#fff7ed;">⬇️ REDUCE DOSE · PCP / Prescriber</span>
-          </div>
-          <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
-            <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#9a3412;font-weight:700;">Ondansetron</span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> Genotype CC is associated with decreased metabolism of ondansetron as compared to genotypes CT + TT. Initiate at reduced dose or titrate cautiously per CPIC.</div>
-          </div>
-        </div>
+        <tr>
+          <td><strong>F5</strong><div class='mono' style='font-size:7.4pt;color:#0f172a;margin-top:1px;'><strong>p.Arg534Gln · c.1601G>A · rs6025</strong></div><div style='font-size:7.1pt;color:#0f766e;font-weight:700;'>Heterozygous (Autosomal recessive / AD)</div></td>
+          <td><strong>F5 · Blood Coagulation &amp; Clot Risk Management</strong><div style='font-size:7.1pt;color:#475569;'>drug response</div></td>
+          <td><strong>Situational Clot Prevention (Surgery, Immobility, Estrogen Avoidance)</strong><div style='font-size:7.3pt;color:#0f766e;'>Perioperative &amp; Prescribing Precaution</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:1px;font-weight:600;">Situational (Before surgery, long travel, or hormone therapy)</div></td>
+          <td>Avoid systemic oral estrogen therapy (thromboembolism risk). Implement standard perioperative clot prophylaxis during major surgery.</td>
+        </tr>
         
-        <div class="guardrail-item">
-          <div class="guardrail-item__top">
-            <span class="guardrail-gene-highlight" style="color:#92400e;">UGT1A1 · <code>*1/*28_80</code> [<code>5'UTR (rs887829) C>T, Promoter (rs3064744) insTA</code>] (Intermediate Metabolizer)</span>
-            <span class="spec-badge" style="color:#92400e;background:#fffbeb;">⚠️ USE WITH CAUTION · PCP / Prescriber</span>
-          </div>
-          <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
-            <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#92400e;font-weight:700;">Belinostat, Irinotecan (Camptosar)</span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> Monitor for increased hematologic toxicity. Monitor clinical response and consider dose adjustment per CPIC.</div>
-          </div>
-        </div>
+        <tr>
+          <td><strong>PEX6</strong><div class='mono' style='font-size:7.4pt;color:#0f172a;margin-top:1px;'><strong>p.Val788Met · c.2362G>A · rs267608240</strong></div><div style='font-size:7.1pt;color:#0f766e;font-weight:700;'>Heterozygous (Autosomal recessive)</div></td>
+          <td><strong>PEX6 · Peroxisomal &amp; Lipid Metabolism</strong><div style='font-size:7.1pt;color:#475569;'>Conflicting classifications of pathogenicity</div></td>
+          <td><strong>Routine Liver &amp; Lipid Wellness Panel</strong><div style='font-size:7.3pt;color:#0f766e;'>Standard Annual Physical Bloodwork</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:1px;font-weight:600;">Annual PCP Checkup</div></td>
+          <td>Single-copy heterozygous carrier preserves normal peroxisomal function. Standard annual liver and lipid wellness panels.</td>
+        </tr>
         
-        <div class="guardrail-item">
-          <div class="guardrail-item__top">
-            <span class="guardrail-gene-highlight" style="color:#92400e;">NAT2 · <code>*5/*5</code> [<code>I114T (rs1801280) T>C</code>] (Poor Metabolizer)</span>
-            <span class="spec-badge" style="color:#92400e;background:#fffbeb;">⚠️ USE WITH CAUTION · PCP / Prescriber</span>
-          </div>
-          <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
-            <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#92400e;font-weight:700;">Isoniazid</span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> NAT2 *5/*5 slow acetylator phenotype. Higher risk of isoniazid-induced hepatotoxicity and peripheral neuropathy. Monitor liver function tests (LFTs… Monitor clinical response and consider dose adjustment per CPIC.</div>
-          </div>
-        </div>
-        
-      </div>
-    </div>
+      </tbody>
+    </table>
 
-    <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Reference, Clinical Perspective &amp; EHR Note
+    <div style="font-size:7.2pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
+      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Reference &amp; EHR Summary
     </div>
   </div>
 
   <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, CLINICAL PERSPECTIVE & EHR SUMMARY ======================= -->
   <div class="page page-3">
-    <!-- Section 4: Actionable Pharmacogenomic Prescribing Reference -->
-    <h2>Section 4 · Pharmacogenomic Prescribing Reference (CPIC / DPWG Medication &amp; Diplotype Guide)</h2>
-    <table>
-      <thead>
-        <tr>
-          <th style="width:17%;">Prescribing Action Tier</th>
-          <th style="width:43%;">Affected Medications by Pharmacogene &amp; Diplotype</th>
-          <th>Clinical Mechanism &amp; Prescribing Rule</th>
-        </tr>
-      </thead>
-      <tbody>
-        
-        <tr>
-          <td><span class="spec-badge" style="color:#991b1b;background:#fef2f2;font-size:7.8pt;">🚫 Avoid / Contraindicated</span><div class="mono" style="font-size:7.4pt;color:#64748b;margin-top:2px;">2 Screened Drugs</div></td>
-          <td><strong>F5</strong> <span style='color:#475569;font-size:7.4pt;'>[Normal Metabolizer]</span>: <strong>Combined Oral Contraceptives (Estrogen/Progestin), Hormone Replacement Therapy (Estrogen Hrt)</strong></td>
-          <td>High risk of toxicity or therapeutic failure; select an alternative medication.<div style="font-size:7.4pt;color:#475569;margin-top:2px;"><em>Example (Combined Oral Contraceptives (Estrogen/Progestin)):</em> Factor V Leiden carrier (rs6025 C>T heterozygous). 3- to 8-fold increased baseline venous thromboembolism (VTE) risk, amplified up to 35-fold with estrogen-containing contracept…</div></td>
-        </tr>
-        
-        <tr>
-          <td><span class="spec-badge" style="color:#9a3412;background:#fff7ed;font-size:7.8pt;">⬇️ Reduce Dose (Dose Down)</span><div class="mono" style="font-size:7.4pt;color:#64748b;margin-top:2px;">5 Screened Drugs</div></td>
-          <td><strong>CYP2C9</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*2)</span> <span style='color:#475569;font-size:7.4pt;'>[Intermediate Metabolizer]</span>: <strong>Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin)</strong> · <strong>CYP2C19/NR1I2/POR/ABCB1</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*17)</span> <span style='color:#475569;font-size:7.4pt;'>[Rapid Metabolizer]</span>: <strong>Voriconazole</strong> · <strong>CYP3A5</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*3/*3)</span> <span style='color:#475569;font-size:7.4pt;'>[Poor Metabolizer]</span>: <strong>Ondansetron</strong></td>
-          <td>Impaired enzymatic clearance or transporter function increases systemic drug exposure; reduce starting/maintenance dose.<div style="font-size:7.4pt;color:#475569;margin-top:2px;"><em>Example (Celecoxib (Celebrex)):</em> Moderate decrease in celecoxib clearance. Initiate therapy at lowest recommended dose and monitor for GI/cardiovascular adverse effects.</div></td>
-        </tr>
-        
-        <tr>
-          <td><span class="spec-badge" style="color:#1e40af;background:#eff6ff;font-size:7.8pt;">⬆️ Increase Dose / Rapid Clearance</span><div class="mono" style="font-size:7.4pt;color:#64748b;margin-top:2px;">2 Screened Drugs</div></td>
-          <td><strong>CYP2C19</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*17)</span> <span style='color:#475569;font-size:7.4pt;'>[Rapid Metabolizer]</span>: <strong>Omeprazole / Pantoprazole / Lansoprazole</strong> · <strong>CYP3A5</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*3/*3)</span> <span style='color:#475569;font-size:7.4pt;'>[Poor Metabolizer]</span>: <strong>Vardenafil</strong></td>
-          <td>Rapid/ultrarapid enzymatic clearance may cause subtherapeutic exposure at standard doses.<div style="font-size:7.4pt;color:#475569;margin-top:2px;"><em>Example (Omeprazole / Pantoprazole / Lansoprazole):</em> Increased clearance of proton pump inhibitors. For H. pylori eradication or severe GERD, consider increasing daily dose 50-100%.</div></td>
-        </tr>
-        
-        <tr>
-          <td><span class="spec-badge" style="color:#92400e;background:#fffbeb;font-size:7.8pt;">⚠️ Use With Caution</span><div class="mono" style="font-size:7.4pt;color:#64748b;margin-top:2px;">5 Screened Drugs</div></td>
-          <td><strong>NAT2/NR1I2</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*5/*5)</span> <span style='color:#475569;font-size:7.4pt;'>[Poor Metabolizer]</span>: <strong>Isoniazid</strong> · <strong>CYP3A5</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*3/*3)</span> <span style='color:#475569;font-size:7.4pt;'>[Poor Metabolizer]</span>: <strong>4-Hydroxycyclophosphamide, Atazanavir / Ritonavir</strong> · <strong>UGT1A1</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*28_80)</span> <span style='color:#475569;font-size:7.4pt;'>[Intermediate Metabolizer]</span>: <strong>Belinostat, Irinotecan (Camptosar)</strong></td>
-          <td>Moderate gene-drug interaction; monitor clinical response and adverse effects.<div style="font-size:7.4pt;color:#475569;margin-top:2px;"><em>Example (Isoniazid):</em> NAT2 *5/*5 slow acetylator phenotype. Higher risk of isoniazid-induced hepatotoxicity and peripheral neuropathy. Monitor liver function tests (LFTs) and administer pyridoxine (V…</div></td>
-        </tr>
-        
-        <tr>
-          <td><span class="spec-badge" style="color:#0f766e;background:#f0fdfa;font-size:7.8pt;">🔍 Therapeutic Monitoring</span><div class="mono" style="font-size:7.4pt;color:#64748b;margin-top:2px;">8 Screened Drugs</div></td>
-          <td><strong>CYP2C19</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*17)</span> <span style='color:#475569;font-size:7.4pt;'>[Rapid Metabolizer]</span>: <strong>Citalopram (Celexa), Escitalopram (Lexapro), Sertraline (Zoloft)</strong> · <strong>CYP2C9</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*2)</span> <span style='color:#475569;font-size:7.4pt;'>[Intermediate Metabolizer]</span>: <strong>Flurbiprofen / Ibuprofen</strong> · <strong>UGT1A1</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*28_80)</span> <span style='color:#475569;font-size:7.4pt;'>[Intermediate Metabolizer]</span>: <strong>Atazanavir (Reyataz)</strong> · <strong>ABCB1</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*1)</span> <span style='color:#475569;font-size:7.4pt;'>[Normal Metabolizer]</span>: <strong>Erlotinib</strong> · <strong>CRTC2</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*1)</span> <span style='color:#475569;font-size:7.4pt;'>[Normal Metabolizer]</span>: <strong>Glucose, Hdl Cholesterol</strong></td>
-          <td>Track clinical laboratory biomarkers, INR/drug levels, or target-organ response.<div style="font-size:7.4pt;color:#475569;margin-top:2px;"><em>Example (Citalopram (Celexa)):</em> Increased metabolism leading to lower serum concentrations. Monitor clinical efficacy; titration may be needed.</div></td>
-        </tr>
-        
-        <tr>
-          <td><span class="spec-badge" style="color:#166534;background:#f0fdf4;font-size:7.8pt;">✅ Preferred / Favorable Alternatives</span><div class="mono" style="font-size:7.4pt;color:#64748b;margin-top:2px;">81 Screened Drugs</div></td>
-          <td><strong>SLCO1B1</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*14/*14)</span> <span style='color:#475569;font-size:7.4pt;'>[Increased Function]</span>: <strong>Atorvastatin (Lipitor), Rosuvastatin (Crestor), Simvastatin (Zocor)</strong> · <strong>CYP2C19</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*17)</span> <span style='color:#475569;font-size:7.4pt;'>[Rapid Metabolizer]</span>: <strong>Clopidogrel (Plavix)</strong> · <strong>AGT/CLNK/NAMPT/PTPRD</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*1)</span> <span style='color:#475569;font-size:7.4pt;'>[Normal Metabolizer]</span>: <strong>Antihypertensives</strong> · <strong>PGx</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*1)</span> <span style='color:#475569;font-size:7.4pt;'>[Normal Metabolizer]</span>: <strong>Beta Blocking Agents, Selective</strong> · <strong>FDPS</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*1)</span> <span style='color:#475569;font-size:7.4pt;'>[Normal Metabolizer]</span>: <strong>Bisphosphonates</strong> · <strong>ABCB1</strong> <span class='mono' style='color:#0f766e;font-size:7.4pt;'>(*1/*1)</span> <span style='color:#475569;font-size:7.4pt;'>[Normal Metabolizer]</span>: <strong>Melatonin Receptor Agonists, Agomelatine</strong></td>
-          <td>Pathway-compatible medications with lower pharmacogenomic interaction risk in this patient.<div style="font-size:7.4pt;color:#475569;margin-top:2px;"><em>Example (Atorvastatin (Lipitor)):</em> Standard therapeutic efficacy and low myopathy risk.</div></td>
-        </tr>
-        
-      </tbody>
-    </table>
+    <div class="brief-header">
+      <div>
+        <div class="brief-title">PHARMACOGENOMIC REFERENCE &amp; CLINICAL PERSPECTIVE</div>
+        <div style="font-size:8.0pt;color:#334155;margin-top:2px;">
+          <strong>Patient:</strong> Daniel Ehrle (<span class="mono">Daniel_Ehrle</span>) · Actionable Pharmacogenomic Guide &amp; Physician Handoff Note
+        </div>
+      </div>
+      <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
+        <div>Pharmacogenomics &amp; Clinical Context</div>
+        <div class="mono" style="color:#475569;">Page 3 of 3</div>
+      </div>
+    </div>
 
+    <!-- Section 4: Actionable Pharmacogenomic Prescribing Reference -->
+    <h2>Section 4 · Actionable Pharmacogenomic Prescribing Guide (CPIC / DPWG)</h2>
     <table>
       <thead>
         <tr>
-          <th style="width:9%;">Gene</th>
-          <th style="width:17%;">Diplotype &amp; Variant</th>
-          <th style="width:15%;">Metabolizer Phenotype</th>
-          <th style="width:31%;">Actionable Medication Substrates</th>
-          <th>CPIC / DPWG Clinical Dosing Guidance</th>
+          <th style="width:20%;">Pharmacogene &amp; Diplotype</th>
+          <th style="width:16%;">Metabolizer Phenotype</th>
+          <th style="width:28%;">Actionable Medication Substrates</th>
+          <th>CPIC Clinical Dosing Guidance</th>
         </tr>
       </thead>
       <tbody>
         
         <tr>
-          <td class="mono" style="font-weight:800;color:#123f41;">CYP2C19</td>
-          <td class="mono"><strong>*1/*17</strong><div style="font-size:7.2pt;color:#475569;">I331V (rs3758581) A>G, expression (rs12248560) C>T</div></td>
+          <td class="mono"><strong>CYP2C19</strong> *1/*17<div style='font-size:7.0pt;color:#475569;'>I331V (rs3758581) A>G, expression (rs12248560) C>T</div></td>
           <td><strong>Rapid Metabolizer</strong></td>
-          <td><strong style='color:#9a3412;'>Reduce Dose:</strong> Voriconazole<br/><strong style='color:#1e40af;'>Increase Dose:</strong> Omeprazole / Pantoprazole / Lansoprazole<br/><strong style='color:#92400e;'>Caution/Monitor:</strong> Citalopram (Celexa), Escitalopram (Lexapro), Sertraline (Zoloft)</td>
+          <td><strong style='color:#9a3412;'>Reduce Dose:</strong> <strong>Voriconazole</strong><br/><strong style='color:#1e40af;'>Increase Dose:</strong> Omeprazole / Pantoprazole / Lansoprazole<br/><strong style='color:#92400e;'>Caution/Monitor:</strong> Citalopram (Celexa), Escitalopram (Lexapro), Sertraline (Zoloft)</td>
           <td>Increased clearance and lower trough concentrations. Perform therapeutic drug monitoring (TDM) to avoid subtherapeutic levels.</td>
         </tr>
         
         <tr>
-          <td class="mono" style="font-weight:800;color:#123f41;">CYP2C9</td>
-          <td class="mono"><strong>*1/*2</strong><div style="font-size:7.2pt;color:#475569;">R144C (rs1799853) C>T</div></td>
+          <td class="mono"><strong>CYP2C9</strong> *1/*2<div style='font-size:7.0pt;color:#475569;'>R144C (rs1799853) C>T</div></td>
           <td><strong>Intermediate Metabolizer</strong></td>
-          <td><strong style='color:#9a3412;'>Reduce Dose:</strong> Celecoxib (Celebrex), Phenytoin (Dilantin), <span style='background:#fee2e2;color:#991b1b;border:1px solid #f87171;font-weight:700;padding:1px 3px;border-radius:2px;'>⚠️ LIFE-THREATENING: Warfarin (Coumadin)</span><br/><strong style='color:#92400e;'>Caution/Monitor:</strong> Flurbiprofen / Ibuprofen</td>
+          <td><strong style='color:#9a3412;'>Reduce Dose:</strong> <strong>Celecoxib (Celebrex)</strong>, <strong>Phenytoin (Dilantin)</strong>, <strong>Warfarin (Coumadin)</strong><br/><strong style='color:#92400e;'>Caution/Monitor:</strong> Flurbiprofen / Ibuprofen</td>
           <td>Moderate decrease in celecoxib clearance. Initiate therapy at lowest recommended dose and monitor for GI/cardiovascular adverse effects.</td>
         </tr>
         
         <tr>
-          <td class="mono" style="font-weight:800;color:#123f41;">CYP3A5</td>
-          <td class="mono"><strong>*3/*3</strong><div style="font-size:7.2pt;color:#475569;">splice defect (rs776746) T>C</div></td>
+          <td class="mono"><strong>CYP3A5</strong> *3/*3<div style='font-size:7.0pt;color:#475569;'>splice defect (rs776746) T>C</div></td>
           <td><strong>Poor Metabolizer</strong></td>
-          <td><strong style='color:#9a3412;'>Reduce Dose:</strong> Ondansetron<br/><strong style='color:#1e40af;'>Increase Dose:</strong> Vardenafil<br/><strong style='color:#92400e;'>Caution/Monitor:</strong> 4-Hydroxycyclophosphamide, Atazanavir / Ritonavir</td>
+          <td><strong style='color:#9a3412;'>Reduce Dose:</strong> <strong>Ondansetron</strong><br/><strong style='color:#1e40af;'>Increase Dose:</strong> Vardenafil<br/><strong style='color:#92400e;'>Caution/Monitor:</strong> 4-Hydroxycyclophosphamide, Atazanavir / Ritonavir</td>
           <td>Genotype CC is associated with decreased metabolism of ondansetron as compared to genotypes CT + TT.</td>
         </tr>
         
         <tr>
-          <td class="mono" style="font-weight:800;color:#123f41;">UGT1A1</td>
-          <td class="mono"><strong>*1/*28_80</strong><div style="font-size:7.2pt;color:#475569;">5'UTR (rs887829) C>T, Promoter (rs3064744) insTA</div></td>
+          <td class="mono"><strong>UGT1A1</strong> *1/*28_80<div style='font-size:7.0pt;color:#475569;'>5'UTR (rs887829) C>T, Promoter (rs3064744) insTA</div></td>
           <td><strong>Intermediate Metabolizer</strong></td>
           <td><strong style='color:#92400e;'>Caution/Monitor:</strong> Belinostat, Irinotecan (Camptosar), Atazanavir (Reyataz)</td>
           <td>Monitor for increased hematologic toxicity.</td>
         </tr>
         
         <tr>
-          <td class="mono" style="font-weight:800;color:#123f41;">F5</td>
-          <td class="mono"><strong>rs6025 Factor V Leiden (T)/rs6025 reference (C)</strong><div style="font-size:7.2pt;color:#475569;">p.Thr295Ala (rs371760153) [Heterozygous]</div></td>
+          <td class="mono"><strong>F5</strong> rs6025 Factor V Leiden (T)/rs6025 reference (C)<div style='font-size:7.0pt;color:#475569;'>p.Thr295Ala (rs371760153) [Heterozygous]</div></td>
           <td><strong>Activated Protein C (APC) Resistance</strong></td>
-          <td><strong style='color:#991b1b;'>Avoid:</strong> <span style='background:#fee2e2;color:#991b1b;border:1px solid #f87171;font-weight:700;padding:1px 3px;border-radius:2px;'>⚠️ LIFE-THREATENING: Combined Oral Contraceptives (Estrogen/Progestin)</span>, <span style='background:#fee2e2;color:#991b1b;border:1px solid #f87171;font-weight:700;padding:1px 3px;border-radius:2px;'>⚠️ LIFE-THREATENING: Hormone Replacement Therapy (Estrogen Hrt)</span></td>
-          <td>Factor V Leiden carrier (rs6025 C>T heterozygous). 3- to 8-fold increased baseline venous thromboembolism (VTE) risk, amplified up to 35-fold with estrogen-contai…</td>
-        </tr>
-        
-        <tr>
-          <td class="mono" style="font-weight:800;color:#123f41;">NAT2</td>
-          <td class="mono"><strong>*5/*5</strong><div style="font-size:7.2pt;color:#475569;">I114T (rs1801280) T>C</div></td>
-          <td><strong>Poor Metabolizer</strong></td>
-          <td><strong style='color:#92400e;'>Caution/Monitor:</strong> Isoniazid</td>
-          <td>NAT2 *5/*5 slow acetylator phenotype. Higher risk of isoniazid-induced hepatotoxicity and peripheral neuropathy. Monitor liver function tests (LFTs) and administe…</td>
-        </tr>
-        
-        <tr>
-          <td class="mono" style="font-weight:800;color:#123f41;">DPYD</td>
-          <td class="mono"><strong>*rs2297595/*rs2297595+rs1801160+rs1801265</strong><div style="font-size:7.2pt;color:#475569;">V732I (rs1801160) C>T, M166V (rs2297595) T>C</div></td>
-          <td><strong>Altered Enzymatic / Pathway Activity</strong></td>
-          <td>Standard CPIC substrate dosing</td>
-          <td>Standard dosing guidelines apply based on diplotype.</td>
-        </tr>
-        
-        <tr>
-          <td class="mono" style="font-weight:800;color:#123f41;">IFNL3</td>
-          <td class="mono"><strong>*K70R/*T</strong><div style="font-size:7.2pt;color:#475569;">K70R (rs8103142) T>C, 5'UTR (rs12979860) C>T</div></td>
-          <td><strong>Altered Enzymatic / Pathway Activity</strong></td>
-          <td>Standard CPIC substrate dosing</td>
-          <td>Standard dosing guidelines apply based on diplotype.</td>
-        </tr>
-        
-        <tr>
-          <td class="mono" style="font-weight:800;color:#123f41;">SLCO1B1</td>
-          <td class="mono"><strong>*14/*14</strong><div style="font-size:7.2pt;color:#475569;">N130D (rs2306283) A>G, P155T (rs11045819) C>A</div></td>
-          <td><strong>Increased Function</strong></td>
-          <td>Standard CPIC substrate dosing</td>
-          <td>Standard dosing guidelines apply based on diplotype.</td>
-        </tr>
-        
-        <tr>
-          <td class="mono" style="font-weight:800;color:#123f41;">VKORC1</td>
-          <td class="mono"><strong>*H1/*H6</strong><div style="font-size:7.2pt;color:#475569;">Intron (rs2359612) G>A, Intron (rs8050894) C>G</div></td>
-          <td><strong>Altered Enzymatic / Pathway Activity</strong></td>
-          <td>Standard CPIC substrate dosing</td>
-          <td>Standard dosing guidelines apply based on diplotype.</td>
+          <td><strong style='color:#991b1b;'>Avoid:</strong> <strong>Combined Oral Contraceptives (Estrogen/Progestin)</strong>, <strong>Hormone Replacement Therapy (Estrogen Hrt)</strong></td>
+          <td>Factor V Leiden carrier (rs6025 C>T heterozygous). 3- to 8-fold increased baseline venous thromboembolism (VTE) risk, amplified up to 35-fold with …</td>
         </tr>
         
       </tbody>
@@ -733,16 +605,16 @@
     <h2>Section 5 · Clinical Perspective: Balancing Proactive Care vs. Over-Intervention</h2>
     <div class="calculus-grid">
       <div class="calculus-card" style="background:#f0fdf4;border-color:#bbf7d0;">
-        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Why These Findings Are Useful</div>
-        <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
+        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:7.8pt;">✅ Why These Findings Are Useful</div>
+        <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:1.5px;">
           <li><strong>Proactive Medication Safety:</strong> Recording pharmacogenomic metabolizer status in the medical chart helps select effective medications and avoid preventable side effects before a prescription is started.</li>
           <li><strong>Informed Annual Checkups:</strong> Highlighting relevant biological pathways allows the Primary Care Physician to tailor routine wellness checks and age-appropriate preventive screening.</li>
         </ul>
       </div>
 
       <div class="calculus-card" style="background:#fff1f2;border-color:#fecdd3;">
-        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Why Aggressive Intervention Is Not Needed</div>
-        <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
+        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:7.8pt;">🛑 Why Aggressive Intervention Is Not Needed</div>
+        <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:1.5px;">
           <li><strong>Single-Copy Carrier Reassurance:</strong> No two-copy (biallelic) recessive disease genotypes are present; single-copy recessive carriers retain a functional gene copy and maintain normal baseline health.</li>
           <li><strong>Modifier Variants Are Not Diagnoses:</strong> Common pathway modifiers indicate mild physiological tendencies and should never trigger unnecessary procedures or unprovoked medication changes.</li>
         </ul>
@@ -756,10 +628,10 @@
   - AVOID / CONTRAINDICATED: Systemic Estrogens, Combined Oral Contraceptives, HRT
   - REDUCE STARTING DOSE: Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin) · Voriconazole · Ondansetron
   - RAPID METABOLISM / MONITOR: Belinostat, Irinotecan (Camptosar) · Isoniazid
-• PREVENTIVE CARE PLAN: Review high-level wellness and screening topics in Section 2 during routine primary care checkups.</div>
+• PREVENTIVE CARE PLAN: Review high-level wellness and screening topics in Section 3 during routine primary care checkups.</div>
 
-    <div style="font-size:7.2pt;color:#64748b;margin-top:3px;border-top:1px solid #e2e8f0;padding-top:2px;text-align:center;">
-      Clinical Findings &amp; Prescribing Summary · Accompanying Deep Research Report (<code>Daniel_Ehrle_deep_research_report.html</code>) &amp; Command Center (<code>Daniel_Ehrle_landscape_dashboard.html</code>) · Page 3 of 3
+    <div style="font-size:7.0pt;color:#64748b;margin-top:3px;border-top:1px solid #e2e8f0;padding-top:2px;text-align:center;">
+      <strong>Technical Telemetry Footnote:</strong> GRCh38.p14 Phased WGS · BAM Autosomal Mean Alignment Depth: <code>48.8x</code> (Median Locus DP: <code>50.0x</code>) · Modality: 150bp PE (panSN GBZ aligned) · Scope: 1407 Prioritized Variants across 1002 Genes &amp; 41 Pharmacogenes · Full coordinates &amp; in silico telemetry in Deep Research Report (<code>Daniel_Ehrle_deep_research_report.html</code>) · Page 3 of 3
     </div>
   </div>
 

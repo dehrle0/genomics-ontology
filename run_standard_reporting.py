@@ -461,29 +461,25 @@ def run_standard_pipeline(
     export_subdirs = [
         os.path.join(project_root, "export"),
         os.path.join(reports_dir, "export"),
+        os.path.join(gdrive_dir, "export"),
     ]
     if os.path.exists(gdrive_parent):
         export_subdirs.append(os.path.join(genomics_reports_dir, "export"))
 
-    html_export_files = [
-        clinic_html_path,
-        old_clinic_html_path,
-        deep_html_path,
-        old_deep_html_path,
-        dash_topn_html_path,
-        landscape_out_path,
-    ]
     for exp_dir in export_subdirs:
         os.makedirs(exp_dir, exist_ok=True)
-        for fpath in html_export_files:
-            if fpath and os.path.exists(fpath) and fpath.endswith(".html"):
+        for fpath in sync_files:
+            if fpath and os.path.exists(fpath):
                 fname = os.path.basename(fpath)
-                with open(fpath, "r", encoding="utf-8") as hf:
-                    h_txt = hf.read()
-                if "landscape_dashboard.html" in fname:
-                    h_txt = h_txt.replace(f"reports/{sample_dir_name}/", "./")
-                with open(os.path.join(exp_dir, fname), "w", encoding="utf-8") as out_hf:
-                    out_hf.write(h_txt)
+                if fname.endswith(".html"):
+                    with open(fpath, "r", encoding="utf-8") as hf:
+                        h_txt = hf.read()
+                    if "landscape_dashboard.html" in fname:
+                        h_txt = h_txt.replace(f"reports/{sample_dir_name}/", "./")
+                    with open(os.path.join(exp_dir, fname), "w", encoding="utf-8") as out_hf:
+                        out_hf.write(h_txt)
+                else:
+                    shutil.copy2(fpath, os.path.join(exp_dir, fname))
 
     return 0
 

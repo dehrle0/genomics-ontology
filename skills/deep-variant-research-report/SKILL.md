@@ -114,22 +114,36 @@ All variants are evaluated and prioritized using principled, domain-agnostic cri
 
 The reporting suite produces synchronized clinical deliverables for a single isolated sample per invocation:
 
-1. **3-Page Clinician Action Brief (`{Sample}_clinical_brief.html`):**
-   * **Page 1:** Prominent AI Non-Diagnostic Disclaimer, Primary Care Physician (PCP) + Specialist routing strip with Mean WGS Depth, **Section 1.1 (Acute Prescribing & Perioperative Guardrails)** in consistent Gene/Variant $\rightarrow$ Medication format, and **Section 1.2 (Priority Genomic Findings & Carrier Status)** with zygosity non-invasive guidance.
-   * **Page 2:** **Section 2.1 (Non-Invasive Blood Tests & Preventive Surveillance Schedule)** containing the explicit Gene, Variant, and Zygosity in every row, and **Section 2.2 (Actionable Pharmacogenomic Prescribing Guardrails — Part A Action Tiers & Part B Patient Diplotype Reference)**.
-   * **Page 3:** **Section 3.1 (Clinical Decision Calculus FOR & AGAINST)**, **Section 3.2 (Calculated Evidence Confidence Metrics)**, **Section 3.3 (Copy-Paste Ready PCP/EHR Note)**, and **Section 3.4 (Multi-Hypertext & Clinical Evidence Directory)**.
-2. **Deep Research Dossier (`{Sample}_deep_research_report.md` / `.html`):**
-   * Structured across VSCP-DF sections (`Orientation`, `Body`, `Conclusions`, `Opportunities`, `Confidence & Uncertainty Assessment`).
+1. **Canonical 3-Page Clinician Action Brief (`{Sample}_clinical_brief.html` / `.pdf`):**
+   * **Strictly 3 Pages Letter Portrait:** Print CSS enforces `height: auto !important; min-height: 255mm !important; max-height: 270mm !important; overflow: visible !important;` with compact cell padding (`3px 5px !important;`) and typography (`7.8pt !important;`), guaranteeing zero row truncation and zero spillover onto a 4th page.
+   * **Page 1: Minimalist Genomic Findings & Carrier Status:** Patient header directly into **Section 1: Priority Genomic Findings & Carrier Status** with concise, high-yield *Clinical Impact & Guidance* (no executive summary narrative box or KPI strip clutter).
+   * **Page 2: High-Priority Medication & Preventive Care Guardrails:**
+     - **Section 2: High-Priority Medication & Exposure Precautions:** Restricts `🚨 LIFE-THREATENING RISK` strictly to risks explicitly documented as fatal or life-threatening (e.g. fatal hepatic necrosis, lethal myelotoxicity, or severe thromboembolism/PE). Other actionable high risks are styled with bold amber badges (`⚠️ HIGH RISK · AVOID`, `⬇️ HIGH RISK · REDUCE DOSE`).
+     - **Section 3: High-Level Preventive Care & Annual Checkup Discussion Points:** Concise clinical impact & guidance paired with primary care wellness checkup topics.
+   * **Page 3: Pharmacogenomic Guide, Perspective & EHR Summary:**
+     - **Section 4: Actionable Pharmacogenomic Prescribing Guide (CPIC / DPWG):** Structured 4-column layout (`Pharmacogene & Diplotype`, `Metabolizer Phenotype`, `Actionable Medication Substrates`, `CPIC Clinical Dosing Guidance`) capped at 5 key actionable rows.
+     - **Section 5: Clinical Perspective:** Side-by-side calculus cards balancing *Proactive Care Utility* against *Avoiding Over-Intervention*.
+     - **Section 6: Copy-Paste Physician Handoff / EHR Chart Summary:** Preformatted clinical summary note.
+     - **Technical Telemetry Footnote:** Full sequencing depth context (`GRCh38.p14 Phased WGS · BAM Autosomal Mean Alignment Depth: <depth> (Median Locus DP: <median>) · Modality: 150bp PE (panSN GBZ aligned)`).
+   * *Deprecation Notice:* The older verbose baseline brief (`{Sample}_clinical_brief (old).html`) is deprecated in favor of this canonical minimalist brief.
+2. **Deep Research Dossier (`{Sample}_deep_research_report.md` / `.html` / `.pdf`):**
+   * Publication-grade research synthesis structured across VSCP-DF sections (`Orientation`, `Body`, `Conclusions`, `Opportunities`, `Confidence & Uncertainty Assessment`).
 3. **Patient Self-Reported EHR Import JSON (`{Sample}_ehr_import.json`):**
    * Standards-compliant FHIR-aligned JSON bundle.
+4. **Standalone Interactive Landscape Dashboard (`{Sample}_landscape_dashboard.html`):**
+   * Offline, self-contained interactive visual explorer.
 
 ---
 
-## 5. Execution & Memory Purge Protocol
+## 5. Automated Gatekeeper & Memory Purge Protocol
 
 Before executing a synthesis run for any sample:
-1. Purge running local inference servers (`pkill -f llama-server`), clear Python `__pycache__` bytecode caches, and remove stale temporary files.
-2. Execute the reporting pipeline in a fresh process for a single sample at a time:
+1. **Automated Zero Static Curation Guard:** Verify that all code and skills pass the automated gate:
+```bash
+python3 lib/zero_curation_guard.py
+```
+2. **Process & Memory Purge:** Purge running local inference servers (`pkill -f llama-server`), clear Python bytecode caches, and remove stale temporary logs.
+3. **Execute Pipeline:** Run the standard reporting pipeline for a single sample at a time:
 ```bash
 python3 run_standard_reporting.py <sample_key> --sample-dir <Sample_Dated_Folder>
 ```

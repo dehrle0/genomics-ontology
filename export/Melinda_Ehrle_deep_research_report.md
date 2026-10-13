@@ -1,14 +1,10 @@
 # Clinical Genomics Evidence & Deep Research Synthesis: Melinda Ehrle
-**Patient / Cohort Identifier:** `Melinda_Ehrle` | **Report Date:** October 12, 2026
+**Patient / Cohort Identifier:** `Melinda_Ehrle` | **Report Date:** October 13, 2026
 **Target Audience:** Medical Geneticist · Subspecialty Investigator · Primary Care Physician · Clinical Bioinformatician
-**Sequencing Depth & Reference:** Mean Called-Locus Depth **29.11x** (Median **30.0x**) on GRCh38.p14
-
-> [!IMPORTANT]
-> **AI-Generated Informational & Research Synthesis — Non-Diagnostic Use Only**
-> This dossier is computationally synthesized using local artificial intelligence (AI) models and public genomic databases for exploratory research, variant prioritization, and informational purposes only. It is **not** a clinical diagnostic test, does not establish a medical diagnosis, and requires independent clinical laboratory verification prior to altering medical management.
+**Sequencing Depth & Reference:** BAM Aligned Mean Depth **33.4x** on GRCh38.p14
 
 ### Orientation: What We Are Covering
-This clinical genomics research dossier evaluates **1653 prioritized variants across 1129 clinical genes** and **41 pharmacogenes (377 screened medications)** for **Melinda Ehrle** (`Melinda_Ehrle`), backed by **29.11x** mean called-locus sequencing depth. This synthesis separates **Mechanistic Causality** (coding loss-of-function, canonical splice disruption, 3D active-site destabilization) from **Statistical Correlation** (GWAS linkage disequilibrium proxies and common polygenic modifiers), audits **Intra-Gene Cis/Trans Phasing** across multi-variant genes, and provides a **Non-Invasive Biomarker Ground-Truthing & Longitudinal Futures Roadmap**.
+This clinical genomics research dossier evaluates **1653 prioritized variants across 1129 clinical genes** and **41 pharmacogenes (377 screened medications)** for **Melinda Ehrle** (`Melinda_Ehrle`), backed by **33.4x** BAM mean sequencing depth. This synthesis separates **Mechanistic Causality** (coding loss-of-function, canonical splice disruption, 3D active-site destabilization) from **Statistical Correlation** (GWAS linkage disequilibrium proxies and common polygenic modifiers), audits **Intra-Gene Cis/Trans Phasing** across multi-variant genes, and provides a **Biomarker Ground-Truthing & Longitudinal Futures Roadmap**.
 
 ### Body
 
@@ -28,7 +24,7 @@ To prevent clinical over-interpretation of statistical GWAS proxies, cohort find
 
 | Epistemic Class | Count in Cohort | Representative Genes | Mechanistic vs. Statistical Distinction & Clinical Rule |
 | :--- | :---: | :--- | :--- |
-| **Q1 · Confirmed Mechanistic Causality** | **5** | ATM, POLG, TAT, MC1R, CYP3A5 | **Direct Physical Disruption + Clinical Proof:** Concordant ClinVar P/LP curation backed by high AI functional impact (CADD ≥ 20 / AVI ≥ 20). Eligible for non-invasive clinical surveillance. |
+| **Q1 · Confirmed Mechanistic Causality** | **5** | ATM, POLG, TAT, MC1R, CYP3A5 | **Direct Physical Disruption + Clinical Proof:** Concordant ClinVar P/LP curation backed by high AI functional impact (CADD ≥ 20 / AVI ≥ 20). Eligible for preventive clinical surveillance. |
 | **Q2 · Cryptic AI-Predicted Disruptors** | **159** | HLA-DRB5, CEP63, GUSB, HLA-DRB1, IL17RC, TEK | **Biophysical Disruption Without Clinical Database Entry:** Severe deep-learning predicted splice, chromatin, or 3D folding impact currently VUS/unreviewed in ClinVar. Prioritize for biomarker ground-truthing. |
 | **Q3 · Database-Curated / Statistical & PGx Modifiers** | **377** | CD40, HEPACAM, HLA-DRB1, TAT, VPS35L, VDR | **Curated Hypomorphic, PGx & Statistical GWAS Loci:** Includes enzymatic drug-response alleles and statistical population modifiers; must **never** trigger invasive monogenic workups. |
 | **Q4 · Protective & Resilience Offsets** | **10** | ADH1C, GNPTAB, TLR1, CASP8, EDNRA, FCGR2B | **Risk-Attenuating & Cardioprotective Alleles:** Curated protective modifiers buffering baseline metabolic or vascular pathway susceptibility. |
@@ -64,7 +60,7 @@ Parental and read-backed phasing across all multi-variant genes in **Melinda Ehr
 | :--- | :---: | :--- |
 | **🚫 Avoid / Contraindicated** | **1** | **Clopidogrel (Plavix)** (CYP2C19) |
 | **⬇️ Reduce Dose** | **1** | **Warfarin (Coumadin)** (VKORC1) |
-| **⚠️ Use With Caution** | **96** | **Corticosteroids For Systemic Use** (HDAC1), **Hepatitis Vaccines** (IL13), **Immunoglobulins** (CASP3), **Tumor Necrosis Factor Alpha (Tnf-Alpha) Inhibitors** (TNFRSF1B/PADI4/PTPN22/PGLYRP4/FCGR2A/FCGR2B/TLR5/CTNNA2/IL1B/IL1RN/CERS6/STAT4/CTLA4/TLR2/CD14/CDKAL1), **Xk469** (AOX1), **Abiraterone** (YBX1), **Acetaldehyde** (PGM1/SRPRB/ADH1A/ADH1B), **Acetaminophen** (UGT1A4/UGT2B15/ABCG2) |
+| **⚠️ Use With Caution** | **9** | **Antineoplastic Agents** (ABCG2), **Apixaban** (ABCG2), **Dolutegravir** (ABCG2), **Felodipine** (ABCG2), **Iguratimod** (ABCG2), **Sorafenib** (ABCG2), **Sunitinib** (ABCG2), **Tenofovir** (ABCG2) |
 | **🔍 Monitor** | **1** | **Irinotecan** (RGS5/RXRG/NR1I2/ABCG2) |
 | **✅ Preferred Alternatives** | **55** | **Beta Blocking Agents, Selective** (), **Bisphosphonates** (FDPS), **Opioid Anesthetics** (ABCG2), **Other General Anesthetics** (ABCG2), **Vitamin B-Complex, Incl. Combinations** (MTHFR), **Amisulpride** (), **Atenolol** (MOV10/AGT/ADD1/GRK4/SLC25A31/ADRB2), **Atorvastatin** (PRDM16/AGT/SCAP/ABCG2/MYLIP) |
 
@@ -80,10 +76,10 @@ Parental and read-backed phasing across all multi-variant genes in **Melinda Ehr
 
 ### Conclusions: Diagnostic & Epistemic Decision Calculus
 
-#### Arguments FOR Non-Invasive Surveillance & Genotype-Guided Prescribing
-1. **High-Depth Analytical Grounding:** Empirical called-locus coverage (**29.11x** mean depth, **30.0x** median depth) provides high analytical certainty (`0.98`) across SNVs and small indels.
-2. **Actionable Pharmacogenomic Safety:** 99 drug-gene interactions across 41 pharmacogenes provide immediate CPIC/DPWG guidance to avoid toxicity and optimize dosing.
-3. **Low-Cost Non-Invasive Biomarker Ground-Truthing:** Routine PCP blood panels directly verify physiological homeostasis across the sample's specific prioritized pathways.
+#### Arguments FOR Preventive Surveillance & Genotype-Guided Prescribing
+1. **High-Depth Analytical Grounding:** Empirical BAM aligned coverage (**33.4x** mean depth) provides high analytical certainty (`0.98`) across SNVs and small indels.
+2. **Actionable Pharmacogenomic Safety:** 12 drug-gene interactions across 41 pharmacogenes provide immediate CPIC/DPWG guidance to avoid toxicity and optimize dosing.
+3. **Low-Cost Biomarker Ground-Truthing:** Routine PCP blood panels directly verify physiological homeostasis across the sample's specific prioritized pathways.
 
 #### Arguments AGAINST Over-Intervention (Why Invasive Testing Is Unwarranted)
 1. **Heterozygous Recessive Carrier & Modifier Reserve:** Heterozygous variants affecting or potentially affecting one allele in autosomal recessive or modifier genes and uni-allelic *Cis* haplotypes (7 genes) retain one intact wild-type parental copy; invasive diagnostic procedures or restrictive diets are clinically unwarranted.
@@ -91,24 +87,24 @@ Parental and read-backed phasing across all multi-variant genes in **Melinda Ehr
 
 ### Opportunities: Physiological Ground-Truthing & Longitudinal Futures Roadmap
 
-1. **Primary Care Non-Invasive Blood Panel:** Incorporate the sample-specific non-invasive venous blood panels and preventive evaluations from Section 2.1 of the Clinical Brief into the annual PCP physical.
+1. **Primary Care Preventive Blood Panel:** Incorporate the sample-specific venous blood panels and preventive evaluations from Section 2 of the Clinical Brief into the annual PCP physical.
 2. **Cryptic Splice & Regulatory Functional Validation (Quadrant 2):** The **159 Cryptic AI Disruptors** exhibiting high AlphaGenome `AVI` scores driven by splicing or RNA-seq modalities can be inspected via the AlphaGenome Ref vs. Alt Track Predictions view.
-3. **Automated Annual Re-Annotation & SHA-256 State Fingerprint:** Verified 0 variant reclassifications since prior snapshot (2026-10-12 21:52:35; SHA-256 c49df28612de0eff…).
+3. **Automated Annual Re-Annotation & SHA-256 State Fingerprint:** Verified 0 variant reclassifications since prior snapshot (2026-10-13 08:50:53; SHA-256 c49df28612de0eff…).
 
 ### Confidence & Uncertainty Assessment
-- **Analytical WGS Callset & Phasing Confidence:** **0.98** (Mean Called-Locus Depth `29.11x`, Median `30.0x`).
+- **Analytical WGS Callset & Phasing Confidence:** **0.98** (BAM Mean Depth `33.4x`).
 - **CPIC / DPWG Pharmacogenomic Prescribing Confidence:** **0.95** (41 pharmacogenes, 377 screened drugs).
 - **Monogenic Carrier & Surveillance Confidence:** **0.94** (Orthogonal ClinVar, OMIM, CADD, and AlphaGenome agreement).
-- **Polygenic / VUS Modifier Penetrance Confidence:** **0.70** (Requires non-invasive biomarker ground-truthing).
+- **Polygenic / VUS Modifier Penetrance Confidence:** **0.70** (Requires laboratory biomarker ground-truthing).
 
 ## Appendix: Supporting Documentation & Variant Cross-Reference Directory
 
 | Gene | Variant | Coordinates (GRCh38) | ClinVar | dbSNP | OMIM | ClinGen | AlphaGenome Atlas |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **POLG** | `p.Gly737Arg` | `chr15:89323460` | [VCV13513](https://www.ncbi.nlm.nih.gov/clinvar/variation/13513/) | [rs121918054](https://www.ncbi.nlm.nih.gov/snp/rs121918054) | — | [POLG](https://search.clinicalgenome.org/kb/genes/POLG) | [Atlas](https://alphagenome.deepmind.com/variant/chr15:89323460) |
-| **TAT** | `p.Arg57Ter` | `chr16:71576247` | [VCV402](https://www.ncbi.nlm.nih.gov/clinvar/variation/402/) | [rs118203914](https://www.ncbi.nlm.nih.gov/snp/rs118203914) | — | [TAT](https://search.clinicalgenome.org/kb/genes/TAT) | [Atlas](https://alphagenome.deepmind.com/variant/chr16:71576247) |
+| **POLG** | `p.Gly737Arg` | `chr15:89323460` | [VCV13513](https://www.ncbi.nlm.nih.gov/clinvar/variation/13513/) | [rs121918054](https://www.ncbi.nlm.nih.gov/snp/rs121918054) | [MIM:203700](https://www.omim.org/entry/203700) | [POLG](https://search.clinicalgenome.org/kb/genes/POLG) | [Atlas](https://alphagenome.deepmind.com/variant/chr15:89323460) |
+| **TAT** | `p.Arg57Ter` | `chr16:71576247` | [VCV402](https://www.ncbi.nlm.nih.gov/clinvar/variation/402/) | [rs118203914](https://www.ncbi.nlm.nih.gov/snp/rs118203914) | [MIM:276600](https://www.omim.org/entry/276600) | [TAT](https://search.clinicalgenome.org/kb/genes/TAT) | [Atlas](https://alphagenome.deepmind.com/variant/chr16:71576247) |
 | **ATM** | `c.1236-2del` | `chr11:108250699` | [VCV574589](https://www.ncbi.nlm.nih.gov/clinvar/variation/574589/) | [rs1565381646](https://www.ncbi.nlm.nih.gov/snp/rs1565381646) | — | [ATM](https://search.clinicalgenome.org/kb/genes/ATM) | [Atlas](https://alphagenome.deepmind.com/variant/chr11:108250699) |
 | **VDR** | `c.-1172A>G` | `chr12:47906043` | [VCV3336650](https://www.ncbi.nlm.nih.gov/clinvar/variation/3336650/) | [rs4516035](https://www.ncbi.nlm.nih.gov/snp/rs4516035) | — | [VDR](https://search.clinicalgenome.org/kb/genes/VDR) | [Atlas](https://alphagenome.deepmind.com/variant/chr12:47906043) |
-| **MC1R** | `p.Asp294His` | `chr16:89920138` | [VCV14307](https://www.ncbi.nlm.nih.gov/clinvar/variation/14307/) | [rs1805009](https://www.ncbi.nlm.nih.gov/snp/rs1805009) | — | [MC1R](https://search.clinicalgenome.org/kb/genes/MC1R) | [Atlas](https://alphagenome.deepmind.com/variant/chr16:89920138) |
+| **MC1R** | `p.Asp294His` | `chr16:89920138` | [VCV14307](https://www.ncbi.nlm.nih.gov/clinvar/variation/14307/) | [rs1805009](https://www.ncbi.nlm.nih.gov/snp/rs1805009) | [MIM:203200](https://www.omim.org/entry/203200) | [MC1R](https://search.clinicalgenome.org/kb/genes/MC1R) | [Atlas](https://alphagenome.deepmind.com/variant/chr16:89920138) |
 | **AMPD1** | `p.Glu435Gly` | `chr1:114677435` | [VCV2173226](https://www.ncbi.nlm.nih.gov/clinvar/variation/2173226/) | [rs764950035](https://www.ncbi.nlm.nih.gov/snp/rs764950035) | — | [AMPD1](https://search.clinicalgenome.org/kb/genes/AMPD1) | [Atlas](https://alphagenome.deepmind.com/variant/chr1:114677435) |
-| **CTH** | `p.Thr67Ile` | `chr1:70415987` | [VCV2939](https://www.ncbi.nlm.nih.gov/clinvar/variation/2939/) | [rs28941785](https://www.ncbi.nlm.nih.gov/snp/rs28941785) | — | [CTH](https://search.clinicalgenome.org/kb/genes/CTH) | [Atlas](https://alphagenome.deepmind.com/variant/chr1:70415987) |
+| **CTH** | `p.Thr67Ile` | `chr1:70415987` | [VCV2939](https://www.ncbi.nlm.nih.gov/clinvar/variation/2939/) | [rs28941785](https://www.ncbi.nlm.nih.gov/snp/rs28941785) | [MIM:219500](https://www.omim.org/entry/219500) | [CTH](https://search.clinicalgenome.org/kb/genes/CTH) | [Atlas](https://alphagenome.deepmind.com/variant/chr1:70415987) |

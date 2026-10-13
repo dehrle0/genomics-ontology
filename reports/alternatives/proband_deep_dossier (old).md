@@ -1,5 +1,5 @@
 # Clinical Genomics Evidence & Deep Research Dossier (old): PROBAND_01
-**Patient / Sample Identifier:** `PROBAND_01` | **Pipeline Version:** v5.3 (Determinative Edition) | **Report Date:** October 12, 2026
+**Patient / Sample Identifier:** `PROBAND_01` | **Pipeline Version:** v5.3 (Determinative Edition) | **Report Date:** October 13, 2026
 **Genomic Reference:** GRCh38.p14 | **Sequencing Modality:** Whole-Genome Sequencing (WGS, 48.8x BAM mean depth, Median 50.0x, GBZ pan-genome aligned)
 
 ### Orientation: What We Are Covering
