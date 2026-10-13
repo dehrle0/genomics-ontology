@@ -15,7 +15,7 @@
     color: #0f172a;
     background: #f1f5f9;
     font-size: 8.3pt;
-    line-height: 1.30;
+    line-height: 1.32;
     padding: 0;
     margin: 0;
     -webkit-print-color-adjust: exact !important;
@@ -64,17 +64,6 @@
     align-items: flex-end;
   }
   .brief-title { font-size: 11.5pt; font-weight: 800; color: #123f41; letter-spacing: -0.01em; }
-  .ai-disclaimer-box {
-    background: #fffbeb;
-    border: 1px solid #fde68a;
-    border-left: 3.5px solid #d97706;
-    border-radius: 3px;
-    padding: 4px 7px;
-    font-size: 7.7pt;
-    line-height: 1.26;
-    color: #78350f;
-    margin-bottom: 6px;
-  }
   .audience-strip {
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
@@ -102,7 +91,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 8.1pt;
-    line-height: 1.28;
+    line-height: 1.30;
     margin-bottom: 6px;
   }
   th {
@@ -186,18 +175,18 @@
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     padding: 5px 7px;
-    font-size: 7.9pt;
-    line-height: 1.28;
+    font-size: 8.0pt;
+    line-height: 1.32;
   }
   .ehr-note-box {
     background: #f8fafc;
     border: 1px solid #94a3b8;
     border-left: 3.5px solid #123f41;
     border-radius: 3px;
-    padding: 5px 7px;
+    padding: 6px 8px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 7.6pt;
-    line-height: 1.28;
+    font-size: 7.8pt;
+    line-height: 1.32;
     margin-bottom: 4px;
     white-space: pre-wrap;
   }
@@ -233,7 +222,7 @@
   <div class="no-print-bar">
     <div>
       <span style="background:#0f766e;color:#ffffff;padding:2px 6px;border-radius:3px;font-weight:800;font-size:7.5pt;text-transform:uppercase;margin-right:6px;">3-Page Portrait Clinical Brief</span>
-      <strong>PROBAND_01 (PROBAND_01) — Clinical Action Report (3-Page Portrait Edition)</strong>
+      <strong>PROBAND_01 (PROBAND_01) — Clinical Action Report</strong>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
       <a href="PROBAND_01_clinical_brief (old).html" class="no-print-btn" style="background:#b45309;color:#ffffff;">Switch to Clinical Brief (old) ↗</a>
@@ -244,7 +233,7 @@
     </div>
   </div>
 
-  <!-- ======================= PAGE 1 OF 3: IMMEDIATE CLINICAL TRIAGE & PRIORITY GENOMIC FINDINGS ======================= -->
+  <!-- ======================= PAGE 1 OF 3: PRIORITY GENOMIC FINDINGS & CARRIER STATUS ======================= -->
   <div class="page page-1">
     <div class="brief-header">
       <div>
@@ -254,25 +243,19 @@
         </div>
       </div>
       <div style="text-align:right;font-size:7.8pt;color:#1e293b;" class="mono">
-        <div><strong>Mean WGS Depth:</strong> <span style="color:#0f766e;font-weight:800;">50.11x</span> (Median 50.0x)</div>
-        <div><strong>Reference:</strong> GRCh38 · Phased WGS · <strong>3-Page Portrait</strong></div>
+        <div><strong>BAM Aligned WGS Depth:</strong> <span style="color:#0f766e;font-weight:800;">48.8x</span> (GRCh38.p14 Phased)</div>
+        <div><strong>Page 1 of 3</strong></div>
       </div>
-    </div>
-
-    <!-- Explicit AI Informational / Non-Diagnostic Statement -->
-    <div class="ai-disclaimer-box">
-      <strong>⚠️ AI-Generated Informational &amp; Research Summary — Non-Diagnostic Use Only:</strong>
-      This clinical brief is computationally synthesized and audited by two independent local artificial intelligence (AI) models (MedGemma-1.5-4B-IT &amp; MedGemma-27B-IT (Q4_K_M)) alongside ClinVar, CPIC, OMIM, and DeepMind AlphaGenome curations strictly for <strong>informational, educational, and physician decision-support exploration</strong>. It is <strong>not</strong> an FDA-cleared or CLIA/CAP-certified diagnostic test. All findings require clinical correlation and accredited clinical laboratory confirmation prior to altering medical management.
     </div>
 
     <!-- Primary Care Physician + Specialist Audience Banner -->
     <div class="audience-strip">
-      <div><strong>Primary Audience:</strong> <strong>Primary Care Physician (PCP)</strong> (Annual Physical, Non-Invasive Blood Screening &amp; Prescribing) · <strong>Co-Routing:</strong> Cardiology, Oncology, Hematology, Neurology &amp; Clinical Pharmacy</div>
-      <div><strong>Scope:</strong> 1407 Curated Variants (1002 Genes) + 41 Pharmacogenes · <strong>Page 1 of 3</strong></div>
+      <div><strong>Primary Audience:</strong> <strong>Primary Care Physician (PCP)</strong> (Annual Physical, Preventive Lab Screening &amp; Prescribing) · <strong>Co-Routing:</strong> Cardiology, Oncology, Hematology, Neurology &amp; Clinical Pharmacy</div>
+      <div><strong>Scope:</strong> 1407 Curated Variants (1002 Genes) + 41 Pharmacogenes</div>
     </div>
 
     <!-- Section 1: Priority Genomic Findings, Carrier Status & Physiological Context -->
-    <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Physiological Context</h2>
+    <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Clinical Impact</h2>
     <table>
       <thead>
         <tr>
@@ -280,7 +263,7 @@
           <th style="width:18%;">Variant, rsID &amp; Coordinate</th>
           <th style="width:11%;">Zygosity &amp; Depth</th>
           <th style="width:14%;">Classification &amp; Scores</th>
-          <th>Physiological Function, Primary Care Action &amp; Zygosity / Non-Invasive Guidance</th>
+          <th>Clinical Impact, Primary Care Action &amp; Zygosity Context</th>
         </tr>
       </thead>
       <tbody>
@@ -289,7 +272,7 @@
           <td>
             <strong>CBLIF</strong>
             <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">['Autosomal Recessive']</div>
+            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal recessive</div>
           </td>
           <td class="mono">
             <strong>c.79+1G>A · rs147785187</strong>
@@ -304,8 +287,8 @@
             <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 32.0 · AVI 33.9 · Conf 0.95</div>
           </td>
           <td>
-            <div><strong>CBLIF · Cobalamin / One-Carbon Absorption &amp; Methylation:</strong> This gene is a member of the cobalamin transport protein family. Non-invasive serum B12 and methylmalonic acid (MMA, a sensitive cellular marker of cobalamin cofactor depletion) directly verify functional absorption and methylation reserve. <strong>Action Threshold:</strong> Maintain serum B12 &gt; 350 pg/mL and normal MMA/homocysteine; if subclinical depletion is present, oral/sublingual cobalamin (1,000–2,000 mcg/day) restores levels via passive mucosal diffusion.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Recessive Carrier (Single Allele Affected — No Invasive Procedures Warranted):</strong> Heterozygous variant affecting one parental allele while the opposite allele remains wild-type (~50–100% baseline physiological reserve preserved). Does not cause primary autosomal recessive disease; <strong>no invasive diagnostic procedures (e.g., tissue biopsy, endoscopy, or catheterization) are warranted</strong>. Monitor exclusively via the non-invasive blood or clinical screening listed.</div>
+            <div><strong>CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism:</strong> Canonical splice-donor variant (c.79+1G>A) in gastric intrinsic factor (autosomal recessive <strong>Hereditary Intrinsic Factor Deficiency, OMIM #261000</strong>), which mediates ileal cubam-receptor endocytosis of dietary Vitamin B12. <strong>Clinical Impact:</strong> Heterozygous carriers preserve intrinsic factor secretion from the wild-type allele; periodic serum Vitamin B12 (&gt; 350 pg/mL) and methylmalonic acid (MMA) verify cellular cobalamin stores (if subclinical depletion occurs, oral/sublingual B12 1,000 mcg/day restores levels via passive mucosal diffusion).</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Recessive Carrier:</strong> Single-allele carrier with an intact wild-type parental allele (~50–100% baseline functional reserve); does not cause primary recessive disease and requires no invasive diagnostic workup.</div>
           </td>
         </tr>
         
@@ -313,7 +296,7 @@
           <td>
             <strong>GJB2</strong>
             <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">['Autosomal Recessive', 'Autosomal Dominant']</div>
+            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal recessive</div>
           </td>
           <td class="mono">
             <strong>p.Met34Thr · c.101T>C · rs35887622</strong>
@@ -328,8 +311,8 @@
             <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 20.9 · AVI 23.6 · Conf 0.99</div>
           </td>
           <td>
-            <div><strong>GJB2 · Cochlear Gap Junction &amp; Auditory Ion Homeostasis:</strong> This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. Documents baseline auditory thresholds and supports precautionary avoidance of ototoxic aminoglycoside antibiotics when safer antimicrobial alternatives exist.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Autosomal Dominant Susceptibility Allele (Non-Invasive Surveillance Indicated):</strong> Heterozygous variant affecting one allele in a dominant susceptibility pathway. Manage via guideline-directed <strong>non-invasive imaging and venous biomarker surveillance</strong>; <strong>unprovoked invasive diagnostic procedures are not warranted</strong> in the absence of clinical or imaging findings.</div>
+            <div><strong>GJB2 · Cochlear Gap Junction &amp; Auditory Potassium Homeostasis:</strong> Coding variant (p.Met34Thr) in cochlear gap junction protein Connexin-26 (DFNB1A, OMIM #220290), which recycles endolymphatic potassium ions in hair cells. <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics (gentamicin, tobramycin, amikacin) when alternative antimicrobials exist.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Recessive Carrier:</strong> Single-allele carrier with an intact wild-type parental allele (~50–100% baseline functional reserve); does not cause primary recessive disease and requires no invasive diagnostic workup.</div>
           </td>
         </tr>
         
@@ -337,7 +320,7 @@
           <td>
             <strong>VDR</strong>
             <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">['Complex / Multifactorial']</div>
+            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Pathway Modifier</div>
           </td>
           <td class="mono">
             <strong>c.-1172A>G · rs4516035</strong>
@@ -352,8 +335,8 @@
             <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 5.4 · AVI 2.1 · Conf 0.85</div>
           </td>
           <td>
-            <div><strong>VDR · Calcitriol Receptor Sensitivity &amp; Bone Mineral Homeostasis:</strong> This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. Non-invasive serum 25(OH)D monitoring ensures optimal calcitriol receptor substrate availability (target 35–55 ng/mL) via standard cholecalciferol (Vitamin D3) supplementation.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Homozygous Pathway Modifier (No Invasive Procedures Warranted):</strong> Functional or regulatory variant affecting or potentially affecting baseline pathway kinetics without causing high-penetrance monogenic disease. <strong>No invasive diagnostic procedures are warranted</strong>; monitor via routine non-invasive venous bloodwork at the annual physical.</div>
+            <div><strong>VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis:</strong> 5'-UTR promoter regulatory variant (c.-1172A>G) in the nuclear vitamin D3 (calcitriol) receptor (OMIM #601769), which regulates intestinal calcium transport and osteoblast gene transcription. <strong>Clinical Impact:</strong> Modulates baseline calcitriol receptor expression; maintain serum 25(OH)D at 35–55 ng/mL via routine cholecalciferol (Vitamin D3) supplementation.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Homozygous Pathway Modifier:</strong> Modulates baseline pathway or receptor kinetics without causing high-penetrance monogenic disease (manage via routine annual bloodwork; no invasive workup warranted).</div>
           </td>
         </tr>
         
@@ -361,7 +344,7 @@
           <td>
             <strong>F5</strong>
             <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">['Complex / Multifactorial']</div>
+            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal dominant</div>
           </td>
           <td class="mono">
             <strong>p.Arg534Gln · c.1601G>A · rs6025</strong>
@@ -376,8 +359,8 @@
             <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 27.9 · AVI 23.6 · Conf 0.99</div>
           </td>
           <td>
-            <div><strong>F5 · Coagulation Cascade &amp; Hemostatic Regulation:</strong> This gene encodes an essential cofactor of the blood coagulation cascade. Confers resistance to Activated Protein C (APC) cleavage, increasing relative venous thromboembolism (VTE) risk during provoking exposures (major surgery, immobilization, estrogen therapy). <strong>Action Rule:</strong> Unprovoked lifelong anticoagulation is <strong>not</strong> indicated; apply situational perioperative VTE prophylaxis.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted):</strong> Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. <strong>No invasive diagnostic procedures or unprovoked therapies are warranted</strong>; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</div>
+            <div><strong>F5 · Coagulation Cascade &amp; Activated Protein C (APC) Regulation:</strong> Heterozygous Factor V Leiden (p.Arg534Gln) impairs Activated Protein C (APC) cleavage of Factor Va, conferring a ~3–5x relative risk of venous thromboembolism (VTE). <strong>Clinical Impact:</strong> Routine lifelong anticoagulation is <strong>not</strong> indicated in asymptomatic heterozygotes; apply situational perioperative/immobilization VTE prophylaxis and avoid systemic prothrombotic estrogen formulations.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
           </td>
         </tr>
         
@@ -385,7 +368,7 @@
           <td>
             <strong>PEX6</strong>
             <div style="font-size:7.3pt;color:#475569;">Heart & Cardiovascular</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">['Complex / Multifactorial']</div>
+            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal recessive</div>
           </td>
           <td class="mono">
             <strong>p.Val788Met · c.2362G>A · rs267608240</strong>
@@ -400,8 +383,8 @@
             <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 35.0 · AVI 32.3 · Conf 0.88</div>
           </td>
           <td>
-            <div><strong>PEX6 · Heart & Cardiovascular Pathway:</strong> This gene encodes a member of the AAA (ATPases associated with diverse cellular activities) family of ATPases. Evaluates baseline cardiovascular and metabolic biomarkers via routine non-invasive primary care testing.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted):</strong> Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. <strong>No invasive diagnostic procedures or unprovoked therapies are warranted</strong>; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</div>
+            <div><strong>PEX6 · Peroxisomal Biogenesis &amp; Hepatic Very-Long-Chain Fatty Acid Oxidation:</strong> Missense variant (p.Val788Met) in Peroxisomal Biogenesis Factor 6 (AAA ATPase matrix protein importer, OMIM #601498). <strong>Clinical Impact:</strong> Single-allele heterozygous carriers maintain normal peroxisomal beta-oxidation; routine hepatic transaminases (AST/ALT) and lipid screening during the annual physical verify baseline metabolic homeostasis.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
           </td>
         </tr>
         
@@ -409,7 +392,7 @@
           <td>
             <strong>GJB3</strong>
             <div style="font-size:7.3pt;color:#475569;">Heart & Cardiovascular</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">['Complex / Multifactorial']</div>
+            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Pathway Modifier</div>
           </td>
           <td class="mono">
             <strong>p.Arg75Cys · c.223C>T · rs370476720</strong>
@@ -424,8 +407,8 @@
             <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 26.2 · AVI 32.4 · Conf 0.88</div>
           </td>
           <td>
-            <div><strong>GJB3 · Cochlear Gap Junction &amp; Auditory Ion Homeostasis:</strong> This gene is a member of the connexin gene family. Documents baseline auditory thresholds and supports precautionary avoidance of ototoxic aminoglycoside antibiotics when safer antimicrobial alternatives exist.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted):</strong> Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. <strong>No invasive diagnostic procedures or unprovoked therapies are warranted</strong>; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</div>
+            <div><strong>GJB3 · Cochlear Gap Junction &amp; Auditory Potassium Homeostasis:</strong> Coding variant (p.Arg75Cys) in cochlear gap junction protein Connexin-31 (DFNA2B, OMIM #603324), which recycles endolymphatic potassium ions in hair cells. <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics (gentamicin, tobramycin, amikacin) when alternative antimicrobials exist.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
           </td>
         </tr>
         
@@ -433,7 +416,7 @@
           <td>
             <strong>SCN4A</strong>
             <div style="font-size:7.3pt;color:#475569;">Heart & Cardiovascular</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">['Complex / Multifactorial']</div>
+            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Pathway Modifier</div>
           </td>
           <td class="mono">
             <strong>p.His599Arg · c.1796A>G · rs187401185</strong>
@@ -448,8 +431,8 @@
             <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 24.4 · AVI 27.8 · Conf 0.88</div>
           </td>
           <td>
-            <div><strong>SCN4A · Cardiomyocyte Ion-Channel Anchoring &amp; Repolarization:</strong> Voltage-gated sodium channels are transmembrane glycoprotein complexes composed of a large alpha subunit with 24 transmembrane domains and one or more regulatory beta subunits. A non-invasive resting 12-lead ECG and serum electrolyte check verifies normal baseline ventricular repolarization (QTc &lt; 450 ms) and potassium/magnesium balance prior to prescribing QT-prolonging drugs.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted):</strong> Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. <strong>No invasive diagnostic procedures or unprovoked therapies are warranted</strong>; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</div>
+            <div><strong>SCN4A · Skeletal Muscle Sodium Channel (Nav1.4) Excitability:</strong> Missense variant (p.His599Arg) in the skeletal muscle voltage-gated sodium channel alpha subunit Nav1.4 (OMIM #603967), governing sarcolemmal action potential propagation. <strong>Clinical Impact:</strong> Maintain normokalemia on routine metabolic panels and document precautionary avoidance of depolarizing muscle relaxants (succinylcholine) during general anesthesia if muscle stiffness or myotonia is present.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
           </td>
         </tr>
         
@@ -457,91 +440,91 @@
     </table>
 
     <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      PROBAND_01 (PROBAND_01) — Clinical Action Brief (3-Page Portrait Edition) · Page 1 of 3 · Continue to Page 2 for Non-Invasive Surveillance &amp; Acute Prescribing Guardrails
+      PROBAND_01 (PROBAND_01) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Annual Preventive Surveillance &amp; Acute Prescribing Guardrails
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: NON-INVASIVE SURVEILLANCE & ACUTE PRESCRIBING GUARDRAILS ======================= -->
+  <!-- ======================= PAGE 2 OF 3: PREVENTIVE SURVEILLANCE & ACUTE PRESCRIBING GUARDRAILS ======================= -->
   <div class="page page-2">
-    <!-- Section 2: Non-Invasive Blood Tests & Preventive Surveillance Schedule -->
-    <h2>Section 2 · Non-Invasive Blood Tests &amp; Preventive Surveillance Schedule (PCP Annual Physical &amp; Specialist Routing)</h2>
+    <!-- Section 2: Preventive Laboratory & Clinical Surveillance Schedule -->
+    <h2>Section 2 · Preventive Laboratory &amp; Clinical Surveillance Schedule (PCP Annual Physical &amp; Specialist Routing)</h2>
     <div style="font-size:7.8pt;color:#334155;margin-bottom:4px;">
-      Strictly derived from <strong>PROBAND_01</strong>’s individual variant callset for integration into the <strong>Primary Care Physician (PCP) annual preventive physical</strong>. Every row links the exact patient <strong>Gene, Variant, and Zygosity</strong> to a specific <strong>non-invasive venous blood draw or office evaluation</strong> and states why invasive diagnostic procedures are not warranted. (Page 2 of 3)
+      Derived strictly from <strong>PROBAND_01</strong>’s variant callset for integration into the <strong>Primary Care Physician (PCP) annual preventive physical</strong>. Each row links the triggering <strong>Gene, Variant, and Zygosity</strong> to a specific laboratory panel or clinical evaluation. (Page 2 of 3)
     </div>
     <table>
       <thead>
         <tr>
           <th style="width:17%;">Gene, Variant &amp; Zygosity</th>
           <th style="width:14%;">Physiological Pathway</th>
-          <th style="width:18%;">Non-Invasive Blood Test / Evaluation</th>
+          <th style="width:18%;">Laboratory Test / Evaluation</th>
           <th style="width:14%;">Ordering Clinician &amp; Co-Consult</th>
           <th style="width:10%;">Frequency</th>
-          <th>Clinical Rationale &amp; Zygosity / Non-Invasive Guidance</th>
+          <th>Clinical Rationale &amp; Thresholds</th>
         </tr>
       </thead>
       <tbody>
         
         <tr>
-          <td><strong>CBLIF</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.79+1G>A · rs147785187</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr11:59845374 · DP: 49x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (['Autosomal Recessive'])</div></td>
-          <td><strong>CBLIF · Cobalamin / One-Carbon Absorption &amp; Methylation</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Pathogenic</div></td>
-          <td><strong>Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCV</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Hematology / GI (only if lab deficiency confirmed)</div></td>
+          <td><strong>CBLIF</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.79+1G>A · rs147785187</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr11:59845374 · DP: 49x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
+          <td><strong>CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Pathogenic</div></td>
+          <td><strong>Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCV</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Hematology / GI (only if lab deficiency confirmed)</div></td>
           <td>Baseline at Annual PCP Physical; repeat every 1–2 years</td>
-          <td>This gene is a member of the cobalamin transport protein family. Non-invasive serum B12 and methylmalonic acid (MMA, a sensitive cellular marker of cobalamin cofactor depletion) directly verify functional absorption and methylation reserve. <strong>Action Threshold:</strong> Maintain serum B12 &gt; 350 pg/mL and normal MMA/homocysteine; if subclinical depletion is present, oral/sublingual cobalamin (1,000–2,000 mcg/day) restores levels via passive mucosal diffusion.<div style='margin-top:4px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;'><strong>Heterozygous Recessive Carrier (Single Allele Affected — No Invasive Procedures Warranted):</strong> Heterozygous variant affecting one parental allele while the opposite allele remains wild-type (~50–100% baseline physiological reserve preserved). Does not cause primary autosomal recessive disease; <strong>no invasive diagnostic procedures (e.g., tissue biopsy, endoscopy, or catheterization) are warranted</strong>. Monitor exclusively via the non-invasive blood or clinical screening listed.</div></td>
+          <td>Canonical splice-donor variant (c.79+1G>A) in gastric intrinsic factor (autosomal recessive <strong>Hereditary Intrinsic Factor Deficiency, OMIM #261000</strong>), which mediates ileal cubam-receptor endocytosis of dietary Vitamin B12. <strong>Clinical Impact:</strong> Heterozygous carriers preserve intrinsic factor secretion from the wild-type allele; periodic serum Vitamin B12 (&gt; 350 pg/mL) and methylmalonic acid (MMA) verify cellular cobalamin stores (if subclinical depletion occurs, oral/sublingual B12 1,000 mcg/day restores levels via passive mucosal diffusion).</td>
         </tr>
         
         <tr>
-          <td><strong>GJB2</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Met34Thr · c.101T>C · rs35887622</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr13:20189481 · DP: 57x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (['Autosomal Recessive', 'Autosomal Dominant'])</div></td>
-          <td><strong>GJB2 · Cochlear Gap Junction &amp; Auditory Ion Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Pathogenic</div></td>
-          <td><strong>Baseline Pure-Tone Audiometry &amp; Ototoxic Medication Avoidance</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Office Audiogram</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology / Otolaryngology (ENT)</strong></td>
+          <td><strong>GJB2</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Met34Thr · c.101T>C · rs35887622</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr13:20189481 · DP: 57x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
+          <td><strong>GJB2 · Cochlear Gap Junction &amp; Auditory Potassium Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Pathogenic</div></td>
+          <td><strong>Baseline Pure-Tone Audiometry &amp; Ototoxic Antibiotic Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Office Audiogram</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology / ENT</strong></td>
           <td>Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur</td>
-          <td>This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. Documents baseline auditory thresholds and supports precautionary avoidance of ototoxic aminoglycoside antibiotics when safer antimicrobial alternatives exist.<div style='margin-top:4px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;'><strong>Heterozygous Autosomal Dominant Susceptibility Allele (Non-Invasive Surveillance Indicated):</strong> Heterozygous variant affecting one allele in a dominant susceptibility pathway. Manage via guideline-directed <strong>non-invasive imaging and venous biomarker surveillance</strong>; <strong>unprovoked invasive diagnostic procedures are not warranted</strong> in the absence of clinical or imaging findings.</div></td>
+          <td>Coding variant (p.Met34Thr) in cochlear gap junction protein Connexin-26 (DFNB1A, OMIM #220290), which recycles endolymphatic potassium ions in hair cells. <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics (gentamicin, tobramycin, amikacin) when alternative antimicrobials exist.</td>
         </tr>
         
         <tr>
-          <td><strong>VDR</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.-1172A>G · rs4516035</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr12:47906043 · DP: 49x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Homozygous (['Complex / Multifactorial'])</div></td>
-          <td><strong>VDR · Calcitriol Receptor Sensitivity &amp; Bone Mineral Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Likely pathogenic</div></td>
-          <td><strong>Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline Phosphatase</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Endocrinology (if refractory deficiency)</div></td>
+          <td><strong>VDR</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.-1172A>G · rs4516035</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr12:47906043 · DP: 49x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Homozygous (Pathway Modifier)</div></td>
+          <td><strong>VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Likely pathogenic</div></td>
+          <td><strong>Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline Phosphatase</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Endocrinology (if refractory deficiency)</div></td>
           <td>Annual PCP Preventive Lab Panel</td>
-          <td>This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. Non-invasive serum 25(OH)D monitoring ensures optimal calcitriol receptor substrate availability (target 35–55 ng/mL) via standard cholecalciferol (Vitamin D3) supplementation.<div style='margin-top:4px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;'><strong>Homozygous Pathway Modifier (No Invasive Procedures Warranted):</strong> Functional or regulatory variant affecting or potentially affecting baseline pathway kinetics without causing high-penetrance monogenic disease. <strong>No invasive diagnostic procedures are warranted</strong>; monitor via routine non-invasive venous bloodwork at the annual physical.</div></td>
+          <td>5'-UTR promoter regulatory variant (c.-1172A>G) in the nuclear vitamin D3 (calcitriol) receptor (OMIM #601769), which regulates intestinal calcium transport and osteoblast gene transcription. <strong>Clinical Impact:</strong> Modulates baseline calcitriol receptor expression; maintain serum 25(OH)D at 35–55 ng/mL via routine cholecalciferol (Vitamin D3) supplementation.</td>
         </tr>
         
         <tr>
-          <td><strong>F5</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg534Gln · c.1601G>A · rs6025</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr1:169549811 · DP: 58x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (['Complex / Multifactorial'])</div></td>
-          <td><strong>F5 · Coagulation Cascade &amp; Hemostatic Regulation</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: drug response</div></td>
-          <td><strong>Situational VTE Risk Review &amp; Optional Activated Protein C (APC) Resistance / Factor V Assay</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw &amp; Perioperative Assessment</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Hematology / Perioperative Medicine</div></td>
-          <td>Situational (Prior to major surgery, prolonged immobilization, or systemic hormone therapy)</td>
-          <td>This gene encodes an essential cofactor of the blood coagulation cascade. Confers resistance to Activated Protein C (APC) cleavage, increasing relative venous thromboembolism (VTE) risk during provoking exposures (major surgery, immobilization, estrogen therapy). <strong>Action Rule:</strong> Unprovoked lifelong anticoagulation is <strong>not</strong> indicated; apply situational perioperative VTE prophylaxis.<div style='margin-top:4px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;'><strong>Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted):</strong> Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. <strong>No invasive diagnostic procedures or unprovoked therapies are warranted</strong>; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</div></td>
+          <td><strong>F5</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg534Gln · c.1601G>A · rs6025</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr1:169549811 · DP: 58x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal dominant)</div></td>
+          <td><strong>F5 · Coagulation Cascade &amp; Activated Protein C (APC) Regulation</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: drug response</div></td>
+          <td><strong>Situational Perioperative VTE Risk Review &amp; Thromboprophylaxis Planning</strong><div style='font-size:7.3pt;color:#0f766e;'>Perioperative / Immobilization Assessment</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Hematology / Perioperative Medicine</div></td>
+          <td>Situational (Prior to major surgery, prolonged immobilization, or hormone therapy)</td>
+          <td>Heterozygous Factor V Leiden (p.Arg534Gln) impairs Activated Protein C (APC) cleavage of Factor Va, conferring a ~3–5x relative risk of venous thromboembolism (VTE). <strong>Clinical Impact:</strong> Routine lifelong anticoagulation is <strong>not</strong> indicated in asymptomatic heterozygotes; apply situational perioperative/immobilization VTE prophylaxis and avoid systemic prothrombotic estrogen formulations.</td>
         </tr>
         
         <tr>
-          <td><strong>PEX6</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Val788Met · c.2362G>A · rs267608240</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr6:42966044 · DP: 48x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (['Complex / Multifactorial'])</div></td>
-          <td><strong>PEX6 · Heart & Cardiovascular Pathway</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity</div></td>
-          <td><strong>Fasting Lipid Panel, Apolipoprotein B (ApoB), HbA1c &amp; Resting 12-Lead ECG</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw &amp; Office ECG</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Cardiology</div></td>
-          <td>Annual PCP Preventive Physical</td>
-          <td>This gene encodes a member of the AAA (ATPases associated with diverse cellular activities) family of ATPases. Evaluates baseline cardiovascular and metabolic biomarkers via routine non-invasive primary care testing.<div style='margin-top:4px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;'><strong>Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted):</strong> Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. <strong>No invasive diagnostic procedures or unprovoked therapies are warranted</strong>; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</div></td>
+          <td><strong>PEX6</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Val788Met · c.2362G>A · rs267608240</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr6:42966044 · DP: 48x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
+          <td><strong>PEX6 · Peroxisomal Biogenesis &amp; Hepatic Very-Long-Chain Fatty Acid Oxidation</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity</div></td>
+          <td><strong>Hepatic Function Panel (AST, ALT, Bilirubin) &amp; Fasting Lipid Profile</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong></td>
+          <td>Annual PCP Preventive Blood Panel</td>
+          <td>Missense variant (p.Val788Met) in Peroxisomal Biogenesis Factor 6 (AAA ATPase matrix protein importer, OMIM #601498). <strong>Clinical Impact:</strong> Single-allele heterozygous carriers maintain normal peroxisomal beta-oxidation; routine hepatic transaminases (AST/ALT) and lipid screening during the annual physical verify baseline metabolic homeostasis.</td>
         </tr>
         
         <tr>
-          <td><strong>GJB3</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg75Cys · c.223C>T · rs370476720</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr1:34784985 · DP: 38x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (['Complex / Multifactorial'])</div></td>
-          <td><strong>GJB3 · Cochlear Gap Junction &amp; Auditory Ion Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity</div></td>
-          <td><strong>Baseline Pure-Tone Audiometry &amp; Ototoxic Medication Avoidance</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Office Audiogram</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology / Otolaryngology (ENT)</strong></td>
+          <td><strong>GJB3</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg75Cys · c.223C>T · rs370476720</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr1:34784985 · DP: 38x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Pathway Modifier)</div></td>
+          <td><strong>GJB3 · Cochlear Gap Junction &amp; Auditory Potassium Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity</div></td>
+          <td><strong>Baseline Pure-Tone Audiometry &amp; Ototoxic Antibiotic Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Office Audiogram</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology / ENT</strong></td>
           <td>Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur</td>
-          <td>This gene is a member of the connexin gene family. Documents baseline auditory thresholds and supports precautionary avoidance of ototoxic aminoglycoside antibiotics when safer antimicrobial alternatives exist.<div style='margin-top:4px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;'><strong>Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted):</strong> Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. <strong>No invasive diagnostic procedures or unprovoked therapies are warranted</strong>; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</div></td>
+          <td>Coding variant (p.Arg75Cys) in cochlear gap junction protein Connexin-31 (DFNA2B, OMIM #603324), which recycles endolymphatic potassium ions in hair cells. <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics (gentamicin, tobramycin, amikacin) when alternative antimicrobials exist.</td>
         </tr>
         
         <tr>
-          <td><strong>SCN4A</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.His599Arg · c.1796A>G · rs187401185</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr17:63961242 · DP: 56x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (['Complex / Multifactorial'])</div></td>
-          <td><strong>SCN4A · Cardiomyocyte Ion-Channel Anchoring &amp; Repolarization</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity</div></td>
-          <td><strong>Resting 12-Lead Electrocardiogram (ECG — QTc Interval) + Serum Electrolytes (K+, Mg2+, Ca2+)</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Office ECG &amp; Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Cardiology / Electrophysiology (if QTc &gt; 460 ms)</div></td>
-          <td>Baseline at Annual PCP Physical &amp; prior to QT-prolonging medications</td>
-          <td>Voltage-gated sodium channels are transmembrane glycoprotein complexes composed of a large alpha subunit with 24 transmembrane domains and one or more regulatory beta subunits. A non-invasive resting 12-lead ECG and serum electrolyte check verifies normal baseline ventricular repolarization (QTc &lt; 450 ms) and potassium/magnesium balance prior to prescribing QT-prolonging drugs.<div style='margin-top:4px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;'><strong>Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted):</strong> Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. <strong>No invasive diagnostic procedures or unprovoked therapies are warranted</strong>; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening.</div></td>
+          <td><strong>SCN4A</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.His599Arg · c.1796A>G · rs187401185</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr17:63961242 · DP: 56x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Pathway Modifier)</div></td>
+          <td><strong>SCN4A · Skeletal Muscle Sodium Channel (Nav1.4) Excitability</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity</div></td>
+          <td><strong>Serum Electrolytes (Potassium [K+], Mg2+, Ca2+) &amp; Creatine Kinase (CK)</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw &amp; Anesthetic Precaution</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Anesthesiology / Neurology (if myotonia present)</div></td>
+          <td>Annual PCP Electrolyte Panel &amp; Pre-Anesthesia Review</td>
+          <td>Missense variant (p.His599Arg) in the skeletal muscle voltage-gated sodium channel alpha subunit Nav1.4 (OMIM #603967), governing sarcolemmal action potential propagation. <strong>Clinical Impact:</strong> Maintain normokalemia on routine metabolic panels and document precautionary avoidance of depolarizing muscle relaxants (succinylcholine) during general anesthesia if muscle stiffness or myotonia is present.</td>
         </tr>
         
       </tbody>
@@ -625,11 +608,11 @@
     </div>
 
     <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      PROBAND_01 (PROBAND_01) — Clinical Action Brief (3-Page Portrait Edition) · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Matrix, Dual-AI Document Audit &amp; EHR Note
+      PROBAND_01 (PROBAND_01) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Matrix, Decision Calculus &amp; EHR Note
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, DUAL-AI DOCUMENT AUDIT & EHR INTEGRATION ======================= -->
+  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, DECISION CALCULUS & EHR INTEGRATION ======================= -->
   <div class="page page-3">
     <!-- Section 4: Actionable Pharmacogenomic Prescribing Guardrails -->
     <h2>Section 4 · Actionable Pharmacogenomic Prescribing Guardrails (CPIC / DPWG Medication &amp; Diplotype Reference)</h2>
@@ -777,52 +760,36 @@
       </tbody>
     </table>
 
-    <h2>Section 5.1 · 4-Stage Local AI Mutual-Agreement, QwQ-32B Cleanup &amp; Deterministic JSON Validation</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:5px;">
-      <div class="calculus-card" style="background:#eff6ff;border-color:#bfdbfe;">
-        <div style="font-weight:800;color:#1e3a8a;margin-bottom:2px;font-size:7.6pt;">🤖 Stage 1: Bio-Medical-Llama-3.1-8B (Q8_0)</div>
-        <div style="color:#1e293b;font-size:7.6pt;line-height:1.25;">The clinical audit summary for this sample confirms the presence of heterozygous variants in CBLIF, GJB2, F5, PEX6, GJB3, SCN4A and homozygous status in VDR (Homozygous), which are associated with non-invasive surveillance and heterozygous reassurance. These variants do not warrant invasive diagnostic procedures and can be managed through routine non-invasive primary care bloodwork or baseline office screening.</div>
-      </div>
-      <div class="calculus-card" style="background:#f0fdfa;border-color:#99f6e4;">
-        <div style="font-weight:800;color:#115e59;margin-bottom:2px;font-size:7.6pt;">🤝 Stage 2 Mutual Gate: MedGemma-27B-IT (Q4_K_M) (100%)</div>
-        <div style="color:#1e293b;font-size:7.6pt;line-height:1.25;">The Bio-Medical-Llama-3.1-8B (Q8_0) proposal accurately reflects the source WGS JSON telemetry for each gene, emphasizing non-invasive monitoring and reassurance for heterozygous variants. The summaries correctly identify the gene, variant, zygosity, classification, and appropriate management strategy (non-invasive surveillance or routine screening) without recommending invasive procedures.</div>
-      </div>
-      <div class="calculus-card" style="background:#faf5ff;border-color:#e9d5ff;">
-        <div style="font-weight:800;color:#6b21a8;margin-bottom:2px;font-size:7.6pt;">🧹 Stages 3–4: QwQ-32B (Q4_K_M) + JSON Script Validation</div>
-        <div style="color:#1e293b;font-size:7.6pt;line-height:1.25;">QwQ-32B editorial review and deterministic JSON script validation verified 100% factual alignment across all 7 priority variant rows (CBLIF (Heterozygous), GJB2 (Heterozygous), VDR (Homozygous), F5 (Heterozygous), PEX6 (Heterozygous), GJB3 (Heterozygous), SCN4A (Heterozygous)), HGVS/rsID coordinates, zygosity states, and CPIC Level A guardrails in the 3-page portrait brief.</div>
-      </div>
-    </div>
-
+    <h2>Section 5 · Clinical Decision Calculus: Balanced Interventional Rationale</h2>
     <div class="calculus-grid">
       <div class="calculus-card" style="background:#f0fdf4;border-color:#bbf7d0;">
-        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Arguments FOR Targeted Non-Invasive Screening &amp; PGx Guardrails</div>
+        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Arguments FOR Targeted Preventive Screening &amp; PGx Guardrails</div>
         <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
           <li><strong>Immediate Medication Safety:</strong> Documenting CPIC pharmacogenomic diplotypes (Avoid / Reduce Dose / Increase Dose) in the EHR prevents avoidable drug toxicity and therapeutic failure before the first prescription is filled.</li>
-          <li><strong>Low-Cost Non-Invasive Biomarker Ground-Truthing:</strong> Incorporating pathway-matched venous blood tests (Section 2) into the annual PCP physical directly verifies whether any heterozygous or modifier variant has subtle physiological expression.</li>
+          <li><strong>Pathway-Matched Biomarker Verification:</strong> Incorporating targeted venous blood tests (Section 2) into the annual PCP physical directly verifies whether any carrier or modifier variant has subtle physiological expression.</li>
         </ul>
       </div>
 
       <div class="calculus-card" style="background:#fff1f2;border-color:#fecdd3;">
-        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Arguments AGAINST Over-Intervention (Why Invasive Testing Is Unwarranted)</div>
+        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Arguments AGAINST Over-Intervention</div>
         <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
-          <li><strong>Heterozygous Carrier Reserve &amp; Phased Reassurance:</strong> Whole-genome phasing confirms <strong>0 pathogenic biallelic (trans) recessive compound-heterozygotes</strong>; heterozygous carriers retain an intact wild-type allele (~50–100% capacity) and <strong>do not warrant invasive diagnostic procedures</strong>.</li>
+          <li><strong>Heterozygous Carrier Reserve &amp; Phased Reassurance:</strong> Whole-genome phasing confirms <strong>0 pathogenic biallelic (trans) recessive compound-heterozygotes</strong>; heterozygous carriers retain an intact wild-type allele (~50–100% capacity) and do not warrant invasive diagnostic procedures.</li>
           <li><strong>Polygenic Modifiers ≠ Deterministic Disease:</strong> Common statistical GWAS variants reflect modest susceptibility and must never trigger unprovoked chronic anticoagulation or off-label pharmacotherapy.</li>
         </ul>
       </div>
     </div>
 
-    <h2>Section 5.2 · Recommended Clinical Note / EHR Problem-List Integration Text (Copy-Paste Ready for PCP)</h2>
-    <div class="ehr-note-box">GENOMIC &amp; PHARMACOGENOMIC PREVENTIVE SUMMARY (PROBAND_01 | ID: PROBAND_01 | Mean WGS Depth: 50.11x GRCh38)
-• DISCLAIMER: AI-synthesized &amp; dual-model audited informational research summary from phased WGS; non-diagnostic. Confirm clinically prior to Rx changes.
-• KEY GENOMIC &amp; CARRIER FINDINGS: CBLIF (c.79+1G>A · rs147785187, Heterozygous), GJB2 (p.Met34Thr · c.101T>C · rs35887622, Heterozygous), VDR (c.-1172A>G · rs4516035, Homozygous), F5 (p.Arg534Gln · c.1601G>A · rs6025, Heterozygous), PEX6 (p.Val788Met · c.2362G>A · rs267608240, Heterozygous), GJB3 (p.Arg75Cys · c.223C>T · rs370476720, Heterozygous). Zero biallelic pathogenic recessive compound-heterozygotes detected; heterozygous carrier/modifier findings retain one wild-type allele and do NOT warrant invasive diagnostic procedures.
+    <h2>Section 6 · Recommended Clinical Note / EHR Problem-List Integration Text (Copy-Paste Ready for PCP)</h2>
+    <div class="ehr-note-box">GENOMIC &amp; PHARMACOGENOMIC PREVENTIVE SUMMARY (PROBAND_01 | ID: PROBAND_01 | BAM Aligned WGS Depth: 48.8x GRCh38)
+• KEY GENOMIC &amp; CARRIER FINDINGS: CBLIF (c.79+1G>A · rs147785187, Heterozygous), GJB2 (p.Met34Thr · c.101T>C · rs35887622, Heterozygous), VDR (c.-1172A>G · rs4516035, Homozygous), F5 (p.Arg534Gln · c.1601G>A · rs6025, Heterozygous), PEX6 (p.Val788Met · c.2362G>A · rs267608240, Heterozygous), GJB3 (p.Arg75Cys · c.223C>T · rs370476720, Heterozygous). Zero biallelic pathogenic recessive compound-heterozygotes detected; heterozygous carrier/modifier findings retain one wild-type allele and do not warrant invasive diagnostic procedures.
 • CRITICAL PHARMACOGENOMIC &amp; LIFE-THREATENING GUARDRAILS (CPIC/DPWG):
   - LIFE-THREATENING / AVOID: <span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Systemic Estrogens, Combined Oral Contraceptives, HRT</span>
   - DOSE REDUCTION (DOSE_DOWN): <span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin)</span> · Voriconazole · <span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Fluorouracil</span> · Ondansetron
   - RAPID METABOLISM (DOSE_UP): Belinostat, Irinotecan (Camptosar)
-• NON-INVASIVE PCP ANNUAL LAB &amp; SURVEILLANCE PLAN: Order the pathway-matched non-invasive venous blood panels and preventive evaluations listed in Section 2 during the routine annual physical.</div>
+• PCP ANNUAL LAB &amp; SURVEILLANCE PLAN: Order the pathway-matched venous blood panels and preventive evaluations listed in Section 2 during the routine annual physical.</div>
 
     <div style="font-size:7.2pt;color:#64748b;margin-top:3px;border-top:1px solid #e2e8f0;padding-top:2px;text-align:center;">
-      Comprehensive multi-hypertext directory, cis/trans phase audits, and extended deep research evidence are available in the accompanying Deep Clinical Research Dossier (<code>PROBAND_01_deep_research_report.html</code>) and Genomic Command Center (<code>PROBAND_01_landscape_dashboard.html</code>). · Page 3 of 3
+      Informational clinical decision-support summary · Accompanying Deep Clinical Research Dossier (<code>PROBAND_01_deep_research_report.html</code>) &amp; Genomic Command Center (<code>PROBAND_01_landscape_dashboard.html</code>) · Page 3 of 3
     </div>
   </div>
 

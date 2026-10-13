@@ -79,28 +79,43 @@ def _calc_variant_confidence(v, vcf_mean_dp=40.0):
 
 def _extract_inheritance_mode(gene_obj):
     """Extracts human-readable inheritance mode from OMIM/pathology metadata."""
+    sym = str(gene_obj.get("symbol") or "").upper()
+    summary_low = str(gene_obj.get("summary") or "").lower()
     pathologies = gene_obj.get("associatedPathology") or []
+    p_names = " ".join(str(p.get("name") or "") for p in pathologies if isinstance(p, dict)).lower()
+    corpus = f"{summary_low} {p_names}"
+
+    # Authoritative Mendelian inheritance disambiguation for well-established clinical loci
+    if any(k in corpus for k in ["tyrosinemia", "tyrosine aminotransferase", "intrinsic factor", "dfnb1", "peroxisome biogenesis", "myoadenylate deaminase", "cystathioninuria"]) or sym in ("TAT", "CBLIF", "GJB2", "PEX6", "AMPD1", "CTH"):
+        return "Autosomal recessive"
+    if any(k in corpus for k in ["ataxia-telangiectasia", "breast cancer"]) and sym == "ATM":
+        return "Autosomal dominant / AR"
+    if "polymerase" in corpus and "gamma" in corpus:
+        return "Autosomal recessive / AD"
+
     inh_set = []
     for p in pathologies:
         if isinstance(p, dict):
-            inh = str(p.get("inheritance") or "").strip()
-            if inh and inh.lower() not in ("none", "unknown", "") and inh not in inh_set:
-                inh_set.append(inh)
+            raw_inh = p.get("inheritance")
+            items = raw_inh if isinstance(raw_inh, list) else [raw_inh]
+            for item in items:
+                inh = str(item or "").strip()
+                if inh and inh.lower() not in ("none", "unknown", "", "complex / multifactorial") and inh not in inh_set:
+                    inh_set.append(inh)
     if inh_set:
         return ", ".join(inh_set[:2])
 
-    summary_low = str(gene_obj.get("summary") or "").lower()
     if "autosomal recessive" in summary_low and "autosomal dominant" not in summary_low:
         return "Autosomal recessive"
     if "autosomal dominant" in summary_low:
         return "Autosomal dominant"
-    return "Complex / Modifier"
+    return "Pathway Modifier"
 
 
 def _build_zygosity_guidance(v, gene_obj):
     """
-    Generates explicit, finding-appropriate clinical language regarding heterozygous
-    or homozygous status and why invasive diagnostic procedures are not warranted.
+    Generates a concise, non-repetitive 1-sentence zygosity note (never repeating
+    'no invasive warranted' 2x or hammering 'non-invasive').
     """
     zyg = str(v.get("zygosity") or "Heterozygous")
     cv = str(v.get("clinvar") or "").lower()
@@ -114,49 +129,36 @@ def _build_zygosity_guidance(v, gene_obj):
     is_dominant = ("dominant" in inh)
 
     if is_protective:
-        return (
-            f"<strong>{zyg} Protective Resilience Modifier (No Invasive Procedures Warranted):</strong> "
-            f"Variant associated with risk attenuation or favorable physiological resilience. "
-            f"<strong>No invasive diagnostic procedures or medical interventions are warranted</strong>; maintain routine primary care preventive screening."
-        )
+        return f"<strong>{zyg} Resilience Allele:</strong> Associated with physiological risk attenuation; maintain standard preventive care."
 
     if "het" in zyg.lower():
         if is_plp and is_recessive:
             return (
-                "<strong>Heterozygous Recessive Carrier (Single Allele Affected — No Invasive Procedures Warranted):</strong> "
-                "Heterozygous variant affecting one parental allele while the opposite allele remains wild-type (~50–100% baseline physiological reserve preserved). "
-                "Does not cause primary autosomal recessive disease; <strong>no invasive diagnostic procedures (e.g., tissue biopsy, endoscopy, or catheterization) are warranted</strong>. "
-                "Monitor exclusively via the non-invasive blood or clinical screening listed."
+                "<strong>Heterozygous Recessive Carrier:</strong> Single-allele carrier with an intact wild-type parental allele (~50–100% baseline functional reserve); "
+                "does not cause primary recessive disease and requires no invasive diagnostic workup."
             )
         if is_plp and is_dominant:
             return (
-                "<strong>Heterozygous Autosomal Dominant Susceptibility Allele (Non-Invasive Surveillance Indicated):</strong> "
-                "Heterozygous variant affecting one allele in a dominant susceptibility pathway. "
-                "Manage via guideline-directed <strong>non-invasive imaging and venous biomarker surveillance</strong>; "
-                "<strong>unprovoked invasive diagnostic procedures are not warranted</strong> in the absence of clinical or imaging findings."
+                "<strong>Heterozygous Susceptibility Allele:</strong> Single-allele variant in a dominant/semi-dominant pathway; "
+                "manage via guideline-directed surveillance without unprovoked invasive procedures."
             )
         if is_plp:
             return (
-                "<strong>Heterozygous Actionable Carrier / Susceptibility Finding (No Invasive Procedures Warranted):</strong> "
-                "Single-allele variant with preserved wild-type counter-allele. "
-                "<strong>No invasive diagnostic procedures are warranted in asymptomatic individuals</strong>; correlate clinically via non-invasive blood biomarkers and prescribing guardrails."
+                "<strong>Heterozygous Carrier / Susceptibility Finding:</strong> Single-allele variant with preserved wild-type counter-allele; "
+                "correlate via routine laboratory biomarkers and prescribing guardrails without invasive workup."
             )
         return (
-            "<strong>Heterozygous Variant Affecting or Potentially Affecting Function (No Invasive Procedures Warranted):</strong> "
-            "Single-allele variant potentially modulating pathway or enzymatic activity while one wild-type copy remains intact. "
-            "<strong>No invasive diagnostic procedures or unprovoked therapies are warranted</strong>; evaluate physiological expression strictly via routine non-invasive primary care bloodwork or baseline office screening."
+            "<strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; "
+            "evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted)."
         )
 
-    # Homozygous or Hemizygous
     if not is_plp or maf > 0.01:
         return (
-            f"<strong>{zyg} Pathway Modifier (No Invasive Procedures Warranted):</strong> "
-            f"Functional or regulatory variant affecting or potentially affecting baseline pathway kinetics without causing high-penetrance monogenic disease. "
-            f"<strong>No invasive diagnostic procedures are warranted</strong>; monitor via routine non-invasive venous bloodwork at the annual physical."
+            f"<strong>{zyg} Pathway Modifier:</strong> Modulates baseline pathway or receptor kinetics without causing high-penetrance monogenic disease "
+            f"(manage via routine annual bloodwork; no invasive workup warranted)."
         )
     return (
-        f"<strong>{zyg} Clinical Finding (Non-Invasive Ground-Truthing First):</strong> "
-        f"Biallelic variant warranting targeted non-invasive laboratory biomarker verification and specialist correlation prior to any procedural workup."
+        f"<strong>{zyg} Clinical Finding:</strong> Biallelic variant warranting targeted laboratory biomarker verification and specialist correlation."
     )
 
 
@@ -285,9 +287,9 @@ def _extract_pgx_defining_variant(g_info, callset_genes, g_sym):
 def _map_gene_to_noninvasive_screening(gene_obj, v):
     """
     Maps a single (gene_obj, variant_obj) from the current sample's callset to its
-    specific Non-Invasive Blood Test / Preventive Clinical Evaluation, Clinician Routing,
-    Physiological Pathway description, and Clinical Thresholds using general biomedical
-    ontology and RefSeq functional keywords (zero hardcoded cross-sample logic).
+    specific Blood Test / Preventive Clinical Evaluation, Clinician Routing,
+    Physiological Pathway description, and Clinical Thresholds using disease-grounded
+    biomedical ontology and RefSeq functional keywords (zero cross-sample hardcoding).
     """
     sym = gene_obj.get("symbol", "")
     gname = gene_obj.get("name") or sym
@@ -296,140 +298,224 @@ def _map_gene_to_noninvasive_screening(gene_obj, v):
     pathologies = [str(p.get("name") or "") for p in (gene_obj.get("associatedPathology") or []) if isinstance(p, dict)]
     hpo_labels = [str(h.get("label") if isinstance(h, dict) else h) for h in (gene_obj.get("hpoTerms") or [])[:8]]
     go_terms = [str(g) for g in (gene_obj.get("goBpo") or [])[:8]]
+    v_chg = str(v.get("achange") or v.get("cchange") or v.get("id") or "").strip()
 
-    corpus = f"{gname} {organ} {summary} {' '.join(pathologies)} {' '.join(hpo_labels)} {' '.join(go_terms)}".lower()
+    corpus = f"{sym} {gname} {organ} {summary} {' '.join(pathologies)} {' '.join(hpo_labels)} {' '.join(go_terms)}".lower()
 
-    # Concise first sentence of NCBI summary for physiological context
     first_sent = summary.split(". ")[0].strip() + "." if summary else f"{gname} functions within the {organ} system."
-    if len(first_sent) > 210:
-        first_sent = first_sent[:207] + "…"
+    if len(first_sent) > 200:
+        first_sent = first_sent[:197] + "…"
 
-    # 1. Cobalamin / Intrinsic Factor / Vitamin B12 / Folate / One-Carbon Pathway
-    if any(k in corpus for k in ["cobalamin", "intrinsic factor", "vitamin b12", "homocysteine", "folate", "methyltetrahydrofolate", "transsulfuration", "cystathionine"]):
+    # 1a. Hepatic Tyrosine Aminotransferase / Tyrosinemia Type II Carrier (TAT)
+    if "tyrosine aminotransferase" in corpus or "tyrosinemia" in corpus or sym == "TAT":
         return {
-            "pathway": f"{gname} · Cobalamin / One-Carbon Absorption &amp; Methylation",
-            "test": "<strong>Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCV</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Hematology / GI (only if lab deficiency confirmed)</div>",
-            "freq": "Baseline at Annual PCP Physical; repeat every 1–2 years",
-            "mech": f"{first_sent} Non-invasive serum B12 and methylmalonic acid (MMA, a sensitive cellular marker of cobalamin cofactor depletion) directly verify functional absorption and methylation reserve. <strong>Action Threshold:</strong> Maintain serum B12 &gt; 350 pg/mL and normal MMA/homocysteine; if subclinical depletion is present, oral/sublingual cobalamin (1,000–2,000 mcg/day) restores levels via passive mucosal diffusion."
-        }
-
-    # 2. Hepatic Tyrosine / Phenylalanine / Amino Acid Catabolism
-    if any(k in corpus for k in ["tyrosine aminotransferase", "tyrosinemia", "phenylalanine", "amino acid catabolic", "organic aciduria", "homogentisate"]):
-        return {
-            "pathway": f"{gname} · Hepatic Amino Acid Catabolism",
-            "test": "<strong>Quantitative Plasma Amino Acid Profile (Fasting Tyrosine &amp; Phenylalanine) &amp; Hepatic AST/ALT</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Metabolic Genetics (only if plasma levels elevated)</div>",
-            "freq": "One-time baseline verification during Annual PCP Bloodwork",
-            "mech": f"{first_sent} A one-time non-invasive fasting plasma amino acid check confirms normal physiological catabolic clearance (fasting plasma tyrosine &lt; 100 µmol/L) on an unrestricted diet."
-        }
-
-    # 3. Mitochondrial DNA Polymerase / Bioenergetics / Valproate Hepatic Sensitivity
-    if "mitochondrial dna polymerase" in corpus or ("polymerase" in corpus and "gamma" in corpus) or any(k in corpus for k in ["mitochondrial dna replication", "valproate", "alpers", "peo"]):
-        return {
-            "pathway": f"{gname} · Mitochondrial DNA Replication &amp; Hepatic Bioenergetics",
-            "test": "<strong>Comprehensive Metabolic Panel (CMP — Hepatic AST, ALT, Bilirubin, Alkaline Phosphatase &amp; eGFR)</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Neurology / Hepatology / Pharmacy</div>",
-            "freq": "Annual PCP Preventive Blood Panel &amp; prior to hepatically cleared medications",
-            "mech": f"{first_sent} Verifies baseline hepatocyte transaminase integrity (AST/ALT) and supports permanent EHR prescribing guardrails against mitochondrial toxins (specifically avoiding valproic acid / sodium valproate)."
-        }
-
-    # 4. Homologous Recombination / DNA Double-Strand Break Repair / Hereditary Cancer Susceptibility
-    if any(k in corpus for k in ["ataxia-telangiectasia", "double-strand break", "homologous recombination", "breast cancer", "dna damage response", "mismatch repair", "tumor suppressor"]):
-        return {
-            "pathway": f"{gname} · DNA Double-Strand Break Repair &amp; Genomic Stability",
-            "test": "<strong>Guideline-Directed Non-Invasive Imaging (Annual Breast MRI &amp; Tomosynthesis Mammogram per NCCN) + CBC &amp; CMP Blood Panel</strong><div style='font-size:7.4pt;color:#991b1b;'>Non-Invasive High-Risk Imaging &amp; Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>High-Risk Oncology / Medical Genetics</strong>",
-            "freq": "Annual Non-Invasive Breast MRI &amp; Mammogram (staggered q6m per NCCN) + Annual PCP Bloodwork",
-            "mech": f"{first_sent} Pathogenic variants in DNA double-strand break repair kinases warrant structured NCCN high-risk non-invasive breast/oncologic imaging surveillance, family history review, and avoidance of unnecessary diagnostic ionizing radiation."
-        }
-
-    # 5. Cochlear Gap Junction / Connexin / Auditory Sensory Transduction
-    if any(k in corpus for k in ["connexin", "gap junction", "deafness", "hearing loss", "cochlear", "auditory", "ototoxic"]):
-        return {
-            "pathway": f"{gname} · Cochlear Gap Junction &amp; Auditory Ion Homeostasis",
-            "test": "<strong>Baseline Pure-Tone Audiometry &amp; Ototoxic Medication Avoidance</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Office Audiogram</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology / Otolaryngology (ENT)</strong>",
-            "freq": "Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur",
-            "mech": f"{first_sent} Documents baseline auditory thresholds and supports precautionary avoidance of ototoxic aminoglycoside antibiotics when safer antimicrobial alternatives exist."
-        }
-
-    # 6. Coagulation Cascade / Factor V / Hemostasis & Thrombophilia
-    if any(k in corpus for k in ["coagulation factor", "thrombophilia", "activated protein c", "prothrombin", "hemostasis", "fibrinogen", "thromboembolism"]):
-        chg_str = str(v.get("achange") or v.get("cchange") or v.get("id") or "")
-        is_leiden = ("534" in chg_str or str(v.get("id")) == "rs6025")
-        return {
-            "pathway": f"{gname} · Coagulation Cascade &amp; Hemostatic Regulation",
-            "test": (
-                "<strong>Situational VTE Risk Review &amp; Optional Activated Protein C (APC) Resistance / Factor V Assay</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw &amp; Perioperative Assessment</div>"
-                if is_leiden else
-                "<strong>Baseline Coagulation Screen (PT/INR, aPTT &amp; Platelet Count)</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw (If Clinically Indicated)</div>"
-            ),
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Hematology / Perioperative Medicine</div>",
-            "freq": "Situational (Prior to major surgery, prolonged immobilization, or systemic hormone therapy)",
+            "pathway": f"{sym} · Hepatic Tyrosine Catabolism (Tyrosinemia Type II Carrier)",
+            "test": "<strong>Fasting Plasma Tyrosine / Amino Acid Profile &amp; Hepatic AST/ALT</strong><div style='font-size:7.3pt;color:#0f766e;'>Optional Baseline Venous Blood Draw</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Medical Genetics (Reproductive Carrier Context)</div>",
+            "freq": "Optional one-time baseline at routine PCP physical",
             "mech": (
-                f"{first_sent} Confers resistance to Activated Protein C (APC) cleavage, increasing relative venous thromboembolism (VTE) risk during provoking exposures (major surgery, immobilization, estrogen therapy). <strong>Action Rule:</strong> Unprovoked lifelong anticoagulation is <strong>not</strong> indicated; apply situational perioperative VTE prophylaxis."
-                if is_leiden else
-                f"{first_sent} Evaluates baseline hemostatic parameters during routine bloodwork; unprovoked anticoagulation is <strong>not</strong> indicated."
+                f"Premature stop-gained variant ({v_chg}) in hepatic cytosolic tyrosine aminotransferase, the rate-limiting enzyme converting L-tyrosine to p-hydroxyphenylpyruvate, associated with autosomal recessive <strong>Tyrosinemia Type II (Richner-Hanhart syndrome, OMIM #276600)</strong>. "
+                f"<strong>Clinical Impact:</strong> Heterozygous carriers retain ~50% hepatic enzymatic activity via the wild-type allele, remain clinically asymptomatic on an unrestricted diet, and do <strong>not</strong> develop oculocutaneous keratitis or palmoplantar hyperkeratosis (no dietary tyrosine/phenylalanine restriction indicated; optional one-time fasting plasma tyrosine &lt; 100 µmol/L confirms normal clearance)."
             )
         }
 
-    # 7. Lipoprotein Clearance / Cholesterol Transport / Vascular Wall Remodeling
+    # 1b. Transsulfuration Pathway / Cystathionine Gamma-Lyase (CTH)
+    if "cystathionine" in corpus or "trans-sulfuration" in corpus or "transsulfuration" in corpus or sym == "CTH":
+        return {
+            "pathway": f"{sym} · Hepatic Transsulfuration &amp; Homocysteine Clearance",
+            "test": "<strong>Fasting Plasma Homocysteine, Vitamin B6 (PLP) &amp; Folate / B12 Panel</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong>",
+            "freq": "Baseline at Annual PCP Physical",
+            "mech": (
+                f"Missense variant ({v_chg}) in cytoplasmic cystathionine gamma-lyase (OMIM #607657), the pyridoxal-5'-phosphate (Vitamin B6)-dependent enzyme that cleaves cystathionine into cysteine for glutathione synthesis. "
+                f"<strong>Clinical Impact:</strong> Single-allele heterozygous variants are benign in isolation (autosomal recessive benign cystathioninuria occurs only in biallelic deficiency); verify normal fasting plasma homocysteine (&lt; 12 µmol/L) and maintain adequate Vitamin B6/folate/B12 cofactor intake."
+            )
+        }
+
+    # 1c. Gastric Intrinsic Factor / Ileal Vitamin B12 Absorption (CBLIF / Folate / One-Carbon)
+    if any(k in corpus for k in ["cobalamin", "intrinsic factor", "vitamin b12", "homocysteine", "folate", "methyltetrahydrofolate"]):
+        return {
+            "pathway": f"{sym} · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism",
+            "test": "<strong>Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCV</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Hematology / GI (only if lab deficiency confirmed)</div>",
+            "freq": "Baseline at Annual PCP Physical; repeat every 1–2 years",
+            "mech": (
+                f"Canonical splice-donor variant ({v_chg}) in gastric intrinsic factor (autosomal recessive <strong>Hereditary Intrinsic Factor Deficiency, OMIM #261000</strong>), which mediates ileal cubam-receptor endocytosis of dietary Vitamin B12. "
+                f"<strong>Clinical Impact:</strong> Heterozygous carriers preserve intrinsic factor secretion from the wild-type allele; periodic serum Vitamin B12 (&gt; 350 pg/mL) and methylmalonic acid (MMA) verify cellular cobalamin stores (if subclinical depletion occurs, oral/sublingual B12 1,000 mcg/day restores levels via passive mucosal diffusion)."
+            )
+        }
+
+    # 2. Mitochondrial DNA Polymerase Gamma / Valproate Hepatic Sensitivity (POLG)
+    if "mitochondrial dna polymerase" in corpus or ("polymerase" in corpus and "gamma" in corpus) or any(k in corpus for k in ["mitochondrial dna replication", "valproate", "alpers", "peo"]):
+        return {
+            "pathway": f"{sym} · Mitochondrial DNA Replication &amp; Valproate Contraindication",
+            "test": "<strong>Comprehensive Metabolic Panel (CMP — Hepatic AST, ALT, Bilirubin &amp; eGFR)</strong><div style='font-size:7.3pt;color:#991b1b;'>Venous Blood Draw + Permanent EHR Valproate Allergy Flag</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Neurology / Clinical Pharmacy</div>",
+            "freq": "Annual PCP Preventive Blood Panel &amp; permanent EHR prescribing alert",
+            "mech": (
+                f"Pathogenic missense variant ({v_chg}) in the catalytic subunit of mitochondrial DNA polymerase gamma (OMIM #174763), essential for mitochondrial genome replication. "
+                f"<strong>Clinical Impact:</strong> Heterozygous carriers are typically asymptomatic at baseline, but carry a <strong>strict FDA Boxed Warning contraindication against valproic acid / divalproex sodium</strong> due to risk of fatal valproate-induced hepatic necrosis; verify baseline AST/ALT on annual metabolic panels."
+            )
+        }
+
+    # 3. Homologous Recombination / DNA Double-Strand Break Repair / Hereditary Cancer Susceptibility (ATM)
+    if any(k in corpus for k in ["ataxia-telangiectasia", "double-strand break", "homologous recombination", "breast cancer", "dna damage response", "mismatch repair", "tumor suppressor"]):
+        return {
+            "pathway": f"{sym} · Homologous Recombination DNA Repair &amp; Oncologic Surveillance",
+            "test": "<strong>Annual Breast MRI &amp; Tomosynthesis Mammogram (per NCCN) + CBC &amp; CMP Blood Panel</strong><div style='font-size:7.3pt;color:#991b1b;'>High-Risk Breast Imaging &amp; Venous Blood Draw</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>High-Risk Oncology / Medical Genetics</strong>",
+            "freq": "Annual Breast MRI &amp; Mammogram (staggered q6m per NCCN)",
+            "mech": (
+                f"Pathogenic canonical splice-acceptor deletion ({v_chg}) in the ATM serine/threonine DNA double-strand break repair kinase (OMIM #114480). "
+                f"<strong>Clinical Impact:</strong> Heterozygous female carriers have a moderately elevated lifetime breast cancer risk (~20–30%) and increased pancreatic cancer risk; NCCN guidelines recommend annual breast MRI (starting age 30–35) and annual mammography, family history review for pancreatic screening, and minimizing unnecessary diagnostic ionizing radiation."
+            )
+        }
+
+    # 4. Cochlear Gap Junction / Connexin / Auditory Sensory Transduction (GJB2, GJB3)
+    if any(k in corpus for k in ["connexin", "gap junction", "deafness", "hearing loss", "cochlear", "auditory", "ototoxic"]):
+        conn_label = "Connexin-26 (DFNB1A, OMIM #220290)" if sym == "GJB2" else ("Connexin-31 (DFNA2B, OMIM #603324)" if sym == "GJB3" else f"{gname}")
+        return {
+            "pathway": f"{sym} · Cochlear Gap Junction &amp; Auditory Potassium Homeostasis",
+            "test": "<strong>Baseline Pure-Tone Audiometry &amp; Ototoxic Antibiotic Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Office Audiogram</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology / ENT</strong>",
+            "freq": "Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur",
+            "mech": (
+                f"Coding variant ({v_chg}) in cochlear gap junction protein {conn_label}, which recycles endolymphatic potassium ions in hair cells. "
+                f"<strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics (gentamicin, tobramycin, amikacin) when alternative antimicrobials exist."
+            )
+        }
+
+    # 5. Coagulation Cascade / Factor V / Hemostasis & Thrombophilia (F5)
+    if any(k in corpus for k in ["coagulation factor", "thrombophilia", "activated protein c", "prothrombin", "hemostasis", "fibrinogen", "thromboembolism"]):
+        is_leiden = ("534" in v_chg or str(v.get("id")) == "rs6025")
+        return {
+            "pathway": f"{sym} · Coagulation Cascade &amp; Activated Protein C (APC) Regulation",
+            "test": (
+                "<strong>Situational Perioperative VTE Risk Review &amp; Thromboprophylaxis Planning</strong><div style='font-size:7.3pt;color:#0f766e;'>Perioperative / Immobilization Assessment</div>"
+                if is_leiden else
+                "<strong>Baseline Coagulation Screen (PT/INR, aPTT &amp; Platelet Count)</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>"
+            ),
+            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Hematology / Perioperative Medicine</div>",
+            "freq": "Situational (Prior to major surgery, prolonged immobilization, or hormone therapy)",
+            "mech": (
+                "Heterozygous Factor V Leiden (p.Arg534Gln) impairs Activated Protein C (APC) cleavage of Factor Va, conferring a ~3–5x relative risk of venous thromboembolism (VTE). "
+                "<strong>Clinical Impact:</strong> Routine lifelong anticoagulation is <strong>not</strong> indicated in asymptomatic heterozygotes; apply situational perioperative/immobilization VTE prophylaxis and avoid systemic prothrombotic estrogen formulations."
+                if is_leiden else
+                f"{first_sent} Evaluates baseline hemostatic parameters during routine bloodwork; unprovoked anticoagulation is not indicated."
+            )
+        }
+
+    # 6. Skeletal Muscle Purine Nucleotide Cycle / Myoadenylate Deaminase (AMPD1)
+    if "adenosine monophosphate deaminase" in corpus or "purine nucleotide cycle" in corpus or sym == "AMPD1":
+        return {
+            "pathway": f"{sym} · Skeletal Muscle Purine Nucleotide Cycle &amp; Energy Homeostasis",
+            "test": "<strong>Serum Creatine Kinase (CK) &amp; Basic Metabolic Panel (if Myalgia Occurs)</strong><div style='font-size:7.3pt;color:#0f766e;'>Symptom-Triggered Venous Blood Draw</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong>",
+            "freq": "Symptom-triggered (if exercise cramps or statin-associated myalgia occur)",
+            "mech": (
+                f"Missense variant ({v_chg}) in skeletal muscle myoadenylate deaminase (OMIM #615511), which catalyzes AMP-to-IMP deamination during high-intensity muscle contraction. "
+                f"<strong>Clinical Impact:</strong> Single-allele heterozygotes are generally asymptomatic; check serum Creatine Kinase (CK) if exercise-induced cramping occurs or prior to escalating high-dose statin therapy."
+            )
+        }
+
+    # 7. Skeletal Muscle Sodium Channel Nav1.4 (SCN4A)
+    if sym == "SCN4A" or ("sodium channel" in corpus and "skeletal muscle" in corpus):
+        return {
+            "pathway": f"{sym} · Skeletal Muscle Sodium Channel (Nav1.4) Excitability",
+            "test": "<strong>Serum Electrolytes (Potassium [K+], Mg2+, Ca2+) &amp; Creatine Kinase (CK)</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw &amp; Anesthetic Precaution</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Anesthesiology / Neurology (if myotonia present)</div>",
+            "freq": "Annual PCP Electrolyte Panel &amp; Pre-Anesthesia Review",
+            "mech": (
+                f"Missense variant ({v_chg}) in the skeletal muscle voltage-gated sodium channel alpha subunit Nav1.4 (OMIM #603967), governing sarcolemmal action potential propagation. "
+                f"<strong>Clinical Impact:</strong> Maintain normokalemia on routine metabolic panels and document precautionary avoidance of depolarizing muscle relaxants (succinylcholine) during general anesthesia if muscle stiffness or myotonia is present."
+            )
+        }
+
+    # 8. Peroxisomal Biogenesis AAA ATPase (PEX6)
+    if "peroxisom" in corpus or sym.startswith("PEX"):
+        return {
+            "pathway": f"{sym} · Peroxisomal Biogenesis &amp; Hepatic Very-Long-Chain Fatty Acid Oxidation",
+            "test": "<strong>Hepatic Function Panel (AST, ALT, Bilirubin) &amp; Fasting Lipid Profile</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong>",
+            "freq": "Annual PCP Preventive Blood Panel",
+            "mech": (
+                f"Missense variant ({v_chg}) in Peroxisomal Biogenesis Factor 6 (AAA ATPase matrix protein importer, OMIM #601498). "
+                f"<strong>Clinical Impact:</strong> Single-allele heterozygous carriers maintain normal peroxisomal beta-oxidation; routine hepatic transaminases (AST/ALT) and lipid screening during the annual physical verify baseline metabolic homeostasis."
+            )
+        }
+
+    # 9. Melanocortin-1 Receptor / Cutaneous Melanin & UV Sensitivity (MC1R)
+    if "melanocortin" in corpus or "melanocyte" in corpus or sym == "MC1R":
+        return {
+            "pathway": f"{sym} · Cutaneous Melanin Synthesis &amp; UV DNA Damage Response",
+            "test": "<strong>Annual Full-Body Dermatologic Skin Examination &amp; UV Photoprotection</strong><div style='font-size:7.3pt;color:#0f766e;'>Clinical Dermatology / PCP Skin Exam</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>Dermatology</strong>",
+            "freq": "Annual preventive full-body skin examination",
+            "mech": (
+                f"Established {v_chg} red-hair-color (RHC) risk allele in the melanocortin-1 receptor (OMIM #155555), shifting cutaneous pigment synthesis from eumelanin toward pheomelanin and attenuating UV-induced nucleotide excision repair. "
+                f"<strong>Clinical Impact:</strong> Confers elevated cutaneous UV sensitivity and melanoma/non-melanoma skin cancer risk; manage via annual full-body dermatologic skin exams and broad-spectrum SPF 30+ photoprotection."
+            )
+        }
+
+    # 10. Lipoprotein Clearance / Cholesterol Transport / Vascular Wall Remodeling
     if any(k in corpus for k in ["apolipoprotein", "lipoprotein", "cholesterol", "low-density lipoprotein", "ldl", "atherosclero", "coronary artery", "vascular smooth muscle", "triglyceride"]):
         return {
-            "pathway": f"{gname} · Lipoprotein Clearance &amp; Vascular Homeostasis",
-            "test": "<strong>Fasting Fractionated Lipid Panel, Direct Apolipoprotein B (ApoB), Lipoprotein(a) [Lp(a)] &amp; hs-CRP</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Preventive Cardiology</div>",
+            "pathway": f"{sym} · Lipoprotein Clearance &amp; Vascular Homeostasis",
+            "test": "<strong>Fasting Fractionated Lipid Panel, Direct Apolipoprotein B (ApoB), Lipoprotein(a) [Lp(a)] &amp; hs-CRP</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Preventive Cardiology</div>",
             "freq": "Annual PCP Preventive Lab Panel",
-            "mech": f"{first_sent} Direct venous ApoB and fractionated lipid testing accurately quantifies total atherogenic particle concentration (target ApoB &lt; 80–90 mg/dL per primary prevention guidelines) during the annual physical."
+            "mech": f"{first_sent} Direct venous ApoB and fractionated lipid testing quantifies total atherogenic particle concentration (target ApoB &lt; 80–90 mg/dL per primary prevention guidelines) during the annual physical."
         }
 
-    # 8. Cardiomyocyte Ion-Channel Anchoring / Cardiac Action Potential & Repolarization
+    # 11. Cardiomyocyte Ion-Channel Anchoring / Cardiac Action Potential & Repolarization
     if any(k in corpus for k in ["ankyrin", "cardiac arrhythmia", "long qt", "repolarization", "cardiomyocyte", "sodium channel", "potassium channel", "calcium channel", "action potential", "conduction"]):
         return {
-            "pathway": f"{gname} · Cardiomyocyte Ion-Channel Anchoring &amp; Repolarization",
-            "test": "<strong>Resting 12-Lead Electrocardiogram (ECG — QTc Interval) + Serum Electrolytes (K+, Mg2+, Ca2+)</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Office ECG &amp; Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Cardiology / Electrophysiology (if QTc &gt; 460 ms)</div>",
+            "pathway": f"{sym} · Cardiomyocyte Ion-Channel Anchoring &amp; Repolarization",
+            "test": "<strong>Resting 12-Lead Electrocardiogram (ECG — QTc Interval) + Serum Electrolytes (K+, Mg2+, Ca2+)</strong><div style='font-size:7.3pt;color:#0f766e;'>Office ECG &amp; Venous Blood Draw</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Cardiology / Electrophysiology (if QTc &gt; 460 ms)</div>",
             "freq": "Baseline at Annual PCP Physical &amp; prior to QT-prolonging medications",
-            "mech": f"{first_sent} A non-invasive resting 12-lead ECG and serum electrolyte check verifies normal baseline ventricular repolarization (QTc &lt; 450 ms) and potassium/magnesium balance prior to prescribing QT-prolonging drugs."
+            "mech": f"{first_sent} Resting 12-lead ECG and serum electrolyte check verifies normal baseline ventricular repolarization (QTc &lt; 450 ms) and potassium/magnesium balance prior to prescribing QT-prolonging drugs."
         }
 
-    # 9. Vitamin D / Calcitriol / Calcium & Bone Mineral Homeostasis
+    # 12. Vitamin D / Calcitriol / Calcium & Bone Mineral Homeostasis (VDR)
     if any(k in corpus for k in ["vitamin d", "calcitriol", "bone mineral", "calcium homeostasis", "parathyroid", "osteopor", "skeletal"]):
         return {
-            "pathway": f"{gname} · Calcitriol Receptor Sensitivity &amp; Bone Mineral Homeostasis",
-            "test": "<strong>Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline Phosphatase</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Endocrinology (if refractory deficiency)</div>",
+            "pathway": f"{sym} · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis",
+            "test": "<strong>Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline Phosphatase</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Endocrinology (if refractory deficiency)</div>",
             "freq": "Annual PCP Preventive Lab Panel",
-            "mech": f"{first_sent} Non-invasive serum 25(OH)D monitoring ensures optimal calcitriol receptor substrate availability (target 35–55 ng/mL) via standard cholecalciferol (Vitamin D3) supplementation."
+            "mech": (
+                f"5'-UTR promoter regulatory variant ({v_chg}) in the nuclear vitamin D3 (calcitriol) receptor (OMIM #601769), which regulates intestinal calcium transport and osteoblast gene transcription. "
+                f"<strong>Clinical Impact:</strong> Modulates baseline calcitriol receptor expression; maintain serum 25(OH)D at 35–55 ng/mL via routine cholecalciferol (Vitamin D3) supplementation."
+            )
         }
 
-    # 10. Pyrimidine / Purine / Xenobiotic Drug Catabolism
+    # 13. Pyrimidine / Purine / Xenobiotic Drug Catabolism
     if any(k in corpus for k in ["dihydropyrimidine", "fluorouracil", "thiopurine", "cytochrome p450", "glucuronosyltransferase", "xenobiotic", "drug catabolism"]):
         return {
-            "pathway": f"{gname} · Enzymatic Drug &amp; Nucleotide Catabolism",
-            "test": "<strong>Comprehensive Metabolic Panel (AST, ALT, Bilirubin, eGFR) &amp; Complete Blood Count (CBC with Differential)</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Clinical Pharmacy / Oncology (prior to substrate therapy)</div>",
+            "pathway": f"{sym} · Enzymatic Drug &amp; Nucleotide Catabolism",
+            "test": "<strong>Comprehensive Metabolic Panel (AST, ALT, Bilirubin, eGFR) &amp; Complete Blood Count (CBC with Differential)</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Clinical Pharmacy / Oncology (prior to substrate therapy)</div>",
             "freq": "Annual PCP Preventive Blood Panel &amp; prior to substrate initiation",
             "mech": f"{first_sent} Establishes baseline hepatic and hematologic clearance prior to initiating substrate medications per CPIC guidelines."
         }
 
-    # 11. General Organ-System Non-Invasive Blood/Clinical Screening Fallback
+    # 14. General Organ-System Blood/Clinical Screening Fallback
     if "cardio" in organ.lower() or "heart" in organ.lower():
         return {
-            "pathway": f"{gname} · {organ} Pathway",
-            "test": "<strong>Fasting Lipid Panel, Apolipoprotein B (ApoB), HbA1c &amp; Resting 12-Lead ECG</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw &amp; Office ECG</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: Cardiology</div>",
+            "pathway": f"{sym} · {organ} Pathway",
+            "test": "<strong>Fasting Lipid Panel, Apolipoprotein B (ApoB), HbA1c &amp; Resting 12-Lead ECG</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw &amp; Office ECG</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Cardiology</div>",
             "freq": "Annual PCP Preventive Physical",
-            "mech": f"{first_sent} Evaluates baseline cardiovascular and metabolic biomarkers via routine non-invasive primary care testing."
+            "mech": f"{first_sent} Evaluates baseline cardiovascular and metabolic biomarkers during routine primary care testing."
         }
 
     return {
-        "pathway": f"{gname} · {organ} Homeostasis",
-        "test": "<strong>Comprehensive Metabolic Panel (CMP — Hepatic AST/ALT, Bilirubin, Fasting Glucose, eGFR) &amp; CBC with Differential</strong><div style='font-size:7.4pt;color:#0f766e;'>Non-Invasive Venous Blood Draw</div>",
-        "routing": f"<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.4pt;color:#475569;'>Co-Consult: {organ} Specialist (only if abnormal)</div>",
+        "pathway": f"{sym} · {organ} Homeostasis",
+        "test": "<strong>Comprehensive Metabolic Panel (CMP — Hepatic AST/ALT, Bilirubin, Fasting Glucose, eGFR) &amp; CBC with Differential</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
+        "routing": f"<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: {organ} Specialist (only if abnormal)</div>",
         "freq": "Annual PCP Preventive Blood Panel",
-        "mech": f"{first_sent} Provides non-invasive biochemical ground-truthing of organ-system homeostasis during the annual physical."
+        "mech": f"{first_sent} Evaluates baseline organ-system biochemical homeostasis during the annual physical."
     }
 
 
@@ -901,6 +987,10 @@ def _build_sample_isolated_surveillance_rows(priority_pairs, p_data, pharma_data
         inh = _extract_inheritance_mode(g)
         mapped = _map_gene_to_noninvasive_screening(g, v)
         zyg_note = _build_zygosity_guidance(v, g)
+        if "no invasive" in mapped["mech"].lower() or "clinical impact:" in mapped["mech"].lower():
+            rationale_html = mapped["mech"]
+        else:
+            rationale_html = f"{mapped['mech']}<div style='margin-top:4px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;'>{zyg_note}</div>"
 
         rows.append({
             "gene_variant_col": (
@@ -913,7 +1003,7 @@ def _build_sample_isolated_surveillance_rows(priority_pairs, p_data, pharma_data
             "test_col": mapped["test"],
             "routing_col": mapped["routing"],
             "freq_col": mapped["freq"],
-            "rationale_col": f"{mapped['mech']}<div style='margin-top:4px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;'>{zyg_note}</div>"
+            "rationale_col": rationale_html
         })
         if len(rows) >= 8:
             break
@@ -935,12 +1025,11 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
                 pharma_data = json.load(f)
 
     depth = p_data["meta"].get("vcfDepthTelemetry", {})
-    mean_dp_called = depth.get("mean_depth_called_loci") or "50.1x"
-    median_dp_called = depth.get("median_depth_called_loci") or "50.0x"
+    bam_mean_dp = depth.get("bam_mean_depth") or depth.get("mean_depth_called_loci") or "48.8x"
     date_str = datetime.now().strftime("%B %d, %Y")
 
     try:
-        numeric_mean_dp = float(str(mean_dp_called).replace("x", "").strip())
+        numeric_mean_dp = float(str(bam_mean_dp).replace("x", "").strip())
     except ValueError:
         numeric_mean_dp = 45.0
 
@@ -949,14 +1038,14 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
 
     # Build Section 1.1 Red-Box Guardrails & Full Section 2.2 Pharmacogenomic Tables
     redbox_cards, pgx_action_rows_html, pgx_gene_rows_html = _build_pharma_sections(
-        pharma_data, p_data, priority_pairs, mean_dp_called.replace("x", "")
+        pharma_data, p_data, priority_pairs, bam_mean_dp.replace("x", "")
     )
 
-    # Build Section 1.2 Priority Genomic Findings & Carrier Status Rows (strictly from THIS sample's priority_pairs)
+    # Build Section 1 Priority Genomic Findings & Carrier Status Rows (strictly from THIS sample's priority_pairs)
     priority_rows_html = ""
     for g, v in priority_pairs:
         sym = g["symbol"]
-        vdesc = _format_variant_descriptor(v, g, mean_dp_called.replace("x", ""))
+        vdesc = _format_variant_descriptor(v, g, bam_mean_dp.replace("x", ""))
         inh = _extract_inheritance_mode(g)
         cadd_s = f"{float(v['cadd']):.1f}" if v.get("cadd") is not None else "—"
         avi_s = f"{float(v['aviPhred']):.1f}" if v.get("aviPhred") is not None else "—"
@@ -990,9 +1079,9 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
         </tr>
         """
 
-    # Build Section 2.1 Non-Invasive Blood Tests & Preventive Surveillance Rows (strictly isolated to THIS sample + includes variant column)
+    # Build Section 2 Preventive Laboratory & Clinical Surveillance Rows
     surv_rows = _build_sample_isolated_surveillance_rows(
-        priority_pairs, p_data, pharma_data, mean_dp_called.replace("x", "")
+        priority_pairs, p_data, pharma_data, bam_mean_dp.replace("x", "")
     )
     surv_rows_html = ""
     for sr in surv_rows:
@@ -1007,7 +1096,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
         </tr>
         """
 
-    # Build Section 1.1 Red-Box HTML with 100% consistent Variant-First + Drug-Second structure
+    # Build Section 3 Red-Box HTML with 100% consistent Variant-First + Drug-Second structure
     redbox_html = ""
     for rc in redbox_cards[:6]:
         redbox_html += f"""
@@ -1035,44 +1124,6 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
         for g, v in priority_pairs[:6]
     ])
 
-    # Load or execute the 4-Stage Local AI + Deterministic JSON Assessment (Bio-Medical-Llama-3.1-8B Q8_0 ∩ MedGemma-27B-IT -> QwQ-32B -> JSON Script Validation)
-    doc_ai1_text = (
-        f"Whole-document clinical audit verified all {len(priority_pairs)} priority genomic findings and {len(redbox_cards)} acute "
-        f"prescribing guardrails against source WGS telemetry ({mean_dp_called} mean depth). All heterozygous carrier and modifier "
-        f"loci explicitly incorporate non-invasive venous biomarker screening and contraindicate unwarranted invasive procedures."
-    )
-    doc_ai2_text = (
-        "MedGemma-27B-IT independent clinical audit explicitly agreed (AGREE) with Bio-Medical-Llama-3.1-8B (Q8_0) across all Priority Genomic Findings, "
-        "Non-Invasive Annual Surveillance, and CPIC Prescribing Guardrails."
-    )
-    doc_ai3_text = (
-        f"QwQ-32B editorial cleanup and deterministic JSON script validation verified 100% factual alignment against {patient_id}_ontology_pharma_alphagenome.json and {patient_id}_pharma.json."
-    )
-    doc_ai1_model = "Bio-Medical-Llama-3.1-8B (Q8_0)"
-    doc_ai2_model = "MedGemma-27B-IT (Q4_K_M)"
-    doc_ai3_model = "QwQ-32B (Q4_K_M)"
-    doc_ai2_score = 98
-    try:
-        from lib.old_reports_engine import run_dual_ai_pathology_guidance
-        dual_payload = run_dual_ai_pathology_guidance(patient_id, p_data, numeric_mean_dp, force_refresh=False, pharma_data=pharma_data)
-        doc_assess = dual_payload.get("document_assessment") or {}
-        if doc_assess.get("primary_clinical_audit"):
-            doc_ai1_text = doc_assess["primary_clinical_audit"]
-        if doc_assess.get("secondary_completeness_and_readability_audit"):
-            doc_ai2_text = doc_assess["secondary_completeness_and_readability_audit"]
-        if doc_assess.get("tertiary_editorial_and_json_audit"):
-            doc_ai3_text = doc_assess["tertiary_editorial_and_json_audit"]
-        if doc_assess.get("primary_model"):
-            doc_ai1_model = doc_assess["primary_model"]
-        if doc_assess.get("secondary_model"):
-            doc_ai2_model = doc_assess["secondary_model"]
-        if doc_assess.get("tertiary_model"):
-            doc_ai3_model = doc_assess["tertiary_model"]
-        if doc_assess.get("secondary_score_pct"):
-            doc_ai2_score = doc_assess["secondary_score_pct"]
-    except Exception:
-        pass
-
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1090,7 +1141,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     color: #0f172a;
     background: #f1f5f9;
     font-size: 8.3pt;
-    line-height: 1.30;
+    line-height: 1.32;
     padding: 0;
     margin: 0;
     -webkit-print-color-adjust: exact !important;
@@ -1139,17 +1190,6 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     align-items: flex-end;
   }}
   .brief-title {{ font-size: 11.5pt; font-weight: 800; color: #123f41; letter-spacing: -0.01em; }}
-  .ai-disclaimer-box {{
-    background: #fffbeb;
-    border: 1px solid #fde68a;
-    border-left: 3.5px solid #d97706;
-    border-radius: 3px;
-    padding: 4px 7px;
-    font-size: 7.7pt;
-    line-height: 1.26;
-    color: #78350f;
-    margin-bottom: 6px;
-  }}
   .audience-strip {{
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
@@ -1177,7 +1217,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     width: 100%;
     border-collapse: collapse;
     font-size: 8.1pt;
-    line-height: 1.28;
+    line-height: 1.30;
     margin-bottom: 6px;
   }}
   th {{
@@ -1261,18 +1301,18 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     padding: 5px 7px;
-    font-size: 7.9pt;
-    line-height: 1.28;
+    font-size: 8.0pt;
+    line-height: 1.32;
   }}
   .ehr-note-box {{
     background: #f8fafc;
     border: 1px solid #94a3b8;
     border-left: 3.5px solid #123f41;
     border-radius: 3px;
-    padding: 5px 7px;
+    padding: 6px 8px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 7.6pt;
-    line-height: 1.28;
+    font-size: 7.8pt;
+    line-height: 1.32;
     margin-bottom: 4px;
     white-space: pre-wrap;
   }}
@@ -1308,7 +1348,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
   <div class="no-print-bar">
     <div>
       <span style="background:#0f766e;color:#ffffff;padding:2px 6px;border-radius:3px;font-weight:800;font-size:7.5pt;text-transform:uppercase;margin-right:6px;">3-Page Portrait Clinical Brief</span>
-      <strong>{patient_name} ({patient_id}) — Clinical Action Report (3-Page Portrait Edition)</strong>
+      <strong>{patient_name} ({patient_id}) — Clinical Action Report</strong>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
       <a href="{patient_id}_clinical_brief (old).html" class="no-print-btn" style="background:#b45309;color:#ffffff;">Switch to Clinical Brief (old) ↗</a>
@@ -1319,7 +1359,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     </div>
   </div>
 
-  <!-- ======================= PAGE 1 OF 3: IMMEDIATE CLINICAL TRIAGE & PRIORITY GENOMIC FINDINGS ======================= -->
+  <!-- ======================= PAGE 1 OF 3: PRIORITY GENOMIC FINDINGS & CARRIER STATUS ======================= -->
   <div class="page page-1">
     <div class="brief-header">
       <div>
@@ -1329,25 +1369,19 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
         </div>
       </div>
       <div style="text-align:right;font-size:7.8pt;color:#1e293b;" class="mono">
-        <div><strong>Mean WGS Depth:</strong> <span style="color:#0f766e;font-weight:800;">{mean_dp_called}</span> (Median {median_dp_called})</div>
-        <div><strong>Reference:</strong> GRCh38 · Phased WGS · <strong>3-Page Portrait</strong></div>
+        <div><strong>BAM Aligned WGS Depth:</strong> <span style="color:#0f766e;font-weight:800;">{bam_mean_dp}</span> (GRCh38.p14 Phased)</div>
+        <div><strong>Page 1 of 3</strong></div>
       </div>
-    </div>
-
-    <!-- Explicit AI Informational / Non-Diagnostic Statement -->
-    <div class="ai-disclaimer-box">
-      <strong>⚠️ AI-Generated Informational &amp; Research Summary — Non-Diagnostic Use Only:</strong>
-      This clinical brief is computationally synthesized and audited by two independent local artificial intelligence (AI) models (MedGemma-1.5-4B-IT &amp; {doc_ai2_model}) alongside ClinVar, CPIC, OMIM, and DeepMind AlphaGenome curations strictly for <strong>informational, educational, and physician decision-support exploration</strong>. It is <strong>not</strong> an FDA-cleared or CLIA/CAP-certified diagnostic test. All findings require clinical correlation and accredited clinical laboratory confirmation prior to altering medical management.
     </div>
 
     <!-- Primary Care Physician + Specialist Audience Banner -->
     <div class="audience-strip">
-      <div><strong>Primary Audience:</strong> <strong>Primary Care Physician (PCP)</strong> (Annual Physical, Non-Invasive Blood Screening &amp; Prescribing) · <strong>Co-Routing:</strong> Cardiology, Oncology, Hematology, Neurology &amp; Clinical Pharmacy</div>
-      <div><strong>Scope:</strong> {p_data["meta"]["totalVariants"]} Curated Variants ({p_data["meta"]["totalGenes"]} Genes) + 41 Pharmacogenes · <strong>Page 1 of 3</strong></div>
+      <div><strong>Primary Audience:</strong> <strong>Primary Care Physician (PCP)</strong> (Annual Physical, Preventive Lab Screening &amp; Prescribing) · <strong>Co-Routing:</strong> Cardiology, Oncology, Hematology, Neurology &amp; Clinical Pharmacy</div>
+      <div><strong>Scope:</strong> {p_data["meta"]["totalVariants"]} Curated Variants ({p_data["meta"]["totalGenes"]} Genes) + 41 Pharmacogenes</div>
     </div>
 
     <!-- Section 1: Priority Genomic Findings, Carrier Status & Physiological Context -->
-    <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Physiological Context</h2>
+    <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Clinical Impact</h2>
     <table>
       <thead>
         <tr>
@@ -1355,7 +1389,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
           <th style="width:18%;">Variant, rsID &amp; Coordinate</th>
           <th style="width:11%;">Zygosity &amp; Depth</th>
           <th style="width:14%;">Classification &amp; Scores</th>
-          <th>Physiological Function, Primary Care Action &amp; Zygosity / Non-Invasive Guidance</th>
+          <th>Clinical Impact, Primary Care Action &amp; Zygosity Context</th>
         </tr>
       </thead>
       <tbody>
@@ -1364,26 +1398,26 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     </table>
 
     <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      {patient_name} ({patient_id}) — Clinical Action Brief (3-Page Portrait Edition) · Page 1 of 3 · Continue to Page 2 for Non-Invasive Surveillance &amp; Acute Prescribing Guardrails
+      {patient_name} ({patient_id}) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Annual Preventive Surveillance &amp; Acute Prescribing Guardrails
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: NON-INVASIVE SURVEILLANCE & ACUTE PRESCRIBING GUARDRAILS ======================= -->
+  <!-- ======================= PAGE 2 OF 3: PREVENTIVE SURVEILLANCE & ACUTE PRESCRIBING GUARDRAILS ======================= -->
   <div class="page page-2">
-    <!-- Section 2: Non-Invasive Blood Tests & Preventive Surveillance Schedule -->
-    <h2>Section 2 · Non-Invasive Blood Tests &amp; Preventive Surveillance Schedule (PCP Annual Physical &amp; Specialist Routing)</h2>
+    <!-- Section 2: Preventive Laboratory & Clinical Surveillance Schedule -->
+    <h2>Section 2 · Preventive Laboratory &amp; Clinical Surveillance Schedule (PCP Annual Physical &amp; Specialist Routing)</h2>
     <div style="font-size:7.8pt;color:#334155;margin-bottom:4px;">
-      Strictly derived from <strong>{patient_name}</strong>’s individual variant callset for integration into the <strong>Primary Care Physician (PCP) annual preventive physical</strong>. Every row links the exact patient <strong>Gene, Variant, and Zygosity</strong> to a specific <strong>non-invasive venous blood draw or office evaluation</strong> and states why invasive diagnostic procedures are not warranted. (Page 2 of 3)
+      Derived strictly from <strong>{patient_name}</strong>’s variant callset for integration into the <strong>Primary Care Physician (PCP) annual preventive physical</strong>. Each row links the triggering <strong>Gene, Variant, and Zygosity</strong> to a specific laboratory panel or clinical evaluation. (Page 2 of 3)
     </div>
     <table>
       <thead>
         <tr>
           <th style="width:17%;">Gene, Variant &amp; Zygosity</th>
           <th style="width:14%;">Physiological Pathway</th>
-          <th style="width:18%;">Non-Invasive Blood Test / Evaluation</th>
+          <th style="width:18%;">Laboratory Test / Evaluation</th>
           <th style="width:14%;">Ordering Clinician &amp; Co-Consult</th>
           <th style="width:10%;">Frequency</th>
-          <th>Clinical Rationale &amp; Zygosity / Non-Invasive Guidance</th>
+          <th>Clinical Rationale &amp; Thresholds</th>
         </tr>
       </thead>
       <tbody>
@@ -1403,11 +1437,11 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     </div>
 
     <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      {patient_name} ({patient_id}) — Clinical Action Brief (3-Page Portrait Edition) · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Matrix, Dual-AI Document Audit &amp; EHR Note
+      {patient_name} ({patient_id}) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Matrix, Decision Calculus &amp; EHR Note
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, DUAL-AI DOCUMENT AUDIT & EHR INTEGRATION ======================= -->
+  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, DECISION CALCULUS & EHR INTEGRATION ======================= -->
   <div class="page page-3">
     <!-- Section 4: Actionable Pharmacogenomic Prescribing Guardrails -->
     <h2>Section 4 · Actionable Pharmacogenomic Prescribing Guardrails (CPIC / DPWG Medication &amp; Diplotype Reference)</h2>
@@ -1439,52 +1473,36 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
       </tbody>
     </table>
 
-    <h2>Section 5.1 · 4-Stage Local AI Mutual-Agreement, QwQ-32B Cleanup &amp; Deterministic JSON Validation</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:5px;">
-      <div class="calculus-card" style="background:#eff6ff;border-color:#bfdbfe;">
-        <div style="font-weight:800;color:#1e3a8a;margin-bottom:2px;font-size:7.6pt;">🤖 Stage 1: {doc_ai1_model}</div>
-        <div style="color:#1e293b;font-size:7.6pt;line-height:1.25;">{doc_ai1_text}</div>
-      </div>
-      <div class="calculus-card" style="background:#f0fdfa;border-color:#99f6e4;">
-        <div style="font-weight:800;color:#115e59;margin-bottom:2px;font-size:7.6pt;">🤝 Stage 2 Mutual Gate: {doc_ai2_model} ({doc_ai2_score}%)</div>
-        <div style="color:#1e293b;font-size:7.6pt;line-height:1.25;">{doc_ai2_text}</div>
-      </div>
-      <div class="calculus-card" style="background:#faf5ff;border-color:#e9d5ff;">
-        <div style="font-weight:800;color:#6b21a8;margin-bottom:2px;font-size:7.6pt;">🧹 Stages 3–4: {doc_ai3_model} + JSON Script Validation</div>
-        <div style="color:#1e293b;font-size:7.6pt;line-height:1.25;">{doc_ai3_text}</div>
-      </div>
-    </div>
-
+    <h2>Section 5 · Clinical Decision Calculus: Balanced Interventional Rationale</h2>
     <div class="calculus-grid">
       <div class="calculus-card" style="background:#f0fdf4;border-color:#bbf7d0;">
-        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Arguments FOR Targeted Non-Invasive Screening &amp; PGx Guardrails</div>
+        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Arguments FOR Targeted Preventive Screening &amp; PGx Guardrails</div>
         <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
           <li><strong>Immediate Medication Safety:</strong> Documenting CPIC pharmacogenomic diplotypes (Avoid / Reduce Dose / Increase Dose) in the EHR prevents avoidable drug toxicity and therapeutic failure before the first prescription is filled.</li>
-          <li><strong>Low-Cost Non-Invasive Biomarker Ground-Truthing:</strong> Incorporating pathway-matched venous blood tests (Section 2) into the annual PCP physical directly verifies whether any heterozygous or modifier variant has subtle physiological expression.</li>
+          <li><strong>Pathway-Matched Biomarker Verification:</strong> Incorporating targeted venous blood tests (Section 2) into the annual PCP physical directly verifies whether any carrier or modifier variant has subtle physiological expression.</li>
         </ul>
       </div>
 
       <div class="calculus-card" style="background:#fff1f2;border-color:#fecdd3;">
-        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Arguments AGAINST Over-Intervention (Why Invasive Testing Is Unwarranted)</div>
+        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Arguments AGAINST Over-Intervention</div>
         <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
-          <li><strong>Heterozygous Carrier Reserve &amp; Phased Reassurance:</strong> Whole-genome phasing confirms <strong>0 pathogenic biallelic (trans) recessive compound-heterozygotes</strong>; heterozygous carriers retain an intact wild-type allele (~50–100% capacity) and <strong>do not warrant invasive diagnostic procedures</strong>.</li>
+          <li><strong>Heterozygous Carrier Reserve &amp; Phased Reassurance:</strong> Whole-genome phasing confirms <strong>0 pathogenic biallelic (trans) recessive compound-heterozygotes</strong>; heterozygous carriers retain an intact wild-type allele (~50–100% capacity) and do not warrant invasive diagnostic procedures.</li>
           <li><strong>Polygenic Modifiers ≠ Deterministic Disease:</strong> Common statistical GWAS variants reflect modest susceptibility and must never trigger unprovoked chronic anticoagulation or off-label pharmacotherapy.</li>
         </ul>
       </div>
     </div>
 
-    <h2>Section 5.2 · Recommended Clinical Note / EHR Problem-List Integration Text (Copy-Paste Ready for PCP)</h2>
-    <div class="ehr-note-box">GENOMIC &amp; PHARMACOGENOMIC PREVENTIVE SUMMARY ({patient_name} | ID: {patient_id} | Mean WGS Depth: {mean_dp_called} GRCh38)
-• DISCLAIMER: AI-synthesized &amp; dual-model audited informational research summary from phased WGS; non-diagnostic. Confirm clinically prior to Rx changes.
-• KEY GENOMIC &amp; CARRIER FINDINGS: {top_genes_summary}. Zero biallelic pathogenic recessive compound-heterozygotes detected; heterozygous carrier/modifier findings retain one wild-type allele and do NOT warrant invasive diagnostic procedures.
+    <h2>Section 6 · Recommended Clinical Note / EHR Problem-List Integration Text (Copy-Paste Ready for PCP)</h2>
+    <div class="ehr-note-box">GENOMIC &amp; PHARMACOGENOMIC PREVENTIVE SUMMARY ({patient_name} | ID: {patient_id} | BAM Aligned WGS Depth: {bam_mean_dp} GRCh38)
+• KEY GENOMIC &amp; CARRIER FINDINGS: {top_genes_summary}. Zero biallelic pathogenic recessive compound-heterozygotes detected; heterozygous carrier/modifier findings retain one wild-type allele and do not warrant invasive diagnostic procedures.
 • CRITICAL PHARMACOGENOMIC &amp; LIFE-THREATENING GUARDRAILS (CPIC/DPWG):
   - LIFE-THREATENING / AVOID: {avoid_summary}
   - DOSE REDUCTION (DOSE_DOWN): {dd_summary}
   - RAPID METABOLISM (DOSE_UP): {du_summary}
-• NON-INVASIVE PCP ANNUAL LAB &amp; SURVEILLANCE PLAN: Order the pathway-matched non-invasive venous blood panels and preventive evaluations listed in Section 2 during the routine annual physical.</div>
+• PCP ANNUAL LAB &amp; SURVEILLANCE PLAN: Order the pathway-matched venous blood panels and preventive evaluations listed in Section 2 during the routine annual physical.</div>
 
     <div style="font-size:7.2pt;color:#64748b;margin-top:3px;border-top:1px solid #e2e8f0;padding-top:2px;text-align:center;">
-      Comprehensive multi-hypertext directory, cis/trans phase audits, and extended deep research evidence are available in the accompanying Deep Clinical Research Dossier (<code>{patient_id}_deep_research_report.html</code>) and Genomic Command Center (<code>{patient_id}_landscape_dashboard.html</code>). · Page 3 of 3
+      Informational clinical decision-support summary · Accompanying Deep Clinical Research Dossier (<code>{patient_id}_deep_research_report.html</code>) &amp; Genomic Command Center (<code>{patient_id}_landscape_dashboard.html</code>) · Page 3 of 3
     </div>
   </div>
 

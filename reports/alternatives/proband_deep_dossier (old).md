@@ -1,13 +1,13 @@
 # Clinical Genomics Evidence & Deep Research Dossier (old): PROBAND_01
 **Patient / Sample Identifier:** `PROBAND_01` | **Pipeline Version:** v5.3 (Determinative Edition) | **Report Date:** October 12, 2026
-**Genomic Reference:** GRCh38.p14 | **Sequencing Modality:** Whole-Genome Sequencing (WGS, 50.11x mean depth, Median 50.0x, GBZ pan-genome aligned)
+**Genomic Reference:** GRCh38.p14 | **Sequencing Modality:** Whole-Genome Sequencing (WGS, 48.8x mean depth, Median 50.0x, GBZ pan-genome aligned)
 
 > [!IMPORTANT]
 > **AI-Generated Clinical Research Synthesis — Non-Diagnostic Research Use Only**
 > This report is computationally synthesized using local open-weight models and is intended strictly for exploratory genomic research, variant prioritization, and informational purposes only. It is **not** an in vitro diagnostic test, does not constitute medical advice or clinical diagnosis, and is not intended for direct clinical management, prognosis, or therapeutic prescription. AlphaGenome Atlas annotations are not intended for clinical or diagnostic purposes; predicted variant impact scores represent computational deep learning estimates.
 
 ### Orientation: What We Are Covering
-This clinical genomics evidence synthesis evaluates a broad exploratory screening corpus of 1,408 prioritized candidate variants across 1,003 genes derived from a 50.11x mean depth (Median 50.0x) whole-genome sequencing (WGS) pipeline for PROBAND_01. To prevent cognitive bias and diagnostic over-interpretation, this report enforces rigorous domain segregation across **Monogenic Pathogenic Alleles**, **Actionable Pharmacogenomics**, **Secondary Organ-System Modifiers**, and **Endogenous Protective Factors**. Within this cohort, orthogonal consensus between established human disease databases (ClinVar, OMIM, ClinGen) and biological foundation models (DeepMind AlphaGenome, AlphaMissense, CADD, SpliceAI) identifies **two definitive pathogenic monogenic carrier states** (*CBLIF* `c.79+1G>A` and *GJB2* `p.Met34Thr`) and one homozygous regulatory modifier (*VDR* `c.-1172A>G`), alongside critical pharmacogenomic considerations (*DPYD*, *NAT2*, *VKORC1*, *CYP2C9*).
+This clinical genomics evidence synthesis evaluates a broad exploratory screening corpus of 1,408 prioritized candidate variants across 1,003 genes derived from a 48.8x mean depth (Median 50.0x) whole-genome sequencing (WGS) pipeline for PROBAND_01. To prevent cognitive bias and diagnostic over-interpretation, this report enforces rigorous domain segregation across **Monogenic Pathogenic Alleles**, **Actionable Pharmacogenomics**, **Secondary Organ-System Modifiers**, and **Endogenous Protective Factors**. Within this cohort, orthogonal consensus between established human disease databases (ClinVar, OMIM, ClinGen) and biological foundation models (DeepMind AlphaGenome, AlphaMissense, CADD, SpliceAI) identifies **two definitive pathogenic monogenic carrier states** (*CBLIF* `c.79+1G>A` and *GJB2* `p.Met34Thr`) and one homozygous regulatory modifier (*VDR* `c.-1172A>G`), alongside critical pharmacogenomic considerations (*DPYD*, *NAT2*, *VKORC1*, *CYP2C9*).
 
 ### Body: Deep Evidence Synthesis
 
@@ -111,14 +111,14 @@ flowchart TD
 3. **Statistical Nature of Polygenic and AI Predictors:** In silico scores (AlphaGenome AVI, CADD, REVEL) reflect evolutionary and biophysical constraint; they do not establish clinical penetrance in a specific patient in the absence of clinical symptoms.
 
 #### Patient Profile & Methodological Baseline
-* **Analytical Modality:** 50.11x mean depth (Median 50.0x) short-read WGS (150 bp paired-end) aligned against the panSN GBZ pan-genome graph reference.
+* **Analytical Modality:** 48.8x mean depth (Median 50.0x) short-read WGS (150 bp paired-end) aligned against the panSN GBZ pan-genome graph reference.
 * **Quality Metrics:** >99.4% genome coverage at $\ge$15x depth; callable SNV precision >99.8%. Low-level mosaicism (<10% VAF) and balanced structural rearrangements are not definitively excluded.
 
 ### Confidence & Uncertainty Assessment
 
 ##### Analytical Callset Confidence
 **98%**
-High-depth 50.11x mean depth (Median 50.0x) WGS callset aligned against panSN GBZ pan-genome graph; >99.8% callable SNV precision across high-confidence benchmark regions.
+High-depth 48.8x mean depth (Median 50.0x) WGS callset aligned against panSN GBZ pan-genome graph; >99.8% callable SNV precision across high-confidence benchmark regions.
 
 ##### Primary Pathogenic Carrier Status Confidence (*CBLIF*, *GJB2*)
 **95%**

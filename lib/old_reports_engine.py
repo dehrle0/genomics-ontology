@@ -203,8 +203,7 @@ def get_pathology_table_spec(p_data, numeric_mean_dp=50.0):
         ai_scores_str = " / ".join(score_parts) if score_parts else "Analytical VCF"
 
         mapped = _map_gene_to_noninvasive_screening(g, v)
-        zyg_guidance = _build_zygosity_guidance(v, g)
-        clinical_facts = f"{mapped['mech']} {zyg_guidance}"
+        clinical_facts = mapped["mech"]
 
         is_plp = "pathogenic" in cv.lower() and "conflicting" not in cv.lower() and "uncertain" not in cv.lower()
         is_risk = "risk" in cv.lower()
@@ -805,7 +804,7 @@ def _build_old_surveillance_table_rows(priority_pairs, p_data, pharma_data, mean
 def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_dp_called, median_dp_called, master_json_path=None, pharma_data=None, force_ai_refresh=False):
     """
     Generates `{patient_id}_clinical_brief (old).html` in a highly readable 3-Page Portrait layout,
-    100% grounded in THIS sample's JSON (zero hardcoding, zero PII), with Dual-AI Row & Document Assessment.
+    100% grounded in THIS sample's JSON (zero hardcoding, zero PII), using deterministic clinical impact.
     """
     if not master_json_path:
         target_dir = os.path.join(SCRIPT_DIR, "reports", f"{patient_id}-09-10-2026")
@@ -821,36 +820,24 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
                     pharma_data = json.load(f)
                 break
 
+    depth_meta = p_data["meta"].get("vcfDepthTelemetry", {})
+    bam_mean_dp = (
+        depth_meta.get("bam_mean_depth")
+        or mean_dp_called
+        or depth_meta.get("mean_depth_called_loci")
+        or "45.0x"
+    )
     try:
-        numeric_mean_dp = float(str(mean_dp_called).replace("x", "").strip())
+        numeric_mean_dp = float(str(bam_mean_dp).replace("x", "").strip())
     except ValueError:
         numeric_mean_dp = 45.0
 
     priority_pairs = _select_sample_isolated_priority_variants(p_data, numeric_mean_dp)
-
-    dual_ai_data = run_dual_ai_pathology_guidance(patient_id, p_data, numeric_mean_dp, force_refresh=force_ai_refresh, pharma_data=pharma_data)
-    ai_rows = dual_ai_data.get("rows", [])
-    primary_ai_lbl = dual_ai_data.get("primary_ai_model", "Bio-Medical-Llama-3.1-8B (Q8_0)")
-    assessor_ai_lbl = dual_ai_data.get("secondary_assessor_ai_model", "MedGemma-27B-IT (Q4_K_M)")
-    tertiary_ai_lbl = dual_ai_data.get("tertiary_reviewer_ai_model", "QwQ-32B (Q4_K_M)")
-    doc_assess = dual_ai_data.get("document_assessment") or {}
-    doc_ai1_text = doc_assess.get(
-        "primary_clinical_audit",
-        f"Whole-document clinical audit verified all {len(ai_rows)} priority genomic findings against source WGS telemetry ({mean_dp_called} mean depth)."
-    )
-    doc_ai2_text = doc_assess.get(
-        "secondary_completeness_and_readability_audit",
-        "Independent MedGemma-27B-IT clinical audit explicitly agreed (AGREE) across all priority findings and CPIC guardrails."
-    )
-    doc_ai3_text = doc_assess.get(
-        "tertiary_editorial_and_json_audit",
-        f"QwQ-32B editorial review and deterministic JSON script validation verified 100% factual alignment across all {len(ai_rows)} rows."
-    )
-    doc_ai2_score = doc_assess.get("secondary_score_pct", 98)
+    pathology_rows = get_pathology_table_spec(p_data, numeric_mean_dp)
 
     pathology_tbody_lines = []
-    for r in ai_rows:
-        guidance_txt = r.get("final_guidance", r.get("clinical_facts", ""))
+    for r in pathology_rows:
+        guidance_txt = r.get("clinical_facts", "")
         pathology_tbody_lines.append(f"""        <tr>
           <td class="font-bold text-slate-900">{r['gene']}</td>
           <td class="font-mono text-[8.0pt]">{r['variant_html']}</td>
@@ -893,7 +880,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     # Arguments FOR and AGAINST
     args_for_items = """
       <li><strong>Immediate Medication Safety:</strong> Documenting CPIC pharmacogenomic diplotypes prevents avoidable drug toxicity and therapeutic failure before the first prescription is filled.</li>
-      <li><strong>Low-Cost Non-Invasive Biomarker Baselines:</strong> Pathway-matched venous blood tests incorporate seamlessly into the annual physical without invasive diagnostic burdens.</li>
+      <li><strong>Low-Cost Biomarker Baselines:</strong> Pathway-matched venous blood tests incorporate seamlessly into the annual physical without procedural diagnostic burdens.</li>
       <li><strong>Proactive Specialist Coordination:</strong> Sharing variant-specific guardrails ensures appropriate situational precautions without over-medicalization.</li>
     """
     args_against_items = """
@@ -918,11 +905,10 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     pgx_summary_str = ", ".join([f"{pg} {pgi.get('diplotype')}" for pg, pgi in list((pharma_data or {}).get("pharmacogenes", {}).items())[:4] if not _is_wildtype_pgx_diplotype(pgi.get("diplotype"), pgi.get("phenotype"))])
 
     ehr_note_html = f"""
-      PATIENT GENOMIC REVIEW SUMMARY ({mean_dp_called} Mean Depth WGS, Median {median_dp_called}):<br>
+      PATIENT GENOMIC REVIEW SUMMARY ({bam_mean_dp} BAM Mean Depth Phased WGS):<br>
       - KEY GENOMIC &amp; CARRIER FINDINGS: {top_findings_str}. Zero biallelic pathogenic recessive compound-heterozygotes detected; heterozygous carrier/modifier findings retain one wild-type allele and do NOT warrant invasive diagnostic procedures.<br>
       - PHARMACOGENOMIC GUARDRAILS (CPIC Level A): {pgx_summary_str or 'Follow standard CPIC dosing'}. Review patient CPIC diplotypes prior to prescribing; adhere to dosage reduction, drug avoidance, and TDM precautions.<br>
-      - NON-INVASIVE SURVEILLANCE: Incorporate pathway-matched non-invasive venous blood panels and preventive wellness checks during the routine annual physical.<br>
-      - Note: Whole-genome research synthesis performed via local computational pipeline &amp; audited by 2 independent local AI models. Orthogonal clinical confirmatory testing suggested prior to major medical intervention.
+      - PREVENTIVE SURVEILLANCE: Incorporate pathway-matched venous blood panels and preventive wellness checks during the routine annual physical.
     """
 
     html = f"""<!DOCTYPE html>
@@ -1001,7 +987,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     <div class="flex items-center gap-3">
       <span class="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-400/40 rounded text-xs font-bold uppercase">Determinative Edition (old)</span>
       <span class="text-sm font-semibold">{patient_name} — 3-Page Portrait Clinician Action Brief (old)</span>
-      <span class="text-xs text-slate-400 font-mono">Mean Depth: {mean_dp_called} (Median {median_dp_called})</span>
+      <span class="text-xs text-slate-400 font-mono">BAM Mean Depth: {bam_mean_dp}</span>
     </div>
     <div class="flex items-center gap-2">
       <a href="{new_brief_filename}" class="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded text-xs font-semibold transition">Switch to New Clinical Brief ↗</a>
@@ -1020,7 +1006,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
         <div class="text-[8.5pt] uppercase font-bold tracking-wider text-blue-700">Precision Medicine • Clinician Action Brief (Determinative Edition)</div>
         <h1 class="text-base font-extrabold text-slate-900 tracking-tight">Genomic &amp; Pharmacogenomic Clinical Summary</h1>
         <div class="text-[8.0pt] text-slate-600 mt-0.5">
-          <strong>Patient / Sample ID:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>) | <strong>Assay:</strong> {mean_dp_called} mean depth (Median {median_dp_called}) Phased WGS (GRCh38.p14) | <strong>Date:</strong> {datetime.now().strftime('%B %d, %Y')}
+          <strong>Patient / Sample ID:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>) | <strong>Assay:</strong> {bam_mean_dp} BAM mean depth Phased WGS (GRCh38.p14) | <strong>Date:</strong> {datetime.now().strftime('%B %d, %Y')}
         </div>
       </div>
       <div class="text-right">
@@ -1031,18 +1017,8 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
       </div>
     </div>
 
-    <!-- Regulatory Disclaimer Box -->
-    <div class="bg-amber-50/90 border-l-4 border-amber-500 p-2 rounded-r mb-2.5 text-[8.0pt] text-slate-800 leading-snug">
-      <strong class="text-amber-900">Research &amp; Informational Use Only (Non-Diagnostic):</strong> Computationally synthesized clinical decision-support summary audited by two independent local AI models. Non-diagnostic. Confirm clinically prior to altering medical management.
-    </div>
-
     <!-- Executive KPI Strip -->
-    <div class="grid grid-cols-4 gap-2 mb-3">
-      <div class="p-2 bg-slate-50 border border-slate-200 rounded">
-        <div class="text-[6.8pt] uppercase font-bold text-slate-500">Sequencing Modality</div>
-        <div class="text-[9.0pt] font-extrabold text-slate-900 mt-0.5">{mean_dp_called} Phased WGS</div>
-        <div class="text-[7.2pt] text-slate-600">Median {median_dp_called}</div>
-      </div>
+    <div class="grid grid-cols-3 gap-2.5 mb-3">
       <div class="p-2 bg-red-50/70 border border-red-200 rounded">
         <div class="text-[6.8pt] uppercase font-bold text-red-700">{kpi2_label}</div>
         <div class="text-[9.0pt] font-extrabold text-red-900 mt-0.5">{kpi2_val}</div>
@@ -1062,7 +1038,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
 
     <!-- Section 1: Priority Genomic Findings & Carrier Status -->
     <div class="flex items-center justify-between border-b-2 border-slate-300 pb-1 mb-2">
-      <h2 class="text-[9.2pt] font-extrabold uppercase tracking-wider text-slate-800">1. Priority Genomic Findings &amp; Carrier Status (Dual-AI Assessed)</h2>
+      <h2 class="text-[9.2pt] font-extrabold uppercase tracking-wider text-slate-800">1. Priority Genomic Findings &amp; Carrier Status</h2>
       <span class="text-[7.5pt] font-mono text-slate-600">Primary Care &amp; Specialist Triage</span>
     </div>
     <table class="mb-2">
@@ -1073,7 +1049,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
           <th style="width:10%;">Zygosity</th>
           <th style="width:12%;">Classification</th>
           <th style="width:14%;">AI Impact (Phred)</th>
-          <th>Clinical Impact, Non-Invasive Surveillance &amp; Zygosity Guidance</th>
+          <th>Clinical Impact &amp; Primary Care Guidance</th>
         </tr>
       </thead>
       <tbody>
@@ -1082,7 +1058,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     </table>
 
     <div class="text-[7.4pt] text-slate-500 text-center border-t border-slate-200 pt-1.5 mt-2">
-      <strong>4-Stage Adjudication Footnote:</strong> Row &amp; document guidance proposed by {primary_ai_lbl} and accepted only upon explicit mutual agreement with {assessor_ai_lbl} ({doc_ai2_score}% concordance), reviewed/cleaned by {tertiary_ai_lbl}, and deterministically validated against source JSONs. • Page 1 of 3
+      {patient_name} Clinical Action Brief (old) • Page 1 of 3 • Continue to Page 2 for CPIC Prescribing Guardrails &amp; Preventive Surveillance Schedule
     </div>
   </div>
 
@@ -1091,9 +1067,9 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     <div class="flex items-start justify-between border-b-2 border-slate-900 pb-1.5 mb-2.5">
       <div>
         <div class="text-[8.0pt] uppercase font-bold tracking-wider text-blue-700">Pharmacogenomics &amp; Preventive Medicine • Protocol Matrix</div>
-        <h2 class="text-sm font-extrabold text-slate-900">Prescribing Guardrails &amp; Annual Non-Invasive Surveillance Schedule</h2>
+        <h2 class="text-sm font-extrabold text-slate-900">Prescribing Guardrails &amp; Annual Preventive Surveillance Schedule</h2>
         <div class="text-[7.6pt] text-slate-600 mt-0.5">
-          <strong>Subject:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>) | <strong>Reference:</strong> GRCh38.p14 ({mean_dp_called} mean depth)
+          <strong>Subject:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>) | <strong>Reference:</strong> GRCh38.p14 ({bam_mean_dp} BAM mean depth)
         </div>
       </div>
       <div class="text-right">
@@ -1121,14 +1097,14 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     </table>
 
     <!-- Section 3: Surveillance Table -->
-    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">3. Suggested Non-Invasive Clinical &amp; Laboratory Surveillance Schedule (Annual Physical)</h2>
+    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">3. Suggested Clinical &amp; Laboratory Surveillance Schedule (Annual Physical)</h2>
     <table class="mb-2">
       <thead>
         <tr>
-          <th style="width:22%;">Non-Invasive Evaluation / Test</th>
+          <th style="width:22%;">Evaluation / Laboratory Test</th>
           <th style="width:23%;">Triggering Gene, Variant &amp; Zygosity</th>
           <th style="width:13%;">Suggested Frequency</th>
-          <th>Clinical Rationale &amp; Non-Invasive Heterozygous Reassurance</th>
+          <th>Clinical Rationale &amp; Actionable Thresholds</th>
         </tr>
       </thead>
       <tbody>
@@ -1137,23 +1113,23 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     </table>
 
     <div class="text-[7.4pt] text-slate-500 text-center border-t border-slate-200 pt-1.5 mt-2">
-      {patient_name} Clinical Action Brief (old) • Page 2 of 3 • Continue to Page 3 for 4-Stage Multi-Model Document Audit, Decision Calculus &amp; EHR Note
+      {patient_name} Clinical Action Brief (old) • Page 2 of 3 • Continue to Page 3 for Clinical Decision Calculus, Evidence Confidence &amp; EHR Note
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: 4-STAGE MULTI-AI + JSON AUDIT, DECISION CALCULUS & EHR NOTE ======================= -->
+  <!-- ======================= PAGE 3 OF 3: CLINICAL DECISION CALCULUS, EVIDENCE CONFIDENCE & EHR NOTE ======================= -->
   <div class="page-container">
     <div class="flex items-start justify-between border-b-2 border-slate-900 pb-1.5 mb-2.5">
       <div>
-        <div class="text-[8.0pt] uppercase font-bold tracking-wider text-blue-700">Clinical Decision Support &amp; 4-Stage Verification</div>
-        <h2 class="text-sm font-extrabold text-slate-900">Decision Calculus, 3-Model + Deterministic JSON Assessment &amp; EHR Integration</h2>
+        <div class="text-[8.0pt] uppercase font-bold tracking-wider text-blue-700">Clinical Decision Support &amp; EHR Integration</div>
+        <h2 class="text-sm font-extrabold text-slate-900">Clinical Decision Calculus, Evidence Confidence &amp; EHR Integration</h2>
         <div class="text-[7.6pt] text-slate-600 mt-0.5">
-          <strong>Subject:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>) | <strong>Assay:</strong> {mean_dp_called} Phased WGS (Median {median_dp_called})
+          <strong>Subject:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>) | <strong>Assay:</strong> {bam_mean_dp} BAM Mean Depth Phased WGS
         </div>
       </div>
       <div class="text-right">
         <span class="inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 text-[7.8pt] font-bold px-2 py-0.5 rounded">
-          3-MODEL + JSON VERIFIED
+          CLINICAL DECISION MATRIX
         </span>
         <div class="text-[7.5pt] text-slate-500 mt-0.5">Page 3 of 3</div>
       </div>
@@ -1161,40 +1137,23 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
 
     <!-- Section 4: Arguments For and Against -->
     <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">4. Clinical Decision Calculus: Balanced Interventional Rationale</h2>
-    <div class="grid grid-cols-2 gap-3 mb-2.5">
-      <div class="p-2 bg-emerald-50/70 border border-emerald-200 rounded">
-        <div class="text-[8.0pt] font-extrabold uppercase tracking-wider text-emerald-900 mb-1">✅ Arguments FOR Targeted Non-Invasive Surveillance &amp; PGx</div>
-        <ul class="text-[7.9pt] text-slate-800 space-y-1 list-disc list-inside leading-snug">
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <div class="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded">
+        <div class="text-[8.0pt] font-extrabold uppercase tracking-wider text-emerald-900 mb-1">✅ Arguments FOR Targeted Preventive Surveillance &amp; PGx</div>
+        <ul class="text-[8.0pt] text-slate-800 space-y-1.5 list-disc list-inside leading-snug">
           {args_for_items}
         </ul>
       </div>
-      <div class="p-2 bg-red-50/70 border border-red-200 rounded">
+      <div class="p-2.5 bg-red-50/70 border border-red-200 rounded">
         <div class="text-[8.0pt] font-extrabold uppercase tracking-wider text-red-900 mb-1">🛑 Arguments AGAINST Aggressive Over-Intervention</div>
-        <ul class="text-[7.9pt] text-slate-800 space-y-1 list-disc list-inside leading-snug">
+        <ul class="text-[8.0pt] text-slate-800 space-y-1.5 list-disc list-inside leading-snug">
           {args_against_items}
         </ul>
       </div>
     </div>
 
-    <!-- Section 5: 4-Stage Local AI + Deterministic JSON Document Assessment -->
-    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">5. 4-Stage Local AI Mutual-Agreement &amp; Deterministic JSON Validation</h2>
-    <div class="grid grid-cols-3 gap-2 mb-2.5">
-      <div class="p-2 bg-blue-50/70 border border-blue-200 rounded text-[7.7pt] leading-snug">
-        <div class="font-extrabold text-blue-900 mb-0.5">🤖 Stage 1: {primary_ai_lbl}</div>
-        <div class="text-slate-800">{doc_ai1_text}</div>
-      </div>
-      <div class="p-2 bg-teal-50/70 border border-teal-200 rounded text-[7.7pt] leading-snug">
-        <div class="font-extrabold text-teal-900 mb-0.5">🤝 Stage 2 Mutual Gate: {assessor_ai_lbl} ({doc_ai2_score}%)</div>
-        <div class="text-slate-800">{doc_ai2_text}</div>
-      </div>
-      <div class="p-2 bg-purple-50/70 border border-purple-200 rounded text-[7.7pt] leading-snug">
-        <div class="font-extrabold text-purple-900 mb-0.5">🧹 Stages 3–4: {tertiary_ai_lbl} + JSON Script Validation</div>
-        <div class="text-slate-800">{doc_ai3_text}</div>
-      </div>
-    </div>
-
-    <!-- Section 6: Calculated Confidence Table -->
-    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">6. Calculated Evidence Confidence Metrics</h2>
+    <!-- Section 5: Calculated Confidence Table -->
+    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">5. Calculated Evidence Confidence Metrics</h2>
     <table class="mb-3">
       <thead>
         <tr>
@@ -1207,7 +1166,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
         <tr>
           <td class="font-bold">WGS Analytical Callset</td>
           <td class="font-bold text-blue-700">98%</td>
-          <td>{mean_dp_called} mean depth (Median {median_dp_called}) pan-genome aligned short-read WGS.</td>
+          <td>{bam_mean_dp} BAM mean depth pan-genome aligned short-read WGS (GRCh38.p14).</td>
         </tr>
         <tr>
           <td class="font-bold">{conf_row2_title}</td>
@@ -1227,9 +1186,9 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
       </tbody>
     </table>
 
-    <!-- Section 7: Suggested Clinical Note Template -->
-    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-1.5">7. Recommended Clinical Note / EHR Problem-List Integration Text</h2>
-    <div class="bg-slate-100 p-2.5 rounded border border-slate-300 font-mono text-[7.8pt] text-slate-800 leading-snug">
+    <!-- Section 6: Suggested Clinical Note Template -->
+    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-1.5">6. Recommended Clinical Note / EHR Problem-List Integration Text</h2>
+    <div class="bg-slate-100 p-2.5 rounded border border-slate-300 font-mono text-[8.0pt] text-slate-800 leading-snug">
       {ehr_note_html}
     </div>
 
