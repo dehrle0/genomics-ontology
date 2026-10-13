@@ -25,26 +25,26 @@ flowchart TD
 
 | Gene | Variant (HGVS.p / HGVS.c) | Coordinate & rsID | Zygosity | ClinVar Classification | CADD (Phred) | REVEL | AlphaGenome AVI (Phred) | Disease Association & Accession |
 | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- |
-| **CBLIF** | `c.79+1G>A · rs147785187` | `chr11:59845374` rs147785187 | Heterozygous | **Pathogenic** | 32.0 | — | **33.9** (Splicing) | CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism [VCV439755] |
-| **GJB2** | `p.Met34Thr · c.101T>C · rs35887622` | `chr13:20189481` rs35887622 | Heterozygous | **Pathogenic** | 20.9 | 0.702 | **23.6** (Cactus) | GJB2 · Cochlear Gap Junction &amp; Auditory Homeostasis [VCV17000] |
-| **VDR** | `c.-1172A>G · rs4516035` | `chr12:47906043` rs4516035 | Homozygous | **Likely pathogenic** | 5.4 | — | **2.1** (DNASE-seq) | VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis [VCV3336650] |
+| **CBLIF** | `c.79+1G>A · rs147785187` | `chr11:59845374` rs147785187 | Heterozygous | **Pathogenic** | 32.0 | — | **33.9** (Splicing) | CBLIF · Vitamin B12 (Cobalamin) &amp; Folate Absorption [VCV439755] |
+| **GJB2** | `p.Met34Thr · c.101T>C · rs35887622` | `chr13:20189481` rs35887622 | Heterozygous | **Pathogenic** | 20.9 | 0.702 | **23.6** (Cactus) | GJB2 · Cochlear Gap Junction &amp; Hearing Health [VCV17000] |
+| **VDR** | `c.-1172A>G · rs4516035` | `chr12:47906043` rs4516035 | Homozygous | **Likely pathogenic** | 5.4 | — | **2.1** (DNASE-seq) | VDR · Vitamin D Signaling &amp; Bone Health [VCV3336650] |
 
 ##### Detailed Evidence Dossiers
 
 ###### 1. *CBLIF* `c.79+1G>A · rs147785187` (CBLIF)
 * **Molecular Impact & In Silico Concordance:** Coordinate `chr11:59845374` (rs147785187); CADD **32.0**, REVEL **—**, AlphaGenome AVI **33.9 (Splicing)**.
-* **Clinical Phenotype & Inheritance:** CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism (Autosomal Recessive). Canonical splice-site variant (c.79+1G>A) in CBLIF (autosomal recessive Intrinsic Factor Deficiency / Cobalamin Malabsorption (OMIM #261000)). This gene is a member of the cobalamin transport protein family. It encodes a glycoprotein secreted by parietal cells of the gastric mucosa and is required for adequate absorption of vitamin B12. Clinical Impact: Heterozygous carriers preserve intrinsic factor secretion from the wild-type allele; periodic serum Vitamin B12 (&gt; 350 pg/mL) and methylmalonic acid (MMA) verify cellular cobalamin stores.
-* **Suggested Next Steps:** Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCVVenous Blood Draw (Baseline at Annual PCP Physical; repeat every 1–2 years).
+* **Clinical Phenotype & Inheritance:** CBLIF · Vitamin B12 (Cobalamin) &amp; Folate Absorption (Autosomal Recessive). Canonical splice-site variant (c.79+1G>A) in CBLIF (autosomal recessive Intrinsic Factor Deficiency / Cobalamin Malabsorption (OMIM #261000)). This gene is a member of the cobalamin transport protein family. It encodes a glycoprotein secreted by parietal cells of the gastric mucosa and is required for adequate absorption of vitamin B12. Clinical Impact: Heterozygous carriers preserve intrinsic factor production from the functional allele; periodic Vitamin B12 checks during routine physicals help confirm healthy cellular stores.
+* **Suggested Next Steps:** Periodic Vitamin B12 &amp; Folate CheckRoutine Wellness Lab Panel (Routine Annual or Biennial Checkup).
 
 ###### 2. *GJB2* `p.Met34Thr · c.101T>C · rs35887622` (GJB2)
 * **Molecular Impact & In Silico Concordance:** Coordinate `chr13:20189481` (rs35887622); CADD **20.9**, REVEL **0.702**, AlphaGenome AVI **23.6 (Cactus)**.
-* **Clinical Phenotype & Inheritance:** GJB2 · Cochlear Gap Junction &amp; Auditory Homeostasis (Autosomal Recessive, Autosomal Dominant). Coding missense variant (p.Met34Thr) in GJB2 (Autosomal Recessive Deafness 1A / Dominant 3A (OMIM #121011)). This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. Clinical Impact: Heterozygous carriers typically maintain normal adult hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics when alternatives exist.
-* **Suggested Next Steps:** Baseline Pure-Tone Audiometry &amp; Ototoxic Antibiotic PrecautionOffice Audiogram (Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur).
+* **Clinical Phenotype & Inheritance:** GJB2 · Cochlear Gap Junction &amp; Hearing Health (Autosomal Recessive, Autosomal Dominant). Coding missense variant (p.Met34Thr) in GJB2 (Autosomal Recessive Deafness 1A / Dominant 3A (OMIM #121011)). This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. Clinical Impact: Heterozygous carriers typically maintain normal adult hearing; consider a baseline hearing check and avoid unnecessary ototoxic aminoglycoside antibiotics when alternatives exist.
+* **Suggested Next Steps:** Baseline Hearing Check &amp; Ototoxic Medication PrecautionRoutine Preventive Care (Baseline check; repeat if symptoms arise).
 
 ###### 3. *VDR* `c.-1172A>G · rs4516035` (VDR)
 * **Molecular Impact & In Silico Concordance:** Coordinate `chr12:47906043` (rs4516035); CADD **5.4**, REVEL **—**, AlphaGenome AVI **2.1 (DNASE-seq)**.
-* **Clinical Phenotype & Inheritance:** VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis (Pathway Modifier). Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. Clinical Impact: Modulates baseline calcitriol receptor transcriptional activity; maintain serum 25(OH)D at 35–55 ng/mL via routine cholecalciferol (Vitamin D3) supplementation.
-* **Suggested Next Steps:** Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline PhosphataseVenous Blood Draw (Annual PCP Preventive Lab Panel).
+* **Clinical Phenotype & Inheritance:** VDR · Vitamin D Signaling &amp; Bone Health (Pathway Modifier). Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. Clinical Impact: Modulates Vitamin D receptor signaling; checking routine Vitamin D levels at the annual physical helps guide standard supplementation.
+* **Suggested Next Steps:** Routine Vitamin D &amp; Calcium CheckAnnual Wellness Panel (Annual PCP Checkup).
 
 #### 3. Actionable Pharmacogenomics & Toxicogenomics
 *Ordering Logic: Grouped by CPIC Level A/B evidence classification and substrate severity.*
@@ -65,14 +65,14 @@ flowchart TD
 
 | Gene | Variant (HGVS.p / HGVS.c) | Coordinate & rsID | Zygosity | ClinVar Classification | CADD (Phred) | REVEL | AlphaGenome AVI (Phred) | Organ System & Clinical Context |
 | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- |
-| **F5** | `p.Arg534Gln · c.1601G>A · rs6025` | `chr1:169549811` rs6025 | Heterozygous | drug response | 27.9 | — | **23.6** (Cactus) | Multisystem — F5 · Coagulation Cascade &amp; Activated Protein C (APC) Regulation |
-| **PEX6** | `p.Val788Met · c.2362G>A · rs267608240` | `chr6:42966044` rs267608240 | Heterozygous | Conflicting classifications of pathogenicity | 35.0 | 0.921 | **32.3** (Cactus) | Heart & Cardiovascular — PEX6 · Peroxisomal Biogenesis &amp; Hepatic Fatty Acid Oxidation |
-| **GJB3** | `p.Arg75Cys · c.223C>T · rs370476720` | `chr1:34784985` rs370476720 | Heterozygous | Conflicting classifications of pathogenicity | 26.2 | 0.943 | **32.4** (AlphaMissense) | Heart & Cardiovascular — GJB3 · Cochlear Gap Junction &amp; Auditory Homeostasis |
-| **SCN4A** | `p.His599Arg · c.1796A>G · rs187401185` | `chr17:63961242` rs187401185 | Heterozygous | Conflicting classifications of pathogenicity | 24.4 | 0.925 | **27.8** (AlphaMissense) | Heart & Cardiovascular — SCN4A · Skeletal Muscle Voltage-Gated Sodium Channel Excitability |
-| **ALKBH3** | `p.Arg70Ter · c.208C>T · rs145265812` | `chr11:43884007` rs145265812 | Heterozygous | Not reviewed | 40.0 | — | **41.3** (Protein Termination) | Multisystem — ALKBH3 · DNA Double-Strand Break Repair &amp; Oncologic Surveillance |
-| **NSMCE1** | `p.Cys231Tyr · c.692G>A · rs774697446` | `chr16:27225755` rs774697446 | Heterozygous | Uncertain significance | 25.6 | 0.937 | **30.6** (AlphaMissense) | Multisystem — NSMCE1 · DNA Double-Strand Break Repair &amp; Oncologic Surveillance |
-| **FASTKD1** | `p.Ser768Ter · c.2303C>G · rs34291832` | `chr2:169531376` rs34291832 | Heterozygous | Benign | 39.0 | — | **35.5** (Protein Termination) | Multisystem — FASTKD1 · Multisystem Homeostasis (FASTKD1 pathway) |
-| **ELOVL7** | `p.Ser79Tyr · c.236C>A · rs368309905` | `chr5:60771922` rs368309905 | Heterozygous | Not reviewed | 27.5 | 0.695 | **31.4** (AlphaMissense) | Multisystem — ELOVL7 · Multisystem Homeostasis (ELOVL7 pathway) |
+| **F5** | `p.Arg534Gln · c.1601G>A · rs6025` | `chr1:169549811` rs6025 | Heterozygous | drug response | 27.9 | — | **23.6** (Cactus) | Multisystem — F5 · Blood Coagulation &amp; Clot Risk Management |
+| **PEX6** | `p.Val788Met · c.2362G>A · rs267608240` | `chr6:42966044` rs267608240 | Heterozygous | Conflicting classifications of pathogenicity | 35.0 | 0.921 | **32.3** (Cactus) | Heart & Cardiovascular — PEX6 · Peroxisomal &amp; Lipid Metabolism |
+| **GJB3** | `p.Arg75Cys · c.223C>T · rs370476720` | `chr1:34784985` rs370476720 | Heterozygous | Conflicting classifications of pathogenicity | 26.2 | 0.943 | **32.4** (AlphaMissense) | Heart & Cardiovascular — GJB3 · Cochlear Gap Junction &amp; Hearing Health |
+| **SCN4A** | `p.His599Arg · c.1796A>G · rs187401185` | `chr17:63961242` rs187401185 | Heterozygous | Conflicting classifications of pathogenicity | 24.4 | 0.925 | **27.8** (AlphaMissense) | Heart & Cardiovascular — SCN4A · Skeletal Muscle Ion-Channel Function |
+| **ALKBH3** | `p.Arg70Ter · c.208C>T · rs145265812` | `chr11:43884007` rs145265812 | Heterozygous | Not reviewed | 40.0 | — | **41.3** (Protein Termination) | Multisystem — ALKBH3 · DNA Repair &amp; Hereditary Cancer Screening |
+| **NSMCE1** | `p.Cys231Tyr · c.692G>A · rs774697446` | `chr16:27225755` rs774697446 | Heterozygous | Uncertain significance | 25.6 | 0.937 | **30.6** (AlphaMissense) | Multisystem — NSMCE1 · DNA Repair &amp; Hereditary Cancer Screening |
+| **FASTKD1** | `p.Ser768Ter · c.2303C>G · rs34291832` | `chr2:169531376` rs34291832 | Heterozygous | Benign | 39.0 | — | **35.5** (Protein Termination) | Multisystem — FASTKD1 · Multisystem Pathway (FASTKD1 pathway) |
+| **ELOVL7** | `p.Ser79Tyr · c.236C>A · rs368309905` | `chr5:60771922` rs368309905 | Heterozygous | Not reviewed | 27.5 | 0.695 | **31.4** (AlphaMissense) | Multisystem — ELOVL7 · Multisystem Pathway (ELOVL7 pathway) |
 
 #### 5. Endogenous Protective & Longevity Factors
 *Ordering Logic: Strictly validated against source JSON and grounded in epidemiological literature.*
@@ -121,9 +121,9 @@ Population-level statistical GWAS meta-analyses requiring longitudinal clinical 
 ### Opportunities: High-Yield Clinical Next Steps
 1. **Clinical Confirmation Suggestion:** Consider clinical confirmation (such as targeted clinical genotyping or specialist consultation) before incorporating research findings into formal medical management.
 2. **Targeted Non-Invasive Surveillance Discussions:**
-   - **CBLIF (CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism):** Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCVVenous Blood Draw (Baseline at Annual PCP Physical; repeat every 1–2 years).
-   - **GJB2 (GJB2 · Cochlear Gap Junction &amp; Auditory Homeostasis):** Baseline Pure-Tone Audiometry &amp; Ototoxic Antibiotic PrecautionOffice Audiogram (Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur).
-   - **VDR (VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis):** Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline PhosphataseVenous Blood Draw (Annual PCP Preventive Lab Panel).
+   - **CBLIF (CBLIF · Vitamin B12 (Cobalamin) &amp; Folate Absorption):** Periodic Vitamin B12 &amp; Folate CheckRoutine Wellness Lab Panel (Routine Annual or Biennial Checkup).
+   - **GJB2 (GJB2 · Cochlear Gap Junction &amp; Hearing Health):** Baseline Hearing Check &amp; Ototoxic Medication PrecautionRoutine Preventive Care (Baseline check; repeat if symptoms arise).
+   - **VDR (VDR · Vitamin D Signaling &amp; Bone Health):** Routine Vitamin D &amp; Calcium CheckAnnual Wellness Panel (Annual PCP Checkup).
 3. **Annual Pipeline Re-Annotation:** Re-analyze callset annually against updated ClinVar consensus curations and future DeepMind AlphaGenome releases.
 
 ---

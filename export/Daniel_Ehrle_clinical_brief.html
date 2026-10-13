@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clinical Genomics Action Report — Daniel Ehrle (Daniel_Ehrle)</title>
+<title>Clinical Genomics Action Brief — Daniel Ehrle (Daniel_Ehrle)</title>
 <style>
   @page {
     size: letter portrait;
@@ -58,24 +58,22 @@
   .brief-header {
     border-bottom: 2px solid #123f41;
     padding-bottom: 4px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
   }
   .brief-title { font-size: 11.5pt; font-weight: 800; color: #123f41; letter-spacing: -0.01em; }
-  .audience-strip {
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    border-radius: 3px;
-    padding: 4px 7px;
-    font-size: 7.7pt;
-    color: #334155;
+  .exec-summary-box {
+    background: #f0fdfa;
+    border: 1px solid #99f6e4;
+    border-left: 3.5px solid #0f766e;
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 8.0pt;
+    color: #0f172a;
     margin-bottom: 6px;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 4px;
+    line-height: 1.32;
   }
   h2 {
     font-size: 9.0pt;
@@ -85,14 +83,14 @@
     letter-spacing: 0.02em;
     border-bottom: 1.5px solid #cbd5e1;
     padding-bottom: 2px;
-    margin: 6px 0 4px 0;
+    margin: 5px 0 4px 0;
   }
   table {
     width: 100%;
     border-collapse: collapse;
     font-size: 8.1pt;
     line-height: 1.30;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
   th {
     background: #f1f5f9;
@@ -114,7 +112,7 @@
     background: #fef2f2;
     border-radius: 4px;
     padding: 5px 7px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
   .redbox-title {
     font-size: 8.6pt;
@@ -169,7 +167,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
   .calculus-card {
     border: 1px solid #cbd5e1;
@@ -221,218 +219,198 @@
   <!-- Top Action Toolbar (Hidden in Print/PDF) -->
   <div class="no-print-bar">
     <div>
-      <span style="background:#0f766e;color:#ffffff;padding:2px 6px;border-radius:3px;font-weight:800;font-size:7.5pt;text-transform:uppercase;margin-right:6px;">3-Page Portrait Clinical Brief</span>
-      <strong>Daniel Ehrle (Daniel_Ehrle) — Clinical Action Report</strong>
+      <span style="background:#0f766e;color:#ffffff;padding:2px 6px;border-radius:3px;font-weight:800;font-size:7.5pt;text-transform:uppercase;margin-right:6px;">Clinical Action Brief</span>
+      <strong>Daniel Ehrle (Daniel_Ehrle) — Genomic &amp; Pharmacogenomic Summary</strong>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-      <a href="Daniel_Ehrle_clinical_brief (old).html" class="no-print-btn" style="background:#b45309;color:#ffffff;">Switch to Clinical Brief (old) ↗</a>
-      <a href="Daniel_Ehrle_deep_research_report.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Deep Research (New)</a>
+      <a href="Daniel_Ehrle_clinical_brief (old).html" class="no-print-btn" style="background:#b45309;color:#ffffff;">Switch to Deterministic Baseline (old) ↗</a>
+      <a href="Daniel_Ehrle_deep_research_report.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Deep Research Report</a>
       <a href="Daniel_Ehrle_landscape_dashboard.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Command Center</a>
       <button onclick="window.print()" class="no-print-btn" style="background:#2563eb;color:#ffffff;">🖨️ Print Report</button>
       <a href="Daniel_Ehrle_clinical_brief.pdf" target="_blank" download="Daniel_Ehrle_clinical_brief.pdf" class="no-print-btn" style="background:#059669;color:#ffffff;">📥 Save / Open PDF</a>
     </div>
   </div>
 
-  <!-- ======================= PAGE 1 OF 3: PRIORITY GENOMIC FINDINGS & CARRIER STATUS ======================= -->
+  <!-- ======================= PAGE 1 OF 3: EXECUTIVE OVERVIEW & PRIORITY GENOMIC FINDINGS ======================= -->
   <div class="page page-1">
     <div class="brief-header">
       <div>
-        <div class="brief-title">GENOMICS CLINICAL ACTION REPORT &amp; PREVENTIVE SURVEILLANCE SUMMARY</div>
+        <div class="brief-title">CLINICAL GENOMICS &amp; PHARMACOGENOMICS ACTION BRIEF</div>
         <div style="font-size:8.2pt;color:#334155;margin-top:2px;">
-          <strong>Patient:</strong> Daniel Ehrle (<span class="mono">Daniel_Ehrle</span>) · <strong>Date:</strong> October 12, 2026
+          <strong>Patient:</strong> Daniel Ehrle (<span class="mono">Daniel_Ehrle</span>) · <strong>Date:</strong> October 12, 2026 · <strong>Primary Audience:</strong> Patient, Primary Care Physician (PCP) &amp; Specialists
         </div>
       </div>
-      <div style="text-align:right;font-size:7.8pt;color:#1e293b;" class="mono">
-        <div><strong>BAM Aligned WGS Depth:</strong> <span style="color:#0f766e;font-weight:800;">48.8x</span> (GRCh38.p14 Phased)</div>
-        <div><strong>Page 1 of 3</strong></div>
+      <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
+        <div>Clinical Findings &amp; Prescribing Guide</div>
+        <div class="mono" style="color:#475569;">Page 1 of 3</div>
       </div>
     </div>
 
-    <!-- Primary Care Physician + Specialist Audience Banner -->
-    <div class="audience-strip">
-      <div><strong>Primary Audience:</strong> <strong>Primary Care Physician (PCP)</strong> (Annual Physical, Preventive Lab Screening &amp; Prescribing) · <strong>Co-Routing:</strong> Cardiology, Oncology, Hematology, Neurology &amp; Clinical Pharmacy</div>
-      <div><strong>Scope:</strong> 1407 Curated Variants (1002 Genes) + 41 Pharmacogenes</div>
+    <!-- Executive Findings Summary Box (Local AI Polished & JSON Verified) -->
+    <div class="exec-summary-box">
+      <div style="font-weight:800;color:#0f766e;text-transform:uppercase;font-size:7.5pt;letter-spacing:0.03em;margin-bottom:2px;">Executive Summary of Key Findings</div>
+      <ul style="padding-left:15px;margin:0;">
+        <li style='margin-bottom:2px;'><p>Genomic Findings &amp; Carrier Context:</p><ul><li>CBLIF (Intrinsic Factor Deficiency / Cobalamin Malabsorption) - heterozygous carrier status</li><li>F5 (Congenital factor V deficiency) - heterozygous carrier status, with implications for systemic estrogens and combined oral contraceptives use.</li><li>PEX6 (Peroxisome biogenesis disorder 4A / Zellweger) - heterozygous carrier status</li></ul></li><li style='margin-bottom:2px;'><p>Actionable Medication Safety:</p><ul><li>Avoid or select alternatives for F5 due to systemic estrogens, combined oral contraceptives, and HRT use.</li><li>Adjust starting doses or monitor CYP2C9 (Celecoxib), CYP2C19 (Voriconazole), CYP3A5 (Ondansetron) medications</li></ul></li><li style='margin-bottom:2px;'><p>Preventive Care Takeaway:</p><ul><li>No invasive diagnostic procedures are required for single-copy carrier findings.</li><li>Focus on high-level wellness and screening topics in Section 2 of the patient's care plan.</li></ul></li>
+      </ul>
     </div>
 
-    <!-- Section 1: Priority Genomic Findings, Carrier Status & Physiological Context -->
-    <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Clinical Impact</h2>
+    <!-- Section 1: Priority Genomic Findings, Carrier Status & Clinical Meaning -->
+    <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Clinical Meaning</h2>
     <table>
       <thead>
         <tr>
-          <th style="width:14%;">Gene, System &amp; Inheritance</th>
-          <th style="width:18%;">Variant, ID &amp; Coordinate</th>
-          <th style="width:11%;">Zygosity &amp; Depth</th>
-          <th style="width:14%;">Classification &amp; Scores</th>
-          <th>Clinical Impact, Primary Care Action &amp; Zygosity Context</th>
+          <th style="width:16%;">Gene &amp; Biological System</th>
+          <th style="width:18%;">Variant &amp; Zygosity</th>
+          <th style="width:17%;">Classification &amp; Condition</th>
+          <th>Clinical Meaning &amp; Practical Takeaway</th>
         </tr>
       </thead>
       <tbody>
         
         <tr>
           <td>
-            <strong>CBLIF</strong>
-            <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal Recessive</div>
-          </td>
-          <td class="mono">
-            <strong>c.79+1G>A · rs147785187</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr11:59845374</div>
+            <strong style="font-size:8.6pt;color:#123f41;">CBLIF</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">CBLIF</div>
+            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 49x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">c.79+1G>A · rs147785187</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal Recessive</div>
           </td>
           <td>
-            <strong>Pathogenic</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 32.0 · AVI 33.9 · Conf 0.95</div>
+            <strong style="color:#0f172a;">Pathogenic</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Intrinsic Factor Deficiency / Cobalamin Malabsorption</div>
           </td>
           <td>
-            <div><strong>CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism:</strong> Canonical splice-site variant (c.79+1G>A) in CBLIF (autosomal recessive <strong>Intrinsic Factor Deficiency / Cobalamin Malabsorption (OMIM #261000)</strong>). This gene is a member of the cobalamin transport protein family. It encodes a glycoprotein secreted by parietal cells of the gastric mucosa and is required for adequate absorption of vitamin B12. <strong>Clinical Impact:</strong> Heterozygous carriers preserve intrinsic factor secretion from the wild-type allele; periodic serum Vitamin B12 (&gt; 350 pg/mL) and methylmalonic acid (MMA) verify cellular cobalamin stores.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Recessive Carrier:</strong> Single-allele carrier with an intact wild-type parental allele (~50–100% baseline functional reserve); does not cause primary recessive disease and requires no invasive diagnostic workup.</div>
+            <div><strong>CBLIF · Vitamin B12 (Cobalamin) &amp; Folate Absorption:</strong> Canonical splice-site variant (c.79+1G>A) in CBLIF (autosomal recessive <strong>Intrinsic Factor Deficiency / Cobalamin Malabsorption (OMIM #261000)</strong>). This gene is a member of the cobalamin transport protein family. It encodes a glycoprotein secreted by parietal cells of the gastric mucosa and is required for adequate absorption of vitamin B12. <strong>Clinical Impact:</strong> Heterozygous carriers preserve intrinsic factor production from the functional allele; periodic Vitamin B12 checks during routine physicals help confirm healthy cellular stores.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Recessive Carrier:</strong> Retains one functional gene copy with normal baseline physiological capacity; does not cause the classic biallelic condition.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>GJB2</strong>
-            <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal Recessive, Autosomal Dominant</div>
-          </td>
-          <td class="mono">
-            <strong>p.Met34Thr · c.101T>C · rs35887622</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr13:20189481</div>
+            <strong style="font-size:8.6pt;color:#123f41;">GJB2</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">GJB2</div>
+            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 57x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">p.Met34Thr · c.101T>C · rs35887622</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal Recessive, Autosomal Dominant</div>
           </td>
           <td>
-            <strong>Pathogenic</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 20.9 · AVI 23.6 · Conf 0.99</div>
+            <strong style="color:#0f172a;">Pathogenic</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Autosomal Recessive Deafness 1A / Dominant 3A</div>
           </td>
           <td>
-            <div><strong>GJB2 · Cochlear Gap Junction &amp; Auditory Homeostasis:</strong> Coding missense variant (p.Met34Thr) in GJB2 (Autosomal Recessive Deafness 1A / Dominant 3A (OMIM #121011)). This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics when alternatives exist.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Susceptibility Allele:</strong> Single-allele variant in a dominant/semi-dominant pathway; manage via guideline-directed surveillance without unprovoked invasive procedures.</div>
+            <div><strong>GJB2 · Cochlear Gap Junction &amp; Hearing Health:</strong> Coding missense variant (p.Met34Thr) in GJB2 (Autosomal Recessive Deafness 1A / Dominant 3A (OMIM #121011)). This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing; consider a baseline hearing check and avoid unnecessary ototoxic aminoglycoside antibiotics when alternatives exist.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Susceptibility Finding:</strong> Associated with increased lifetime risk; manage proactively through guideline-recommended preventive screening.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>VDR</strong>
-            <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Pathway Modifier</div>
-          </td>
-          <td class="mono">
-            <strong>c.-1172A>G · rs4516035</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr12:47906043</div>
+            <strong style="font-size:8.6pt;color:#123f41;">VDR</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">VDR</div>
+            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <strong>Homozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 49x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">c.-1172A>G · rs4516035</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Homozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Pathway Modifier</div>
           </td>
           <td>
-            <strong>Likely pathogenic</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 5.4 · AVI 2.1 · Conf 0.85</div>
+            <strong style="color:#0f172a;">Likely pathogenic</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Chronic obstructive pulmonary disease</div>
           </td>
           <td>
-            <div><strong>VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis:</strong> Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. <strong>Clinical Impact:</strong> Modulates baseline calcitriol receptor transcriptional activity; maintain serum 25(OH)D at 35–55 ng/mL via routine cholecalciferol (Vitamin D3) supplementation.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Homozygous Pathway Modifier:</strong> Modulates baseline pathway or receptor kinetics without causing high-penetrance monogenic disease (manage via routine annual bloodwork; no invasive workup warranted).</div>
+            <div><strong>VDR · Vitamin D Signaling &amp; Bone Health:</strong> Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. <strong>Clinical Impact:</strong> Modulates Vitamin D receptor signaling; checking routine Vitamin D levels at the annual physical helps guide standard supplementation.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Homozygous Physiological Modifier:</strong> Influences baseline pathway activity without causing a primary monogenic disorder.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>F5</strong>
-            <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal recessive / AD</div>
-          </td>
-          <td class="mono">
-            <strong>p.Arg534Gln · c.1601G>A · rs6025</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr1:169549811</div>
+            <strong style="font-size:8.6pt;color:#123f41;">F5</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">F5</div>
+            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 58x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">p.Arg534Gln · c.1601G>A · rs6025</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal recessive / AD</div>
           </td>
           <td>
-            <strong>drug response</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 27.9 · AVI 23.6 · Conf 0.99</div>
+            <strong style="color:#0f172a;">drug response</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Congenital factor V deficiency</div>
           </td>
           <td>
-            <div><strong>F5 · Coagulation Cascade &amp; Activated Protein C (APC) Regulation:</strong> Coding missense variant (p.Arg534Gln) in F5 (Congenital factor V deficiency). This gene encodes an essential cofactor of the blood coagulation cascade. This factor circulates in plasma, and is converted to the active form by the release of the activation peptide by thrombin during coagulation. <strong>Clinical Impact:</strong> Routine lifelong anticoagulation is <strong>not</strong> indicated in asymptomatic heterozygous individuals; apply situational perioperative/immobilization venous thromboembolism (VTE) prophylaxis and avoid systemic prothrombotic estrogen formulations.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
+            <div><strong>F5 · Blood Coagulation &amp; Clot Risk Management:</strong> Coding missense variant (p.Arg534Gln) in F5 (Congenital factor V deficiency). This gene encodes an essential cofactor of the blood coagulation cascade. This factor circulates in plasma, and is converted to the active form by the release of the activation peptide by thrombin during coagulation. <strong>Clinical Impact:</strong> Daily anticoagulation is <strong>not</strong> needed in asymptomatic heterozygous individuals; avoid systemic oral estrogen therapy and use standard clot prophylaxis during major surgery or prolonged immobilization.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>PEX6</strong>
-            <div style="font-size:7.3pt;color:#475569;">Heart & Cardiovascular</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal recessive</div>
-          </td>
-          <td class="mono">
-            <strong>p.Val788Met · c.2362G>A · rs267608240</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr6:42966044</div>
+            <strong style="font-size:8.6pt;color:#123f41;">PEX6</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">PEX6</div>
+            <div style="font-size:7.1pt;color:#64748b;">Heart & Cardiovascular</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 48x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">p.Val788Met · c.2362G>A · rs267608240</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal recessive</div>
           </td>
           <td>
-            <strong>Conflicting classifications of pathogenicity</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 35.0 · AVI 32.3 · Conf 0.88</div>
+            <strong style="color:#0f172a;">Conflicting classifications of pathogenicity</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Peroxisome biogenesis disorder 4A (Zellweger)</div>
           </td>
           <td>
-            <div><strong>PEX6 · Peroxisomal Biogenesis &amp; Hepatic Fatty Acid Oxidation:</strong> Coding missense variant (p.Val788Met) in PEX6 (Peroxisome biogenesis disorder 4A (Zellweger) (OMIM #614862)). This gene encodes a member of the AAA (ATPases associated with diverse cellular activities) family of ATPases. This member is a predominantly cytoplasmic protein, which plays a direct role in peroxisomal protein impor… <strong>Clinical Impact:</strong> Single-allele heterozygous carriers maintain normal peroxisomal beta-oxidation; routine hepatic transaminases (AST/ALT) and lipid screening during the annual physical verify baseline metabolic homeostasis.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
+            <div><strong>PEX6 · Peroxisomal &amp; Lipid Metabolism:</strong> Coding missense variant (p.Val788Met) in PEX6 (Peroxisome biogenesis disorder 4A (Zellweger) (OMIM #614862)). This gene encodes a member of the AAA (ATPases associated with diverse cellular activities) family of ATPases. This member is a predominantly cytoplasmic protein, which plays a direct role in peroxisomal protein impor… <strong>Clinical Impact:</strong> Single-copy heterozygous carriers maintain normal peroxisomal function via the healthy gene copy; covered by standard annual liver and lipid wellness panels.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>GJB3</strong>
-            <div style="font-size:7.3pt;color:#475569;">Heart & Cardiovascular</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal recessive</div>
-          </td>
-          <td class="mono">
-            <strong>p.Arg75Cys · c.223C>T · rs370476720</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr1:34784985</div>
+            <strong style="font-size:8.6pt;color:#123f41;">GJB3</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">GJB3</div>
+            <div style="font-size:7.1pt;color:#64748b;">Heart & Cardiovascular</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 38x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">p.Arg75Cys · c.223C>T · rs370476720</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal recessive</div>
           </td>
           <td>
-            <strong>Conflicting classifications of pathogenicity</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 26.2 · AVI 32.4 · Conf 0.88</div>
+            <strong style="color:#0f172a;">Conflicting classifications of pathogenicity</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Inborn genetic diseases</div>
           </td>
           <td>
-            <div><strong>GJB3 · Cochlear Gap Junction &amp; Auditory Homeostasis:</strong> Coding missense variant (p.Arg75Cys) in GJB3 (Inborn genetic diseases (OMIM #133200)). This gene is a member of the connexin gene family. The encoded protein is a component of gap junctions, which are composed of arrays of intercellular channels that provide a route for the diffusion of low molecular we… <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics when alternatives exist.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
+            <div><strong>GJB3 · Cochlear Gap Junction &amp; Hearing Health:</strong> Coding missense variant (p.Arg75Cys) in GJB3 (Inborn genetic diseases (OMIM #133200)). This gene is a member of the connexin gene family. The encoded protein is a component of gap junctions, which are composed of arrays of intercellular channels that provide a route for the diffusion of low molecular we… <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing; consider a baseline hearing check and avoid unnecessary ototoxic aminoglycoside antibiotics when alternatives exist.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>SCN4A</strong>
-            <div style="font-size:7.3pt;color:#475569;">Heart & Cardiovascular</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal dominant / AR</div>
-          </td>
-          <td class="mono">
-            <strong>p.His599Arg · c.1796A>G · rs187401185</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr17:63961242</div>
+            <strong style="font-size:8.6pt;color:#123f41;">SCN4A</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">SCN4A</div>
+            <div style="font-size:7.1pt;color:#64748b;">Heart & Cardiovascular</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 56x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">p.His599Arg · c.1796A>G · rs187401185</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal dominant / AR</div>
           </td>
           <td>
-            <strong>Conflicting classifications of pathogenicity</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 24.4 · AVI 27.8 · Conf 0.88</div>
+            <strong style="color:#0f172a;">Conflicting classifications of pathogenicity</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Paramyotonia congenita of Von Eulenburg</div>
           </td>
           <td>
-            <div><strong>SCN4A · Skeletal Muscle Voltage-Gated Sodium Channel Excitability:</strong> Coding missense variant (p.His599Arg) in SCN4A (Paramyotonia congenita of Von Eulenburg (OMIM #168300)). Voltage-gated sodium channels are transmembrane glycoprotein complexes composed of a large alpha subunit with 24 transmembrane domains and one or more regulatory beta subunits. <strong>Clinical Impact:</strong> Maintain normokalemia on routine metabolic panels and document precautionary avoidance of depolarizing muscle relaxants (succinylcholine) during general anesthesia if muscle stiffness or myotonia is present.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
+            <div><strong>SCN4A · Skeletal Muscle Ion-Channel Function:</strong> Coding missense variant (p.His599Arg) in SCN4A (Paramyotonia congenita of Von Eulenburg (OMIM #168300)). Voltage-gated sodium channels are transmembrane glycoprotein complexes composed of a large alpha subunit with 24 transmembrane domains and one or more regulatory beta subunits. <strong>Clinical Impact:</strong> Maintain normal electrolyte balance on routine checkups and inform anesthesiology regarding depolarizing muscle relaxants prior to general anesthesia if muscle stiffness is present.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
           </td>
         </tr>
         
@@ -440,101 +418,93 @@
     </table>
 
     <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Annual Preventive Surveillance &amp; Acute Prescribing Guardrails
+      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Preventive Care Discussion Points &amp; Medication Precautions
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: PREVENTIVE SURVEILLANCE & ACUTE PRESCRIBING GUARDRAILS ======================= -->
+  <!-- ======================= PAGE 2 OF 3: PREVENTIVE CARE DISCUSSION POINTS & MEDICATION PRECAUTIONS ======================= -->
   <div class="page page-2">
-    <!-- Section 2: Preventive Laboratory & Clinical Surveillance Schedule -->
-    <h2>Section 2 · Preventive Laboratory &amp; Clinical Surveillance Schedule (PCP Annual Physical &amp; Specialist Routing)</h2>
+    <!-- Section 2: High-Level Preventive Care & Annual Physical Discussion Points -->
+    <h2>Section 2 · High-Level Preventive Care &amp; Annual Checkup Discussion Points</h2>
     <div style="font-size:7.8pt;color:#334155;margin-bottom:4px;">
-      Derived strictly from <strong>Daniel Ehrle</strong>’s variant callset for integration into the <strong>Primary Care Physician (PCP) annual preventive physical</strong>. Each row links the triggering <strong>Gene, Variant, and Zygosity</strong> to a specific laboratory panel or clinical evaluation. (Page 2 of 3)
+      High-level preventive care topics tailored for <strong>Daniel Ehrle</strong>’s routine annual checkup with the <strong>Primary Care Physician (PCP)</strong> or relevant specialist. (Page 2 of 3)
     </div>
     <table>
       <thead>
         <tr>
-          <th style="width:17%;">Gene, Variant &amp; Zygosity</th>
-          <th style="width:14%;">Physiological Pathway</th>
-          <th style="width:18%;">Laboratory Test / Evaluation</th>
-          <th style="width:14%;">Ordering Clinician &amp; Co-Consult</th>
-          <th style="width:10%;">Frequency</th>
-          <th>Clinical Rationale &amp; Thresholds</th>
+          <th style="width:17%;">Genomic Finding</th>
+          <th style="width:16%;">Biological Pathway</th>
+          <th style="width:20%;">Preventive Care Topic</th>
+          <th style="width:15%;">Care Setting &amp; Timing</th>
+          <th>Clinical Context &amp; Practical Summary</th>
         </tr>
       </thead>
       <tbody>
         
         <tr>
-          <td><strong>CBLIF</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.79+1G>A · rs147785187</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr11:59845374 · DP: 49x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal Recessive)</div></td>
-          <td><strong>CBLIF · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Pathogenic</div></td>
-          <td><strong>Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCV</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Hematology / GI (only if lab deficiency confirmed)</div></td>
-          <td>Baseline at Annual PCP Physical; repeat every 1–2 years</td>
-          <td>Canonical splice-site variant (c.79+1G>A) in CBLIF (autosomal recessive <strong>Intrinsic Factor Deficiency / Cobalamin Malabsorption (OMIM #261000)</strong>). This gene is a member of the cobalamin transport protein family. It encodes a glycoprotein secreted by parietal cells of the gastric mucosa and is required for adequate absorption of vitamin B12. <strong>Clinical Impact:</strong> Heterozygous carriers preserve intrinsic factor secretion from the wild-type allele; periodic serum Vitamin B12 (&gt; 350 pg/mL) and methylmalonic acid (MMA) verify cellular cobalamin stores.</td>
+          <td><strong>CBLIF</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.79+1G>A · rs147785187</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal Recessive)</div></td>
+          <td><strong>CBLIF · Vitamin B12 (Cobalamin) &amp; Folate Absorption</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Pathogenic</div></td>
+          <td><strong>Periodic Vitamin B12 &amp; Folate Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Routine Wellness Lab Panel</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Routine Annual or Biennial Checkup</div></td>
+          <td>Canonical splice-site variant (c.79+1G>A) in CBLIF (autosomal recessive <strong>Intrinsic Factor Deficiency / Cobalamin Malabsorption (OMIM #261000)</strong>). This gene is a member of the cobalamin transport protein family. It encodes a glycoprotein secreted by parietal cells of the gastric mucosa and is required for adequate absorption of vitamin B12. <strong>Clinical Impact:</strong> Heterozygous carriers preserve intrinsic factor production from the functional allele; periodic Vitamin B12 checks during routine physicals help confirm healthy cellular stores.</td>
         </tr>
         
         <tr>
-          <td><strong>GJB2</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Met34Thr · c.101T>C · rs35887622</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr13:20189481 · DP: 57x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal Recessive, Autosomal Dominant)</div></td>
-          <td><strong>GJB2 · Cochlear Gap Junction &amp; Auditory Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Pathogenic</div></td>
-          <td><strong>Baseline Pure-Tone Audiometry &amp; Ototoxic Antibiotic Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Office Audiogram</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology / ENT</strong></td>
-          <td>Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur</td>
-          <td>Coding missense variant (p.Met34Thr) in GJB2 (Autosomal Recessive Deafness 1A / Dominant 3A (OMIM #121011)). This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics when alternatives exist.</td>
+          <td><strong>GJB2</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Met34Thr · c.101T>C · rs35887622</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal Recessive, Autosomal Dominant)</div></td>
+          <td><strong>GJB2 · Cochlear Gap Junction &amp; Hearing Health</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Pathogenic</div></td>
+          <td><strong>Baseline Hearing Check &amp; Ototoxic Medication Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Routine Preventive Care</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Baseline check; repeat if symptoms arise</div></td>
+          <td>Coding missense variant (p.Met34Thr) in GJB2 (Autosomal Recessive Deafness 1A / Dominant 3A (OMIM #121011)). This gene encodes a member of the gap junction protein family (gap junction beta 2) but is more commonly known as connexin 26. <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing; consider a baseline hearing check and avoid unnecessary ototoxic aminoglycoside antibiotics when alternatives exist.</td>
         </tr>
         
         <tr>
-          <td><strong>VDR</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.-1172A>G · rs4516035</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr12:47906043 · DP: 49x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Homozygous (Pathway Modifier)</div></td>
-          <td><strong>VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Likely pathogenic</div></td>
-          <td><strong>Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline Phosphatase</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Endocrinology (if refractory deficiency)</div></td>
-          <td>Annual PCP Preventive Lab Panel</td>
-          <td>Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. <strong>Clinical Impact:</strong> Modulates baseline calcitriol receptor transcriptional activity; maintain serum 25(OH)D at 35–55 ng/mL via routine cholecalciferol (Vitamin D3) supplementation.</td>
+          <td><strong>VDR</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.-1172A>G · rs4516035</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Homozygous (Pathway Modifier)</div></td>
+          <td><strong>VDR · Vitamin D Signaling &amp; Bone Health</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Likely pathogenic</div></td>
+          <td><strong>Routine Vitamin D &amp; Calcium Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Annual Wellness Panel</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Annual PCP Checkup</div></td>
+          <td>Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. <strong>Clinical Impact:</strong> Modulates Vitamin D receptor signaling; checking routine Vitamin D levels at the annual physical helps guide standard supplementation.</td>
         </tr>
         
         <tr>
-          <td><strong>F5</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg534Gln · c.1601G>A · rs6025</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr1:169549811 · DP: 58x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive / AD)</div></td>
-          <td><strong>F5 · Coagulation Cascade &amp; Activated Protein C (APC) Regulation</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: drug response</div></td>
-          <td><strong>Situational Perioperative VTE Risk Review &amp; Thromboprophylaxis Planning</strong><div style='font-size:7.3pt;color:#0f766e;'>Perioperative / Immobilization Assessment</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Hematology / Perioperative Medicine</div></td>
-          <td>Situational (Prior to major surgery, prolonged immobilization, or hormone therapy)</td>
-          <td>Coding missense variant (p.Arg534Gln) in F5 (Congenital factor V deficiency). This gene encodes an essential cofactor of the blood coagulation cascade. This factor circulates in plasma, and is converted to the active form by the release of the activation peptide by thrombin during coagulation. <strong>Clinical Impact:</strong> Routine lifelong anticoagulation is <strong>not</strong> indicated in asymptomatic heterozygous individuals; apply situational perioperative/immobilization venous thromboembolism (VTE) prophylaxis and avoid systemic prothrombotic estrogen formulations.</td>
+          <td><strong>F5</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg534Gln · c.1601G>A · rs6025</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive / AD)</div></td>
+          <td><strong>F5 · Blood Coagulation &amp; Clot Risk Management</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>drug response</div></td>
+          <td><strong>Situational Clot Prevention (Surgery, Immobility, Estrogen Avoidance)</strong><div style='font-size:7.3pt;color:#0f766e;'>Perioperative &amp; Prescribing Precaution</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Situational (Before surgery, long travel, or hormone therapy)</div></td>
+          <td>Coding missense variant (p.Arg534Gln) in F5 (Congenital factor V deficiency). This gene encodes an essential cofactor of the blood coagulation cascade. This factor circulates in plasma, and is converted to the active form by the release of the activation peptide by thrombin during coagulation. <strong>Clinical Impact:</strong> Daily anticoagulation is <strong>not</strong> needed in asymptomatic heterozygous individuals; avoid systemic oral estrogen therapy and use standard clot prophylaxis during major surgery or prolonged immobilization.</td>
         </tr>
         
         <tr>
-          <td><strong>PEX6</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Val788Met · c.2362G>A · rs267608240</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr6:42966044 · DP: 48x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
-          <td><strong>PEX6 · Peroxisomal Biogenesis &amp; Hepatic Fatty Acid Oxidation</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity</div></td>
-          <td><strong>Hepatic Function Panel (AST, ALT, Bilirubin) &amp; Fasting Lipid Profile</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong></td>
-          <td>Annual PCP Preventive Blood Panel</td>
-          <td>Coding missense variant (p.Val788Met) in PEX6 (Peroxisome biogenesis disorder 4A (Zellweger) (OMIM #614862)). This gene encodes a member of the AAA (ATPases associated with diverse cellular activities) family of ATPases. This member is a predominantly cytoplasmic protein, which plays a direct role in peroxisomal protein impor… <strong>Clinical Impact:</strong> Single-allele heterozygous carriers maintain normal peroxisomal beta-oxidation; routine hepatic transaminases (AST/ALT) and lipid screening during the annual physical verify baseline metabolic homeostasis.</td>
+          <td><strong>PEX6</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Val788Met · c.2362G>A · rs267608240</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
+          <td><strong>PEX6 · Peroxisomal &amp; Lipid Metabolism</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Conflicting classifications of pathogenicity</div></td>
+          <td><strong>Routine Liver &amp; Lipid Wellness Panel</strong><div style='font-size:7.3pt;color:#0f766e;'>Standard Annual Physical Bloodwork</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Annual PCP Checkup</div></td>
+          <td>Coding missense variant (p.Val788Met) in PEX6 (Peroxisome biogenesis disorder 4A (Zellweger) (OMIM #614862)). This gene encodes a member of the AAA (ATPases associated with diverse cellular activities) family of ATPases. This member is a predominantly cytoplasmic protein, which plays a direct role in peroxisomal protein impor… <strong>Clinical Impact:</strong> Single-copy heterozygous carriers maintain normal peroxisomal function via the healthy gene copy; covered by standard annual liver and lipid wellness panels.</td>
         </tr>
         
         <tr>
-          <td><strong>GJB3</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg75Cys · c.223C>T · rs370476720</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr1:34784985 · DP: 38x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
-          <td><strong>GJB3 · Cochlear Gap Junction &amp; Auditory Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity</div></td>
-          <td><strong>Baseline Pure-Tone Audiometry &amp; Ototoxic Antibiotic Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Office Audiogram</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology / ENT</strong></td>
-          <td>Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur</td>
-          <td>Coding missense variant (p.Arg75Cys) in GJB3 (Inborn genetic diseases (OMIM #133200)). This gene is a member of the connexin gene family. The encoded protein is a component of gap junctions, which are composed of arrays of intercellular channels that provide a route for the diffusion of low molecular we… <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics when alternatives exist.</td>
+          <td><strong>GJB3</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg75Cys · c.223C>T · rs370476720</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
+          <td><strong>GJB3 · Cochlear Gap Junction &amp; Hearing Health</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Conflicting classifications of pathogenicity</div></td>
+          <td><strong>Baseline Hearing Check &amp; Ototoxic Medication Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Routine Preventive Care</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Baseline check; repeat if symptoms arise</div></td>
+          <td>Coding missense variant (p.Arg75Cys) in GJB3 (Inborn genetic diseases (OMIM #133200)). This gene is a member of the connexin gene family. The encoded protein is a component of gap junctions, which are composed of arrays of intercellular channels that provide a route for the diffusion of low molecular we… <strong>Clinical Impact:</strong> Heterozygous carriers typically maintain normal adult hearing; consider a baseline hearing check and avoid unnecessary ototoxic aminoglycoside antibiotics when alternatives exist.</td>
         </tr>
         
         <tr>
-          <td><strong>SCN4A</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.His599Arg · c.1796A>G · rs187401185</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr17:63961242 · DP: 56x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal dominant / AR)</div></td>
-          <td><strong>SCN4A · Skeletal Muscle Voltage-Gated Sodium Channel Excitability</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity</div></td>
-          <td><strong>Serum Electrolytes (Potassium [K+], Mg2+, Ca2+) &amp; Creatine Kinase (CK)</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw &amp; Anesthetic Precaution</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Anesthesiology / Neurology (if myotonia present)</div></td>
-          <td>Annual PCP Electrolyte Panel &amp; Pre-Anesthesia Review</td>
-          <td>Coding missense variant (p.His599Arg) in SCN4A (Paramyotonia congenita of Von Eulenburg (OMIM #168300)). Voltage-gated sodium channels are transmembrane glycoprotein complexes composed of a large alpha subunit with 24 transmembrane domains and one or more regulatory beta subunits. <strong>Clinical Impact:</strong> Maintain normokalemia on routine metabolic panels and document precautionary avoidance of depolarizing muscle relaxants (succinylcholine) during general anesthesia if muscle stiffness or myotonia is present.</td>
+          <td><strong>SCN4A</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.His599Arg · c.1796A>G · rs187401185</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal dominant / AR)</div></td>
+          <td><strong>SCN4A · Skeletal Muscle Ion-Channel Function</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Conflicting classifications of pathogenicity</div></td>
+          <td><strong>Routine Electrolyte Balance &amp; Pre-Anesthesia Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Annual Checkup &amp; Surgical Precaution</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Anesthesiology</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Annual Checkup &amp; Pre-Surgery Review</div></td>
+          <td>Coding missense variant (p.His599Arg) in SCN4A (Paramyotonia congenita of Von Eulenburg (OMIM #168300)). Voltage-gated sodium channels are transmembrane glycoprotein complexes composed of a large alpha subunit with 24 transmembrane domains and one or more regulatory beta subunits. <strong>Clinical Impact:</strong> Maintain normal electrolyte balance on routine checkups and inform anesthesiology regarding depolarizing muscle relaxants prior to general anesthesia if muscle stiffness is present.</td>
         </tr>
         
       </tbody>
     </table>
 
-    <!-- Section 3: Acute Prescribing & Perioperative Red-Box Guardrails -->
+    <!-- Section 3: High-Priority Medication & Exposure Precautions -->
     <div class="redbox-guardrail">
       <div class="redbox-title">
-        <span>🚨 Section 3 · Acute Prescribing &amp; Perioperative Guardrails (Life-Threatening Risk Highlights)</span>
-        <span class="mono" style="font-size:7.2pt;">CPIC / DPWG / FDA Boxed Warning Safety Summary</span>
+        <span>🚨 Section 3 · High-Priority Medication &amp; Exposure Precautions</span>
+        <span class="mono" style="font-size:7.2pt;">CPIC / FDA Prescribing Safety Highlights</span>
       </div>
       <div class="guardrail-grid">
         
@@ -545,7 +515,7 @@
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#dc2626;font-weight:700;"><span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Systemic Estrogens, Combined Oral Contraceptives, HRT</span></span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> <strong>CRITICAL HAZARD:</strong> Confers Activated Protein C (APC) resistance with 35-fold amplified risk of venous thromboembolism (VTE) and pulmonary embolism with systemic estrogen exposure. Avoid oral estrogen formulations; implement situational perioperative VTE prophylaxis.</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> <strong>CRITICAL HAZARD:</strong> Confers Activated Protein C (APC) resistance with 35-fold amplified risk of venous thromboembolism (VTE) and pulmonary embolism with systemic estrogen exposure. Avoid oral estrogen formulations; implement situational perioperative VTE prophylaxis.</div>
           </div>
         </div>
         
@@ -556,7 +526,7 @@
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#dc2626;font-weight:700;"><span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin)</span></span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> <strong>CRITICAL HAZARD:</strong> Moderate decrease in celecoxib clearance. Initiate therapy at lowest recommended dose and monitor for GI/cardiovascular adverse effects. Initiate at reduced dose or titrate cautiously per CPIC.</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> <strong>CRITICAL HAZARD:</strong> Moderate decrease in celecoxib clearance. Initiate therapy at lowest recommended dose and monitor for GI/cardiovascular adverse effects. Initiate at reduced dose or titrate cautiously per CPIC.</div>
           </div>
         </div>
         
@@ -567,7 +537,7 @@
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#9a3412;font-weight:700;">Voriconazole</span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> Increased clearance and lower trough concentrations. Perform therapeutic drug monitoring (TDM) to avoid subtherapeutic levels. Initiate at reduced dose or titrate cautiously per CPIC.</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> Increased clearance and lower trough concentrations. Perform therapeutic drug monitoring (TDM) to avoid subtherapeutic levels. Initiate at reduced dose or titrate cautiously per CPIC.</div>
           </div>
         </div>
         
@@ -578,7 +548,7 @@
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#9a3412;font-weight:700;">Ondansetron</span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> Genotype CC is associated with decreased metabolism of ondansetron as compared to genotypes CT + TT. Initiate at reduced dose or titrate cautiously per CPIC.</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> Genotype CC is associated with decreased metabolism of ondansetron as compared to genotypes CT + TT. Initiate at reduced dose or titrate cautiously per CPIC.</div>
           </div>
         </div>
         
@@ -589,7 +559,7 @@
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#92400e;font-weight:700;">Belinostat, Irinotecan (Camptosar)</span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> Monitor for increased hematologic toxicity. Monitor clinical response and consider dose adjustment per CPIC.</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> Monitor for increased hematologic toxicity. Monitor clinical response and consider dose adjustment per CPIC.</div>
           </div>
         </div>
         
@@ -600,7 +570,7 @@
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#92400e;font-weight:700;">Isoniazid</span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> NAT2 *5/*5 slow acetylator phenotype. Higher risk of isoniazid-induced hepatotoxicity and peripheral neuropathy. Monitor liver function tests (LFTs… Monitor clinical response and consider dose adjustment per CPIC.</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> NAT2 *5/*5 slow acetylator phenotype. Higher risk of isoniazid-induced hepatotoxicity and peripheral neuropathy. Monitor liver function tests (LFTs… Monitor clinical response and consider dose adjustment per CPIC.</div>
           </div>
         </div>
         
@@ -608,19 +578,19 @@
     </div>
 
     <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Matrix, Decision Calculus &amp; EHR Note
+      Daniel Ehrle (Daniel_Ehrle) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Reference, Clinical Perspective &amp; EHR Note
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, DECISION CALCULUS & EHR INTEGRATION ======================= -->
+  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, CLINICAL PERSPECTIVE & EHR SUMMARY ======================= -->
   <div class="page page-3">
-    <!-- Section 4: Actionable Pharmacogenomic Prescribing Guardrails -->
-    <h2>Section 4 · Actionable Pharmacogenomic Prescribing Guardrails (CPIC / DPWG Medication &amp; Diplotype Reference)</h2>
+    <!-- Section 4: Actionable Pharmacogenomic Prescribing Reference -->
+    <h2>Section 4 · Pharmacogenomic Prescribing Reference (CPIC / DPWG Medication &amp; Diplotype Guide)</h2>
     <table>
       <thead>
         <tr>
           <th style="width:17%;">Prescribing Action Tier</th>
-          <th style="width:43%;">Affected Medications by Causal Pharmacogene &amp; Diplotype</th>
+          <th style="width:43%;">Affected Medications by Pharmacogene &amp; Diplotype</th>
           <th>Clinical Mechanism &amp; Prescribing Rule</th>
         </tr>
       </thead>
@@ -760,36 +730,36 @@
       </tbody>
     </table>
 
-    <h2>Section 5 · Clinical Decision Calculus: Balanced Interventional Rationale</h2>
+    <h2>Section 5 · Clinical Perspective: Balancing Proactive Care vs. Over-Intervention</h2>
     <div class="calculus-grid">
       <div class="calculus-card" style="background:#f0fdf4;border-color:#bbf7d0;">
-        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Arguments FOR Targeted Preventive Screening &amp; PGx Guardrails</div>
+        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Why These Findings Are Useful</div>
         <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
-          <li><strong>Immediate Medication Safety:</strong> Documenting CPIC pharmacogenomic diplotypes (Avoid / Reduce Dose / Increase Dose) in the EHR prevents avoidable drug toxicity and therapeutic failure before the first prescription is filled.</li>
-          <li><strong>Pathway-Matched Biomarker Verification:</strong> Incorporating targeted venous blood tests (Section 2) into the annual PCP physical directly verifies whether any carrier or modifier variant has subtle physiological expression.</li>
+          <li><strong>Proactive Medication Safety:</strong> Recording pharmacogenomic metabolizer status in the medical chart helps select effective medications and avoid preventable side effects before a prescription is started.</li>
+          <li><strong>Informed Annual Checkups:</strong> Highlighting relevant biological pathways allows the Primary Care Physician to tailor routine wellness checks and age-appropriate preventive screening.</li>
         </ul>
       </div>
 
       <div class="calculus-card" style="background:#fff1f2;border-color:#fecdd3;">
-        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Arguments AGAINST Over-Intervention</div>
+        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Why Aggressive Intervention Is Not Needed</div>
         <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
-          <li><strong>Heterozygous Carrier Reserve &amp; Phased Reassurance:</strong> Whole-genome phasing confirms <strong>0 pathogenic biallelic (trans) recessive compound-heterozygotes</strong>; heterozygous carriers retain an intact wild-type allele (~50–100% capacity) and do not warrant invasive diagnostic procedures.</li>
-          <li><strong>Polygenic Modifiers ≠ Deterministic Disease:</strong> Common statistical GWAS variants reflect modest susceptibility and must never trigger unprovoked chronic anticoagulation or off-label pharmacotherapy.</li>
+          <li><strong>Single-Copy Carrier Reassurance:</strong> No two-copy (biallelic) recessive disease genotypes are present; single-copy recessive carriers retain a functional gene copy and maintain normal baseline health.</li>
+          <li><strong>Modifier Variants Are Not Diagnoses:</strong> Common pathway modifiers indicate mild physiological tendencies and should never trigger unnecessary procedures or unprovoked medication changes.</li>
         </ul>
       </div>
     </div>
 
-    <h2>Section 6 · Recommended Clinical Note / EHR Problem-List Integration Text (Copy-Paste Ready for PCP)</h2>
-    <div class="ehr-note-box">GENOMIC &amp; PHARMACOGENOMIC PREVENTIVE SUMMARY (Daniel Ehrle | ID: Daniel_Ehrle | BAM Aligned WGS Depth: 48.8x GRCh38)
-• KEY GENOMIC &amp; CARRIER FINDINGS: CBLIF (c.79+1G>A · rs147785187, Heterozygous), GJB2 (p.Met34Thr · c.101T>C · rs35887622, Heterozygous), VDR (c.-1172A>G · rs4516035, Homozygous), F5 (p.Arg534Gln · c.1601G>A · rs6025, Heterozygous), PEX6 (p.Val788Met · c.2362G>A · rs267608240, Heterozygous), GJB3 (p.Arg75Cys · c.223C>T · rs370476720, Heterozygous). Zero biallelic pathogenic recessive compound-heterozygotes detected; heterozygous carrier/modifier findings retain one wild-type allele and do not warrant invasive diagnostic procedures.
-• CRITICAL PHARMACOGENOMIC &amp; LIFE-THREATENING GUARDRAILS (CPIC/DPWG):
-  - LIFE-THREATENING / AVOID: <span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Systemic Estrogens, Combined Oral Contraceptives, HRT</span>
-  - DOSE REDUCTION (DOSE_DOWN): <span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin)</span> · Voriconazole · Ondansetron
-  - RAPID METABOLISM (DOSE_UP): Belinostat, Irinotecan (Camptosar) · Isoniazid
-• PCP ANNUAL LAB &amp; SURVEILLANCE PLAN: Order the pathway-matched venous blood panels and preventive evaluations listed in Section 2 during the routine annual physical.</div>
+    <h2>Section 6 · Copy-Paste Physician Handoff / EHR Chart Summary</h2>
+    <div class="ehr-note-box">CLINICAL GENOMICS &amp; PHARMACOGENOMICS SUMMARY (Daniel Ehrle | ID: Daniel_Ehrle)
+• PRIORITY GENOMIC &amp; CARRIER FINDINGS: CBLIF (c.79+1G>A · rs147785187, Heterozygous), GJB2 (p.Met34Thr · c.101T>C · rs35887622, Heterozygous), VDR (c.-1172A>G · rs4516035, Homozygous), F5 (p.Arg534Gln · c.1601G>A · rs6025, Heterozygous), PEX6 (p.Val788Met · c.2362G>A · rs267608240, Heterozygous), GJB3 (p.Arg75Cys · c.223C>T · rs370476720, Heterozygous). Single-copy (heterozygous) recessive carrier states retain one functional gene copy and do not cause primary recessive disease.
+• MEDICATION &amp; EXPOSURE PRECAUTIONS (CPIC / FDA):
+  - AVOID / CONTRAINDICATED: Systemic Estrogens, Combined Oral Contraceptives, HRT
+  - REDUCE STARTING DOSE: Celecoxib (Celebrex), Phenytoin (Dilantin), Warfarin (Coumadin) · Voriconazole · Ondansetron
+  - RAPID METABOLISM / MONITOR: Belinostat, Irinotecan (Camptosar) · Isoniazid
+• PREVENTIVE CARE PLAN: Review high-level wellness and screening topics in Section 2 during routine primary care checkups.</div>
 
     <div style="font-size:7.2pt;color:#64748b;margin-top:3px;border-top:1px solid #e2e8f0;padding-top:2px;text-align:center;">
-      Informational clinical decision-support summary · Accompanying Deep Clinical Research Dossier (<code>Daniel_Ehrle_deep_research_report.html</code>) &amp; Genomic Command Center (<code>Daniel_Ehrle_landscape_dashboard.html</code>) · Page 3 of 3
+      Clinical Findings &amp; Prescribing Summary · Accompanying Deep Research Report (<code>Daniel_Ehrle_deep_research_report.html</code>) &amp; Command Center (<code>Daniel_Ehrle_landscape_dashboard.html</code>) · Page 3 of 3
     </div>
   </div>
 

@@ -23,6 +23,8 @@ from datetime import datetime
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(SCRIPT_DIR, "scripts"))
 import prepare_landscape_data as pld
+from lib.zero_curation_guard import enforce_or_exit
+enforce_or_exit(SCRIPT_DIR)
 
 
 def parse_args():

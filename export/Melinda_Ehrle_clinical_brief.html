@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clinical Genomics Action Report — Melinda Ehrle (Melinda_Ehrle)</title>
+<title>Clinical Genomics Action Brief — Melinda Ehrle (Melinda_Ehrle)</title>
 <style>
   @page {
     size: letter portrait;
@@ -58,24 +58,22 @@
   .brief-header {
     border-bottom: 2px solid #123f41;
     padding-bottom: 4px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
   }
   .brief-title { font-size: 11.5pt; font-weight: 800; color: #123f41; letter-spacing: -0.01em; }
-  .audience-strip {
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    border-radius: 3px;
-    padding: 4px 7px;
-    font-size: 7.7pt;
-    color: #334155;
+  .exec-summary-box {
+    background: #f0fdfa;
+    border: 1px solid #99f6e4;
+    border-left: 3.5px solid #0f766e;
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 8.0pt;
+    color: #0f172a;
     margin-bottom: 6px;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 4px;
+    line-height: 1.32;
   }
   h2 {
     font-size: 9.0pt;
@@ -85,14 +83,14 @@
     letter-spacing: 0.02em;
     border-bottom: 1.5px solid #cbd5e1;
     padding-bottom: 2px;
-    margin: 6px 0 4px 0;
+    margin: 5px 0 4px 0;
   }
   table {
     width: 100%;
     border-collapse: collapse;
     font-size: 8.1pt;
     line-height: 1.30;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
   th {
     background: #f1f5f9;
@@ -114,7 +112,7 @@
     background: #fef2f2;
     border-radius: 4px;
     padding: 5px 7px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
   .redbox-title {
     font-size: 8.6pt;
@@ -169,7 +167,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
   .calculus-card {
     border: 1px solid #cbd5e1;
@@ -221,218 +219,198 @@
   <!-- Top Action Toolbar (Hidden in Print/PDF) -->
   <div class="no-print-bar">
     <div>
-      <span style="background:#0f766e;color:#ffffff;padding:2px 6px;border-radius:3px;font-weight:800;font-size:7.5pt;text-transform:uppercase;margin-right:6px;">3-Page Portrait Clinical Brief</span>
-      <strong>Melinda Ehrle (Melinda_Ehrle) — Clinical Action Report</strong>
+      <span style="background:#0f766e;color:#ffffff;padding:2px 6px;border-radius:3px;font-weight:800;font-size:7.5pt;text-transform:uppercase;margin-right:6px;">Clinical Action Brief</span>
+      <strong>Melinda Ehrle (Melinda_Ehrle) — Genomic &amp; Pharmacogenomic Summary</strong>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-      <a href="Melinda_Ehrle_clinical_brief (old).html" class="no-print-btn" style="background:#b45309;color:#ffffff;">Switch to Clinical Brief (old) ↗</a>
-      <a href="Melinda_Ehrle_deep_research_report.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Deep Research (New)</a>
+      <a href="Melinda_Ehrle_clinical_brief (old).html" class="no-print-btn" style="background:#b45309;color:#ffffff;">Switch to Deterministic Baseline (old) ↗</a>
+      <a href="Melinda_Ehrle_deep_research_report.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Deep Research Report</a>
       <a href="Melinda_Ehrle_landscape_dashboard.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Command Center</a>
       <button onclick="window.print()" class="no-print-btn" style="background:#2563eb;color:#ffffff;">🖨️ Print Report</button>
       <a href="Melinda_Ehrle_clinical_brief.pdf" target="_blank" download="Melinda_Ehrle_clinical_brief.pdf" class="no-print-btn" style="background:#059669;color:#ffffff;">📥 Save / Open PDF</a>
     </div>
   </div>
 
-  <!-- ======================= PAGE 1 OF 3: PRIORITY GENOMIC FINDINGS & CARRIER STATUS ======================= -->
+  <!-- ======================= PAGE 1 OF 3: EXECUTIVE OVERVIEW & PRIORITY GENOMIC FINDINGS ======================= -->
   <div class="page page-1">
     <div class="brief-header">
       <div>
-        <div class="brief-title">GENOMICS CLINICAL ACTION REPORT &amp; PREVENTIVE SURVEILLANCE SUMMARY</div>
+        <div class="brief-title">CLINICAL GENOMICS &amp; PHARMACOGENOMICS ACTION BRIEF</div>
         <div style="font-size:8.2pt;color:#334155;margin-top:2px;">
-          <strong>Patient:</strong> Melinda Ehrle (<span class="mono">Melinda_Ehrle</span>) · <strong>Date:</strong> October 12, 2026
+          <strong>Patient:</strong> Melinda Ehrle (<span class="mono">Melinda_Ehrle</span>) · <strong>Date:</strong> October 12, 2026 · <strong>Primary Audience:</strong> Patient, Primary Care Physician (PCP) &amp; Specialists
         </div>
       </div>
-      <div style="text-align:right;font-size:7.8pt;color:#1e293b;" class="mono">
-        <div><strong>BAM Aligned WGS Depth:</strong> <span style="color:#0f766e;font-weight:800;">33.4x</span> (GRCh38.p14 Phased)</div>
-        <div><strong>Page 1 of 3</strong></div>
+      <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
+        <div>Clinical Findings &amp; Prescribing Guide</div>
+        <div class="mono" style="color:#475569;">Page 1 of 3</div>
       </div>
     </div>
 
-    <!-- Primary Care Physician + Specialist Audience Banner -->
-    <div class="audience-strip">
-      <div><strong>Primary Audience:</strong> <strong>Primary Care Physician (PCP)</strong> (Annual Physical, Preventive Lab Screening &amp; Prescribing) · <strong>Co-Routing:</strong> Cardiology, Oncology, Hematology, Neurology &amp; Clinical Pharmacy</div>
-      <div><strong>Scope:</strong> 1653 Curated Variants (1129 Genes) + 41 Pharmacogenes</div>
+    <!-- Executive Findings Summary Box (Local AI Polished & JSON Verified) -->
+    <div class="exec-summary-box">
+      <div style="font-weight:800;color:#0f766e;text-transform:uppercase;font-size:7.5pt;letter-spacing:0.03em;margin-bottom:2px;">Executive Summary of Key Findings</div>
+      <ul style="padding-left:15px;margin:0;">
+        <li style='margin-bottom:2px;'><strong>Genomic Findings &amp; Carrier Context:</strong> Priority findings include single-copy recessive carrier status in <strong>TAT</strong> (Tyrosinemia type II, heterozygous carrier), <strong>ATM</strong> (Hereditary cancer-predisposing syndrome, heterozygous carrier), <strong>AMPD1</strong> (Muscle AMP deaminase deficiency, heterozygous carrier) (where the intact second gene copy maintains normal baseline function) alongside actionable pathway/susceptibility findings in <strong>POLG</strong> (Spinocerebellar ataxia with epilepsy, heterozygous), <strong>VDR</strong> (Chronic obstructive pulmonary disease, heterozygous), <strong>MC1R</strong> (Skin and Hair Hypopigmentation, heterozygous).</li><li style='margin-bottom:2px;'><strong>Actionable Medication Safety (CPIC / FDA):</strong> Key prescribing precautions are identified — avoid or select alternatives for <strong>POLG</strong> (Valproic Acid, Sodium Valproate, Divalproex Sodium), <strong>CYP2C19</strong> (Clopidogrel (Plavix)); and adjust starting doses or monitor <strong>VKORC1</strong> (Warfarin (Coumadin)), <strong>ABCG2</strong> (Antineoplastic Agents, Apixaban, Dolutegravir, Felodipine, Iguratimod, Sorafenib (+3 more)).</li><li style='margin-bottom:2px;'><strong>Preventive Care Takeaway:</strong> Focus annual primary care discussions on the high-level wellness and screening topics in Section 2; single-copy carrier findings do not require invasive diagnostic procedures.</li>
+      </ul>
     </div>
 
-    <!-- Section 1: Priority Genomic Findings, Carrier Status & Physiological Context -->
-    <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Clinical Impact</h2>
+    <!-- Section 1: Priority Genomic Findings, Carrier Status & Clinical Meaning -->
+    <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Clinical Meaning</h2>
     <table>
       <thead>
         <tr>
-          <th style="width:14%;">Gene, System &amp; Inheritance</th>
-          <th style="width:18%;">Variant, ID &amp; Coordinate</th>
-          <th style="width:11%;">Zygosity &amp; Depth</th>
-          <th style="width:14%;">Classification &amp; Scores</th>
-          <th>Clinical Impact, Primary Care Action &amp; Zygosity Context</th>
+          <th style="width:16%;">Gene &amp; Biological System</th>
+          <th style="width:18%;">Variant &amp; Zygosity</th>
+          <th style="width:17%;">Classification &amp; Condition</th>
+          <th>Clinical Meaning &amp; Practical Takeaway</th>
         </tr>
       </thead>
       <tbody>
         
         <tr>
           <td>
-            <strong>POLG</strong>
-            <div style="font-size:7.3pt;color:#475569;">Heart & Cardiovascular</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal Dominant</div>
-          </td>
-          <td class="mono">
-            <strong>p.Gly737Arg · c.2209G>C · rs121918054</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr15:89323460</div>
+            <strong style="font-size:8.6pt;color:#123f41;">POLG</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">POLG</div>
+            <div style="font-size:7.1pt;color:#64748b;">Heart & Cardiovascular</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 31x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">p.Gly737Arg · c.2209G>C · rs121918054</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal Dominant</div>
           </td>
           <td>
-            <strong>Pathogenic/Likely pathogenic</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 26.3 · AVI 30.3 · Conf 0.95</div>
+            <strong style="color:#0f172a;">Pathogenic/Likely pathogenic</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Spinocerebellar ataxia with epilepsy</div>
           </td>
           <td>
-            <div><strong>POLG · Mitochondrial DNA Replication &amp; Valproate Contraindication:</strong> Coding missense variant (p.Gly737Arg) in POLG (Spinocerebellar ataxia with epilepsy (OMIM #203700)). Mitochondrial DNA polymerase is heterotrimeric, consisting of a homodimer of accessory subunits plus a catalytic subunit. <strong>Clinical Impact:</strong> Heterozygous carriers are typically asymptomatic at baseline, but carry a <strong>strict FDA Boxed Warning contraindication against valproic acid / divalproex sodium</strong> due to risk of fatal valproate-induced hepatic necrosis; verify baseline AST/ALT on annual metabolic panels.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Susceptibility Allele:</strong> Single-allele variant in a dominant/semi-dominant pathway; manage via guideline-directed surveillance without unprovoked invasive procedures.</div>
+            <div><strong>POLG · Mitochondrial DNA Maintenance &amp; Medication Safety:</strong> Coding missense variant (p.Gly737Arg) in POLG (Spinocerebellar ataxia with epilepsy (OMIM #203700)). Mitochondrial DNA polymerase is heterotrimeric, consisting of a homodimer of accessory subunits plus a catalytic subunit. <strong>Clinical Impact:</strong> Heterozygous carriers are typically asymptomatic in daily life, but carry a <strong>strict contraindication against valproic acid (divalproex) medications</strong> due to severe liver toxicity risk.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Susceptibility Finding:</strong> Associated with increased lifetime risk; manage proactively through guideline-recommended preventive screening.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>TAT</strong>
-            <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal recessive</div>
-          </td>
-          <td class="mono">
-            <strong>p.Arg57Ter · c.169C>T · rs118203914</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr16:71576247</div>
+            <strong style="font-size:8.6pt;color:#123f41;">TAT</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">TAT</div>
+            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 52x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">p.Arg57Ter · c.169C>T · rs118203914</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal recessive</div>
           </td>
           <td>
-            <strong>Pathogenic</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 36.0 · AVI 38.8 · Conf 0.95</div>
+            <strong style="color:#0f172a;">Pathogenic</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Tyrosinemia type II</div>
           </td>
           <td>
-            <div><strong>TAT · Hepatic Tyrosine Catabolism (Tyrosinemia type II):</strong> Premature stop-gained variant (p.Arg57Ter) in TAT, associated with autosomal recessive <strong>Tyrosinemia type II (OMIM #276600)</strong>. This nuclear gene encodes a mitochondrial protein tyrosine aminotransferase which is present in the liver and catalyzes the conversion of L-tyrosine into p-hydroxyphenylpyruvate. <strong>Clinical Impact:</strong> Heterozygous carriers retain ~50% hepatic enzymatic activity via the wild-type allele, remain clinically asymptomatic on an unrestricted diet, and require no dietary tyrosine/phenylalanine restriction (optional one-time fasting plasma tyrosine &lt; 100 µmol/L confirms normal clearance).</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Recessive Carrier:</strong> Single-allele carrier with an intact wild-type parental allele (~50–100% baseline functional reserve); does not cause primary recessive disease and requires no invasive diagnostic workup.</div>
+            <div><strong>TAT · Hepatic Tyrosine Metabolism (Tyrosinemia type II):</strong> Premature stop-gained variant (p.Arg57Ter) in TAT, associated with autosomal recessive <strong>Tyrosinemia type II (OMIM #276600)</strong>. This nuclear gene encodes a mitochondrial protein tyrosine aminotransferase which is present in the liver and catalyzes the conversion of L-tyrosine into p-hydroxyphenylpyruvate. <strong>Clinical Impact:</strong> Heterozygous carriers retain a functional second gene copy, remain clinically asymptomatic on a normal diet, and require no dietary tyrosine or protein restriction.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Recessive Carrier:</strong> Retains one functional gene copy with normal baseline physiological capacity; does not cause the classic biallelic condition.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>ATM</strong>
-            <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal recessive</div>
-          </td>
-          <td class="mono">
-            <strong>c.1236-2del · rs1565381646</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr11:108250699</div>
+            <strong style="font-size:8.6pt;color:#123f41;">ATM</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">ATM</div>
+            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 18x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">c.1236-2del · rs1565381646</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal recessive</div>
           </td>
           <td>
-            <strong>Pathogenic/Likely pathogenic</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD — · AVI — · Conf 0.71</div>
+            <strong style="color:#0f172a;">Pathogenic/Likely pathogenic</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Hereditary cancer-predisposing syndrome</div>
           </td>
           <td>
-            <div><strong>ATM · DNA Double-Strand Break Repair &amp; Oncologic Surveillance:</strong> Canonical splice-site variant (c.1236-2del) in ATM (Hereditary cancer-predisposing syndrome). The protein encoded by this gene belongs to the PI3/PI4-kinase family. This protein is an important cell cycle checkpoint kinase that phosphorylates; thus, it functions as a regulator of a wide variety of downstream p… <strong>Clinical Impact:</strong> Heterozygous carriers have moderately elevated breast and pancreatic cancer susceptibility; NCCN guidelines recommend annual breast MRI and mammography, family history review for pancreatic screening, and minimizing unnecessary diagnostic ionizing radiation.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Recessive Carrier:</strong> Single-allele carrier with an intact wild-type parental allele (~50–100% baseline functional reserve); does not cause primary recessive disease and requires no invasive diagnostic workup.</div>
+            <div><strong>ATM · DNA Repair &amp; Hereditary Cancer Screening:</strong> Canonical splice-site variant (c.1236-2del) in ATM (Hereditary cancer-predisposing syndrome). The protein encoded by this gene belongs to the PI3/PI4-kinase family. This protein is an important cell cycle checkpoint kinase that phosphorylates; thus, it functions as a regulator of a wide variety of downstream p… <strong>Clinical Impact:</strong> Heterozygous carriers have moderately elevated breast and hereditary cancer susceptibility; discuss NCCN-guided enhanced breast screening (such as annual breast MRI and mammography) and family history review.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Recessive Carrier:</strong> Retains one functional gene copy with normal baseline physiological capacity; does not cause the classic biallelic condition.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>VDR</strong>
-            <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Pathway Modifier</div>
-          </td>
-          <td class="mono">
-            <strong>c.-1172A>G · rs4516035</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr12:47906043</div>
+            <strong style="font-size:8.6pt;color:#123f41;">VDR</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">VDR</div>
+            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 21x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">c.-1172A>G · rs4516035</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Pathway Modifier</div>
           </td>
           <td>
-            <strong>Likely pathogenic</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 5.4 · AVI 2.1 · Conf 0.68</div>
+            <strong style="color:#0f172a;">Likely pathogenic</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Chronic obstructive pulmonary disease</div>
           </td>
           <td>
-            <div><strong>VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis:</strong> Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. <strong>Clinical Impact:</strong> Modulates baseline calcitriol receptor transcriptional activity; maintain serum 25(OH)D at 35–55 ng/mL via routine cholecalciferol (Vitamin D3) supplementation.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Carrier / Susceptibility Finding:</strong> Single-allele variant with preserved wild-type counter-allele; correlate via routine laboratory biomarkers and prescribing guardrails without invasive workup.</div>
+            <div><strong>VDR · Vitamin D Signaling &amp; Bone Health:</strong> Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. <strong>Clinical Impact:</strong> Modulates Vitamin D receptor signaling; checking routine Vitamin D levels at the annual physical helps guide standard supplementation.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Carrier / Risk Finding:</strong> Retains one functional counter-allele; manage through medication precautions and routine primary care follow-up.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>MC1R</strong>
-            <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Pathway Modifier</div>
-          </td>
-          <td class="mono">
-            <strong>p.Asp294His · c.880G>C · rs1805009</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr16:89920138</div>
+            <strong style="font-size:8.6pt;color:#123f41;">MC1R</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">MC1R</div>
+            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 25x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">p.Asp294His · c.880G>C · rs1805009</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Pathway Modifier</div>
           </td>
           <td>
-            <strong>Conflicting classifications of pathogenicity|risk factor</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 26.9 · AVI 24.5 · Conf 0.82</div>
+            <strong style="color:#0f172a;">Conflicting classifications of pathogenicity|risk factor</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Skin and Hair Hypopigmentation</div>
           </td>
           <td>
-            <div><strong>MC1R · Cutaneous Melanin Synthesis &amp; UV DNA Damage Response:</strong> Coding missense variant (p.Asp294His) in MC1R (Skin and Hair Hypopigmentation (OMIM #203200)). This intronless gene encodes the receptor protein for melanocyte-stimulating hormone (MSH). The encoded protein, a seven pass transmembrane G protein coupled receptor, controls melanogenesis. <strong>Clinical Impact:</strong> Confers elevated cutaneous UV sensitivity and melanoma/non-melanoma skin cancer susceptibility; manage via annual full-body dermatologic skin exams and broad-spectrum SPF 30+ photoprotection.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
+            <div><strong>MC1R · Skin Pigmentation &amp; UV Sensitivity:</strong> Coding missense variant (p.Asp294His) in MC1R (Skin and Hair Hypopigmentation (OMIM #203200)). This intronless gene encodes the receptor protein for melanocyte-stimulating hormone (MSH). The encoded protein, a seven pass transmembrane G protein coupled receptor, controls melanogenesis. <strong>Clinical Impact:</strong> Confers increased UV skin sensitivity; manage through routine annual skin examinations and daily broad-spectrum sun protection.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>AMPD1</strong>
-            <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal recessive</div>
-          </td>
-          <td class="mono">
-            <strong>p.Glu435Gly · c.1304A>G · rs764950035</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr1:114677435</div>
+            <strong style="font-size:8.6pt;color:#123f41;">AMPD1</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">AMPD1</div>
+            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 41x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">p.Glu435Gly · c.1304A>G · rs764950035</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal recessive</div>
           </td>
           <td>
-            <strong>Uncertain significance</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 32.0 · AVI 28.2 · Conf 0.88</div>
+            <strong style="color:#0f172a;">Uncertain significance</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">Muscle AMP deaminase deficiency</div>
           </td>
           <td>
-            <div><strong>AMPD1 · Skeletal Muscle Purine Nucleotide Cycle &amp; Energy Homeostasis:</strong> Coding missense variant (p.Glu435Gly) in AMPD1 (Muscle AMP deaminase deficiency). Adenosine monophosphate deaminase 1 catalyzes the deamination of AMP to IMP in skeletal muscle and plays an important role in the purine nucleotide cycle. <strong>Clinical Impact:</strong> Single-allele heterozygous carriers are generally asymptomatic; check serum Creatine Kinase (CK) if exercise-induced cramping occurs or prior to escalating high-dose statin therapy.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
+            <div><strong>AMPD1 · Skeletal Muscle Energy Metabolism:</strong> Coding missense variant (p.Glu435Gly) in AMPD1 (Muscle AMP deaminase deficiency). Adenosine monophosphate deaminase 1 catalyzes the deamination of AMP to IMP in skeletal muscle and plays an important role in the purine nucleotide cycle. <strong>Clinical Impact:</strong> Single-copy heterozygous carriers generally have normal muscle function; evaluate muscle enzymes if exercise-induced cramping or statin-associated muscle aches occur.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
           </td>
         </tr>
         
         <tr>
           <td>
-            <strong>CTH</strong>
-            <div style="font-size:7.3pt;color:#475569;">Multisystem</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">Autosomal recessive</div>
-          </td>
-          <td class="mono">
-            <strong>p.Thr67Ile · c.200C>T · rs28941785</strong>
-            <div style="font-size:7.2pt;color:#64748b;">chr1:70415987</div>
+            <strong style="font-size:8.6pt;color:#123f41;">CTH</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">CTH</div>
+            <div style="font-size:7.1pt;color:#64748b;">Multisystem</div>
           </td>
           <td>
-            <strong>Heterozygous</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: 39x</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">p.Thr67Ile · c.200C>T · rs28941785</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">Heterozygous</div>
+            <div style="font-size:7.1pt;color:#475569;">Autosomal recessive</div>
           </td>
           <td>
-            <strong>Conflicting classifications of pathogenicity</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD 25.5 · AVI 27.8 · Conf 0.88</div>
+            <strong style="color:#0f172a;">Conflicting classifications of pathogenicity</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">CTH-related disorder</div>
           </td>
           <td>
-            <div><strong>CTH · Hepatic Transsulfuration &amp; Homocysteine Clearance:</strong> Coding missense variant (p.Thr67Ile) in CTH (CTH-related disorder (OMIM #219500)). This gene encodes a cytoplasmic enzyme in the trans-sulfuration pathway that converts cystathione derived from methionine into cysteine. <strong>Clinical Impact:</strong> Single-allele heterozygous variants retain wild-type enzymatic reserve; verify normal fasting plasma homocysteine (&lt; 12 µmol/L) and adequate Vitamin B6/folate/B12 cofactor status.</div>
-            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted).</div>
+            <div><strong>CTH · Methionine &amp; Homocysteine Clearance:</strong> Coding missense variant (p.Thr67Ile) in CTH (CTH-related disorder (OMIM #219500)). This gene encodes a cytoplasmic enzyme in the trans-sulfuration pathway that converts cystathione derived from methionine into cysteine. <strong>Clinical Impact:</strong> Single-copy heterozygous variants retain baseline enzymatic capacity; adequate dietary B-vitamins (B6, folate, B12) support normal homocysteine metabolism.</div>
+            <div style="margin-top:3px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;"><strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; review in context of routine wellness labs and clinical history.</div>
           </td>
         </tr>
         
@@ -440,101 +418,93 @@
     </table>
 
     <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      Melinda Ehrle (Melinda_Ehrle) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Annual Preventive Surveillance &amp; Acute Prescribing Guardrails
+      Melinda Ehrle (Melinda_Ehrle) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Preventive Care Discussion Points &amp; Medication Precautions
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: PREVENTIVE SURVEILLANCE & ACUTE PRESCRIBING GUARDRAILS ======================= -->
+  <!-- ======================= PAGE 2 OF 3: PREVENTIVE CARE DISCUSSION POINTS & MEDICATION PRECAUTIONS ======================= -->
   <div class="page page-2">
-    <!-- Section 2: Preventive Laboratory & Clinical Surveillance Schedule -->
-    <h2>Section 2 · Preventive Laboratory &amp; Clinical Surveillance Schedule (PCP Annual Physical &amp; Specialist Routing)</h2>
+    <!-- Section 2: High-Level Preventive Care & Annual Physical Discussion Points -->
+    <h2>Section 2 · High-Level Preventive Care &amp; Annual Checkup Discussion Points</h2>
     <div style="font-size:7.8pt;color:#334155;margin-bottom:4px;">
-      Derived strictly from <strong>Melinda Ehrle</strong>’s variant callset for integration into the <strong>Primary Care Physician (PCP) annual preventive physical</strong>. Each row links the triggering <strong>Gene, Variant, and Zygosity</strong> to a specific laboratory panel or clinical evaluation. (Page 2 of 3)
+      High-level preventive care topics tailored for <strong>Melinda Ehrle</strong>’s routine annual checkup with the <strong>Primary Care Physician (PCP)</strong> or relevant specialist. (Page 2 of 3)
     </div>
     <table>
       <thead>
         <tr>
-          <th style="width:17%;">Gene, Variant &amp; Zygosity</th>
-          <th style="width:14%;">Physiological Pathway</th>
-          <th style="width:18%;">Laboratory Test / Evaluation</th>
-          <th style="width:14%;">Ordering Clinician &amp; Co-Consult</th>
-          <th style="width:10%;">Frequency</th>
-          <th>Clinical Rationale &amp; Thresholds</th>
+          <th style="width:17%;">Genomic Finding</th>
+          <th style="width:16%;">Biological Pathway</th>
+          <th style="width:20%;">Preventive Care Topic</th>
+          <th style="width:15%;">Care Setting &amp; Timing</th>
+          <th>Clinical Context &amp; Practical Summary</th>
         </tr>
       </thead>
       <tbody>
         
         <tr>
-          <td><strong>POLG</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Gly737Arg · c.2209G>C · rs121918054</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr15:89323460 · DP: 31x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal Dominant)</div></td>
-          <td><strong>POLG · Mitochondrial DNA Replication &amp; Valproate Contraindication</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Pathogenic/Likely pathogenic</div></td>
-          <td><strong>Comprehensive Metabolic Panel (CMP — Hepatic AST, ALT, Bilirubin &amp; eGFR)</strong><div style='font-size:7.3pt;color:#991b1b;'>Venous Blood Draw + Permanent EHR Valproate Allergy Flag</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Neurology / Clinical Pharmacy</div></td>
-          <td>Annual PCP Preventive Blood Panel &amp; permanent EHR prescribing alert</td>
-          <td>Coding missense variant (p.Gly737Arg) in POLG (Spinocerebellar ataxia with epilepsy (OMIM #203700)). Mitochondrial DNA polymerase is heterotrimeric, consisting of a homodimer of accessory subunits plus a catalytic subunit. <strong>Clinical Impact:</strong> Heterozygous carriers are typically asymptomatic at baseline, but carry a <strong>strict FDA Boxed Warning contraindication against valproic acid / divalproex sodium</strong> due to risk of fatal valproate-induced hepatic necrosis; verify baseline AST/ALT on annual metabolic panels.</td>
+          <td><strong>POLG</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Gly737Arg · c.2209G>C · rs121918054</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal Dominant)</div></td>
+          <td><strong>POLG · Mitochondrial DNA Maintenance &amp; Medication Safety</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Pathogenic/Likely pathogenic</div></td>
+          <td><strong>EHR Valproate Allergy/Avoidance Flag &amp; Routine Liver Panel</strong><div style='font-size:7.3pt;color:#991b1b;'>Permanent Prescribing Precaution</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Prescribing Clinicians</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Permanent EHR Flag &amp; Annual Checkup</div></td>
+          <td>Coding missense variant (p.Gly737Arg) in POLG (Spinocerebellar ataxia with epilepsy (OMIM #203700)). Mitochondrial DNA polymerase is heterotrimeric, consisting of a homodimer of accessory subunits plus a catalytic subunit. <strong>Clinical Impact:</strong> Heterozygous carriers are typically asymptomatic in daily life, but carry a <strong>strict contraindication against valproic acid (divalproex) medications</strong> due to severe liver toxicity risk.</td>
         </tr>
         
         <tr>
-          <td><strong>TAT</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg57Ter · c.169C>T · rs118203914</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr16:71576247 · DP: 52x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
-          <td><strong>TAT · Hepatic Tyrosine Catabolism (Tyrosinemia type II)</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Pathogenic</div></td>
-          <td><strong>Fasting Plasma Tyrosine / Amino Acid Profile &amp; Hepatic AST/ALT</strong><div style='font-size:7.3pt;color:#0f766e;'>Optional Baseline Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Medical Genetics (Carrier Context)</div></td>
-          <td>Optional one-time baseline at routine PCP physical</td>
-          <td>Premature stop-gained variant (p.Arg57Ter) in TAT, associated with autosomal recessive <strong>Tyrosinemia type II (OMIM #276600)</strong>. This nuclear gene encodes a mitochondrial protein tyrosine aminotransferase which is present in the liver and catalyzes the conversion of L-tyrosine into p-hydroxyphenylpyruvate. <strong>Clinical Impact:</strong> Heterozygous carriers retain ~50% hepatic enzymatic activity via the wild-type allele, remain clinically asymptomatic on an unrestricted diet, and require no dietary tyrosine/phenylalanine restriction (optional one-time fasting plasma tyrosine &lt; 100 µmol/L confirms normal clearance).</td>
+          <td><strong>TAT</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Arg57Ter · c.169C>T · rs118203914</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
+          <td><strong>TAT · Hepatic Tyrosine Metabolism (Tyrosinemia type II)</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Pathogenic</div></td>
+          <td><strong>Reassurance Only — Normal Unrestricted Diet</strong><div style='font-size:7.3pt;color:#0f766e;'>Optional Routine Metabolic Panel at Annual Checkup</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Routine Annual Checkup</div></td>
+          <td>Premature stop-gained variant (p.Arg57Ter) in TAT, associated with autosomal recessive <strong>Tyrosinemia type II (OMIM #276600)</strong>. This nuclear gene encodes a mitochondrial protein tyrosine aminotransferase which is present in the liver and catalyzes the conversion of L-tyrosine into p-hydroxyphenylpyruvate. <strong>Clinical Impact:</strong> Heterozygous carriers retain a functional second gene copy, remain clinically asymptomatic on a normal diet, and require no dietary tyrosine or protein restriction.</td>
         </tr>
         
         <tr>
-          <td><strong>ATM</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.1236-2del · rs1565381646</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr11:108250699 · DP: 18x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
-          <td><strong>ATM · DNA Double-Strand Break Repair &amp; Oncologic Surveillance</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Pathogenic/Likely pathogenic</div></td>
-          <td><strong>Annual Breast MRI &amp; Tomosynthesis Mammogram (per NCCN) + CBC &amp; CMP Blood Panel</strong><div style='font-size:7.3pt;color:#991b1b;'>High-Risk Breast Imaging &amp; Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>High-Risk Oncology / Medical Genetics</strong></td>
-          <td>Annual Breast MRI &amp; Mammogram (staggered q6m per NCCN)</td>
-          <td>Canonical splice-site variant (c.1236-2del) in ATM (Hereditary cancer-predisposing syndrome). The protein encoded by this gene belongs to the PI3/PI4-kinase family. This protein is an important cell cycle checkpoint kinase that phosphorylates; thus, it functions as a regulator of a wide variety of downstream p… <strong>Clinical Impact:</strong> Heterozygous carriers have moderately elevated breast and pancreatic cancer susceptibility; NCCN guidelines recommend annual breast MRI and mammography, family history review for pancreatic screening, and minimizing unnecessary diagnostic ionizing radiation.</td>
+          <td><strong>ATM</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.1236-2del · rs1565381646</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
+          <td><strong>ATM · DNA Repair &amp; Hereditary Cancer Screening</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Pathogenic/Likely pathogenic</div></td>
+          <td><strong>Guideline-Directed Breast &amp; Cancer Screening Discussion (per NCCN)</strong><div style='font-size:7.3pt;color:#991b1b;'>Preventive Screening Review</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Preventive Oncology / Genetics</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Annual Preventive Screening Review</div></td>
+          <td>Canonical splice-site variant (c.1236-2del) in ATM (Hereditary cancer-predisposing syndrome). The protein encoded by this gene belongs to the PI3/PI4-kinase family. This protein is an important cell cycle checkpoint kinase that phosphorylates; thus, it functions as a regulator of a wide variety of downstream p… <strong>Clinical Impact:</strong> Heterozygous carriers have moderately elevated breast and hereditary cancer susceptibility; discuss NCCN-guided enhanced breast screening (such as annual breast MRI and mammography) and family history review.</td>
         </tr>
         
         <tr>
-          <td><strong>VDR</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.-1172A>G · rs4516035</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr12:47906043 · DP: 21x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Pathway Modifier)</div></td>
-          <td><strong>VDR · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Likely pathogenic</div></td>
-          <td><strong>Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline Phosphatase</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Endocrinology (if refractory deficiency)</div></td>
-          <td>Annual PCP Preventive Lab Panel</td>
-          <td>Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. <strong>Clinical Impact:</strong> Modulates baseline calcitriol receptor transcriptional activity; maintain serum 25(OH)D at 35–55 ng/mL via routine cholecalciferol (Vitamin D3) supplementation.</td>
+          <td><strong>VDR</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>c.-1172A>G · rs4516035</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Pathway Modifier)</div></td>
+          <td><strong>VDR · Vitamin D Signaling &amp; Bone Health</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Likely pathogenic</div></td>
+          <td><strong>Routine Vitamin D &amp; Calcium Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Annual Wellness Panel</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Annual PCP Checkup</div></td>
+          <td>Canonical splice-site variant (c.-1172A>G) in VDR (Chronic obstructive pulmonary disease). This gene encodes vitamin D3 receptor, which is a member of the nuclear hormone receptor superfamily of ligand-inducible transcription factors. <strong>Clinical Impact:</strong> Modulates Vitamin D receptor signaling; checking routine Vitamin D levels at the annual physical helps guide standard supplementation.</td>
         </tr>
         
         <tr>
-          <td><strong>MC1R</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Asp294His · c.880G>C · rs1805009</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr16:89920138 · DP: 25x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Pathway Modifier)</div></td>
-          <td><strong>MC1R · Cutaneous Melanin Synthesis &amp; UV DNA Damage Response</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity|risk factor</div></td>
-          <td><strong>Annual Full-Body Dermatologic Skin Examination &amp; UV Photoprotection</strong><div style='font-size:7.3pt;color:#0f766e;'>Clinical Dermatology / PCP Skin Exam</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Dermatology</strong></td>
-          <td>Annual preventive full-body skin examination</td>
-          <td>Coding missense variant (p.Asp294His) in MC1R (Skin and Hair Hypopigmentation (OMIM #203200)). This intronless gene encodes the receptor protein for melanocyte-stimulating hormone (MSH). The encoded protein, a seven pass transmembrane G protein coupled receptor, controls melanogenesis. <strong>Clinical Impact:</strong> Confers elevated cutaneous UV sensitivity and melanoma/non-melanoma skin cancer susceptibility; manage via annual full-body dermatologic skin exams and broad-spectrum SPF 30+ photoprotection.</td>
+          <td><strong>MC1R</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Asp294His · c.880G>C · rs1805009</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Pathway Modifier)</div></td>
+          <td><strong>MC1R · Skin Pigmentation &amp; UV Sensitivity</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Conflicting classifications of pathogenicity|risk factor</div></td>
+          <td><strong>Annual Skin Examination &amp; Daily Sun Protection</strong><div style='font-size:7.3pt;color:#0f766e;'>Dermatology / PCP Skin Check</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong> &amp; <strong>Dermatology</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Annual Preventive Skin Check</div></td>
+          <td>Coding missense variant (p.Asp294His) in MC1R (Skin and Hair Hypopigmentation (OMIM #203200)). This intronless gene encodes the receptor protein for melanocyte-stimulating hormone (MSH). The encoded protein, a seven pass transmembrane G protein coupled receptor, controls melanogenesis. <strong>Clinical Impact:</strong> Confers increased UV skin sensitivity; manage through routine annual skin examinations and daily broad-spectrum sun protection.</td>
         </tr>
         
         <tr>
-          <td><strong>AMPD1</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Glu435Gly · c.1304A>G · rs764950035</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr1:114677435 · DP: 41x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
-          <td><strong>AMPD1 · Skeletal Muscle Purine Nucleotide Cycle &amp; Energy Homeostasis</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Uncertain significance</div></td>
-          <td><strong>Serum Creatine Kinase (CK) &amp; Basic Metabolic Panel (if Myalgia Occurs)</strong><div style='font-size:7.3pt;color:#0f766e;'>Symptom-Triggered Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong></td>
-          <td>Symptom-triggered (if exercise cramps or statin-associated myalgia occur)</td>
-          <td>Coding missense variant (p.Glu435Gly) in AMPD1 (Muscle AMP deaminase deficiency). Adenosine monophosphate deaminase 1 catalyzes the deamination of AMP to IMP in skeletal muscle and plays an important role in the purine nucleotide cycle. <strong>Clinical Impact:</strong> Single-allele heterozygous carriers are generally asymptomatic; check serum Creatine Kinase (CK) if exercise-induced cramping occurs or prior to escalating high-dose statin therapy.</td>
+          <td><strong>AMPD1</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Glu435Gly · c.1304A>G · rs764950035</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
+          <td><strong>AMPD1 · Skeletal Muscle Energy Metabolism</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Uncertain significance</div></td>
+          <td><strong>Symptom-Guided Muscle Enzyme Check (Only If Muscle Cramps Occur)</strong><div style='font-size:7.3pt;color:#0f766e;'>Symptom-Guided Review</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">As needed if muscle symptoms or statin myalgia occur</div></td>
+          <td>Coding missense variant (p.Glu435Gly) in AMPD1 (Muscle AMP deaminase deficiency). Adenosine monophosphate deaminase 1 catalyzes the deamination of AMP to IMP in skeletal muscle and plays an important role in the purine nucleotide cycle. <strong>Clinical Impact:</strong> Single-copy heterozygous carriers generally have normal muscle function; evaluate muscle enzymes if exercise-induced cramping or statin-associated muscle aches occur.</td>
         </tr>
         
         <tr>
-          <td><strong>CTH</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Thr67Ile · c.200C>T · rs28941785</strong></div><div class='mono' style='font-size:7.2pt;color:#64748b;'>chr1:70415987 · DP: 39x</div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
-          <td><strong>CTH · Hepatic Transsulfuration &amp; Homocysteine Clearance</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: Conflicting classifications of pathogenicity</div></td>
-          <td><strong>Fasting Plasma Homocysteine, Vitamin B6 (PLP) &amp; Folate / B12 Panel</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div></td>
-          <td><strong>Primary Care Physician (PCP)</strong></td>
-          <td>Baseline at Annual PCP Physical</td>
-          <td>Coding missense variant (p.Thr67Ile) in CTH (CTH-related disorder (OMIM #219500)). This gene encodes a cytoplasmic enzyme in the trans-sulfuration pathway that converts cystathione derived from methionine into cysteine. <strong>Clinical Impact:</strong> Single-allele heterozygous variants retain wild-type enzymatic reserve; verify normal fasting plasma homocysteine (&lt; 12 µmol/L) and adequate Vitamin B6/folate/B12 cofactor status.</td>
+          <td><strong>CTH</strong><div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>p.Thr67Ile · c.200C>T · rs28941785</strong></div><div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>Heterozygous (Autosomal recessive)</div></td>
+          <td><strong>CTH · Methionine &amp; Homocysteine Clearance</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>Conflicting classifications of pathogenicity</div></td>
+          <td><strong>Routine Homocysteine &amp; B-Vitamin Status Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Annual Wellness Lab Review</div></td>
+          <td><strong>Primary Care Physician (PCP)</strong><div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">Annual PCP Checkup</div></td>
+          <td>Coding missense variant (p.Thr67Ile) in CTH (CTH-related disorder (OMIM #219500)). This gene encodes a cytoplasmic enzyme in the trans-sulfuration pathway that converts cystathione derived from methionine into cysteine. <strong>Clinical Impact:</strong> Single-copy heterozygous variants retain baseline enzymatic capacity; adequate dietary B-vitamins (B6, folate, B12) support normal homocysteine metabolism.</td>
         </tr>
         
       </tbody>
     </table>
 
-    <!-- Section 3: Acute Prescribing & Perioperative Red-Box Guardrails -->
+    <!-- Section 3: High-Priority Medication & Exposure Precautions -->
     <div class="redbox-guardrail">
       <div class="redbox-title">
-        <span>🚨 Section 3 · Acute Prescribing &amp; Perioperative Guardrails (Life-Threatening Risk Highlights)</span>
-        <span class="mono" style="font-size:7.2pt;">CPIC / DPWG / FDA Boxed Warning Safety Summary</span>
+        <span>🚨 Section 3 · High-Priority Medication &amp; Exposure Precautions</span>
+        <span class="mono" style="font-size:7.2pt;">CPIC / FDA Prescribing Safety Highlights</span>
       </div>
       <div class="guardrail-grid">
         
@@ -545,7 +515,7 @@
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#dc2626;font-weight:700;"><span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Valproic Acid, Sodium Valproate, Divalproex Sodium</span></span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> <strong>CRITICAL HAZARD:</strong> Pathogenic POLG carrier; valproate formulations are strictly contraindicated due to high risk of fatal valproate-induced hepatic necrosis / mitochondrial liver failure.</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> <strong>CRITICAL HAZARD:</strong> Pathogenic POLG carrier; valproate formulations are strictly contraindicated due to high risk of fatal valproate-induced hepatic necrosis / mitochondrial liver failure.</div>
           </div>
         </div>
         
@@ -556,7 +526,7 @@
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#dc2626;font-weight:700;"><span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Clopidogrel (Plavix)</span></span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> <strong>CRITICAL HAZARD:</strong> Significantly reduced active metabolite formation and high risk of cardiovascular ischemic events/stent thrombosis. Avoid clopidogrel; prescribe alterna… Select a non-substrate alternative from Section 4.</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> <strong>CRITICAL HAZARD:</strong> Significantly reduced active metabolite formation and high risk of cardiovascular ischemic events/stent thrombosis. Avoid clopidogrel; prescribe alterna… Select a non-substrate alternative from Section 4.</div>
           </div>
         </div>
         
@@ -567,7 +537,7 @@
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#dc2626;font-weight:700;"><span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Warfarin (Coumadin)</span></span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> <strong>CRITICAL HAZARD:</strong> Carries VKORC1 -1639G>A sensitivity allele (rs9923231 variant). High pharmacological sensitivity to vitamin K antagonists requiring lower initial a… Initiate at reduced dose or titrate cautiously per CPIC.</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> <strong>CRITICAL HAZARD:</strong> Carries VKORC1 -1639G>A sensitivity allele (rs9923231 variant). High pharmacological sensitivity to vitamin K antagonists requiring lower initial a… Initiate at reduced dose or titrate cautiously per CPIC.</div>
           </div>
         </div>
         
@@ -578,7 +548,7 @@
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:#92400e;font-weight:700;">Antineoplastic Agents, Apixaban, Dolutegravir, Felodipine, Iguratimod, Sorafenib (+3 more)</span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> Genotype GG is associated with decreased response to antineoplastic agents in people with Colorectal Neoplasms as compared to genotypes GT + TT. Monitor clinical response and consider dose adjustment per CPIC.</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> Genotype GG is associated with decreased response to antineoplastic agents in people with Colorectal Neoplasms as compared to genotypes GT + TT. Monitor clinical response and consider dose adjustment per CPIC.</div>
           </div>
         </div>
         
@@ -586,19 +556,19 @@
     </div>
 
     <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      Melinda Ehrle (Melinda_Ehrle) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Matrix, Decision Calculus &amp; EHR Note
+      Melinda Ehrle (Melinda_Ehrle) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Reference, Clinical Perspective &amp; EHR Note
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, DECISION CALCULUS & EHR INTEGRATION ======================= -->
+  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, CLINICAL PERSPECTIVE & EHR SUMMARY ======================= -->
   <div class="page page-3">
-    <!-- Section 4: Actionable Pharmacogenomic Prescribing Guardrails -->
-    <h2>Section 4 · Actionable Pharmacogenomic Prescribing Guardrails (CPIC / DPWG Medication &amp; Diplotype Reference)</h2>
+    <!-- Section 4: Actionable Pharmacogenomic Prescribing Reference -->
+    <h2>Section 4 · Pharmacogenomic Prescribing Reference (CPIC / DPWG Medication &amp; Diplotype Guide)</h2>
     <table>
       <thead>
         <tr>
           <th style="width:17%;">Prescribing Action Tier</th>
-          <th style="width:43%;">Affected Medications by Causal Pharmacogene &amp; Diplotype</th>
+          <th style="width:43%;">Affected Medications by Pharmacogene &amp; Diplotype</th>
           <th>Clinical Mechanism &amp; Prescribing Rule</th>
         </tr>
       </thead>
@@ -716,36 +686,36 @@
       </tbody>
     </table>
 
-    <h2>Section 5 · Clinical Decision Calculus: Balanced Interventional Rationale</h2>
+    <h2>Section 5 · Clinical Perspective: Balancing Proactive Care vs. Over-Intervention</h2>
     <div class="calculus-grid">
       <div class="calculus-card" style="background:#f0fdf4;border-color:#bbf7d0;">
-        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Arguments FOR Targeted Preventive Screening &amp; PGx Guardrails</div>
+        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Why These Findings Are Useful</div>
         <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
-          <li><strong>Immediate Medication Safety:</strong> Documenting CPIC pharmacogenomic diplotypes (Avoid / Reduce Dose / Increase Dose) in the EHR prevents avoidable drug toxicity and therapeutic failure before the first prescription is filled.</li>
-          <li><strong>Pathway-Matched Biomarker Verification:</strong> Incorporating targeted venous blood tests (Section 2) into the annual PCP physical directly verifies whether any carrier or modifier variant has subtle physiological expression.</li>
+          <li><strong>Proactive Medication Safety:</strong> Recording pharmacogenomic metabolizer status in the medical chart helps select effective medications and avoid preventable side effects before a prescription is started.</li>
+          <li><strong>Informed Annual Checkups:</strong> Highlighting relevant biological pathways allows the Primary Care Physician to tailor routine wellness checks and age-appropriate preventive screening.</li>
         </ul>
       </div>
 
       <div class="calculus-card" style="background:#fff1f2;border-color:#fecdd3;">
-        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Arguments AGAINST Over-Intervention</div>
+        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Why Aggressive Intervention Is Not Needed</div>
         <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
-          <li><strong>Heterozygous Carrier Reserve &amp; Phased Reassurance:</strong> Whole-genome phasing confirms <strong>0 pathogenic biallelic (trans) recessive compound-heterozygotes</strong>; heterozygous carriers retain an intact wild-type allele (~50–100% capacity) and do not warrant invasive diagnostic procedures.</li>
-          <li><strong>Polygenic Modifiers ≠ Deterministic Disease:</strong> Common statistical GWAS variants reflect modest susceptibility and must never trigger unprovoked chronic anticoagulation or off-label pharmacotherapy.</li>
+          <li><strong>Single-Copy Carrier Reassurance:</strong> No two-copy (biallelic) recessive disease genotypes are present; single-copy recessive carriers retain a functional gene copy and maintain normal baseline health.</li>
+          <li><strong>Modifier Variants Are Not Diagnoses:</strong> Common pathway modifiers indicate mild physiological tendencies and should never trigger unnecessary procedures or unprovoked medication changes.</li>
         </ul>
       </div>
     </div>
 
-    <h2>Section 6 · Recommended Clinical Note / EHR Problem-List Integration Text (Copy-Paste Ready for PCP)</h2>
-    <div class="ehr-note-box">GENOMIC &amp; PHARMACOGENOMIC PREVENTIVE SUMMARY (Melinda Ehrle | ID: Melinda_Ehrle | BAM Aligned WGS Depth: 33.4x GRCh38)
-• KEY GENOMIC &amp; CARRIER FINDINGS: POLG (p.Gly737Arg · c.2209G>C · rs121918054, Heterozygous), TAT (p.Arg57Ter · c.169C>T · rs118203914, Heterozygous), ATM (c.1236-2del · rs1565381646, Heterozygous), VDR (c.-1172A>G · rs4516035, Heterozygous), MC1R (p.Asp294His · c.880G>C · rs1805009, Heterozygous), AMPD1 (p.Glu435Gly · c.1304A>G · rs764950035, Heterozygous). Zero biallelic pathogenic recessive compound-heterozygotes detected; heterozygous carrier/modifier findings retain one wild-type allele and do not warrant invasive diagnostic procedures.
-• CRITICAL PHARMACOGENOMIC &amp; LIFE-THREATENING GUARDRAILS (CPIC/DPWG):
-  - LIFE-THREATENING / AVOID: <span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Valproic Acid, Sodium Valproate, Divalproex Sodium</span> · <span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Clopidogrel (Plavix)</span>
-  - DOSE REDUCTION (DOSE_DOWN): <span style='color:#b91c1c;font-weight:800;background:#fee2e2;padding:1px 3px;border-radius:2px;border:1px solid #f87171;'>Warfarin (Coumadin)</span>
-  - RAPID METABOLISM (DOSE_UP): Antineoplastic Agents, Apixaban, Dolutegravir, Felodipine, Iguratimod, Sorafenib (+3 more)
-• PCP ANNUAL LAB &amp; SURVEILLANCE PLAN: Order the pathway-matched venous blood panels and preventive evaluations listed in Section 2 during the routine annual physical.</div>
+    <h2>Section 6 · Copy-Paste Physician Handoff / EHR Chart Summary</h2>
+    <div class="ehr-note-box">CLINICAL GENOMICS &amp; PHARMACOGENOMICS SUMMARY (Melinda Ehrle | ID: Melinda_Ehrle)
+• PRIORITY GENOMIC &amp; CARRIER FINDINGS: POLG (p.Gly737Arg · c.2209G>C · rs121918054, Heterozygous), TAT (p.Arg57Ter · c.169C>T · rs118203914, Heterozygous), ATM (c.1236-2del · rs1565381646, Heterozygous), VDR (c.-1172A>G · rs4516035, Heterozygous), MC1R (p.Asp294His · c.880G>C · rs1805009, Heterozygous), AMPD1 (p.Glu435Gly · c.1304A>G · rs764950035, Heterozygous). Single-copy (heterozygous) recessive carrier states retain one functional gene copy and do not cause primary recessive disease.
+• MEDICATION &amp; EXPOSURE PRECAUTIONS (CPIC / FDA):
+  - AVOID / CONTRAINDICATED: Valproic Acid, Sodium Valproate, Divalproex Sodium · Clopidogrel (Plavix)
+  - REDUCE STARTING DOSE: Warfarin (Coumadin)
+  - RAPID METABOLISM / MONITOR: Antineoplastic Agents, Apixaban, Dolutegravir, Felodipine, Iguratimod, Sorafenib (+3 more)
+• PREVENTIVE CARE PLAN: Review high-level wellness and screening topics in Section 2 during routine primary care checkups.</div>
 
     <div style="font-size:7.2pt;color:#64748b;margin-top:3px;border-top:1px solid #e2e8f0;padding-top:2px;text-align:center;">
-      Informational clinical decision-support summary · Accompanying Deep Clinical Research Dossier (<code>Melinda_Ehrle_deep_research_report.html</code>) &amp; Genomic Command Center (<code>Melinda_Ehrle_landscape_dashboard.html</code>) · Page 3 of 3
+      Clinical Findings &amp; Prescribing Summary · Accompanying Deep Research Report (<code>Melinda_Ehrle_deep_research_report.html</code>) &amp; Command Center (<code>Melinda_Ehrle_landscape_dashboard.html</code>) · Page 3 of 3
     </div>
   </div>
 

@@ -247,7 +247,6 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
           <td class="font-mono text-[8.0pt]">{r['variant_html']}</td>
           <td>{r['zygosity']}</td>
           <td><span class="{r['badge_class']}">{r['classification']}</span></td>
-          <td class="font-mono text-[7.8pt]">{r['ai_scores']}</td>
           <td>
             <div>{guidance_txt}</div>
           </td>
@@ -267,37 +266,37 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
 
     # KPI values dynamically computed
     carrier_genes = [g["symbol"] for g, v in priority_pairs if "pathogenic" in str(v.get("clinvar") or "").lower() and "conflicting" not in str(v.get("clinvar") or "").lower()]
-    kpi2_label = "Monogenic Carriers"
-    kpi2_val = f"{len(carrier_genes)} (Het)" if carrier_genes else "0 Detected"
-    kpi2_sub = ", ".join(carrier_genes[:3]) + " (Recessive/Dom)" if carrier_genes else "No pathogenic carrier alleles"
+    kpi2_label = "Carrier & Risk Loci"
+    kpi2_val = f"{len(carrier_genes)} Identified" if carrier_genes else "0 Detected"
+    kpi2_sub = ", ".join(carrier_genes[:3]) + " (Single-Copy)" if carrier_genes else "No pathogenic carrier alleles"
 
     active_pgx = [pg for pg, pgi in (pharma_data or {}).get("pharmacogenes", {}).items() if not _is_wildtype_pgx_diplotype(pgi.get("diplotype"), pgi.get("phenotype"))]
     kpi3_label = "Pharmacogenomics"
-    kpi3_val = f"{len(active_pgx)} Priority"
+    kpi3_val = f"{len(active_pgx)} Actionable"
     kpi3_sub = ", ".join(active_pgx[:4]) if active_pgx else "Standard CPIC Baseline"
 
     mod_count = len(priority_pairs) - len(carrier_genes)
-    kpi4_label = "Disease Modifiers"
-    kpi4_val = f"{max(mod_count, 1)} Modifiers"
-    kpi4_sub = "Organ / Metabolic"
+    kpi4_label = "Pathway Modifiers"
+    kpi4_val = f"{max(mod_count, 1)} Loci"
+    kpi4_sub = "Physiological Context"
 
     args_for_items = """
-      <li><strong>Immediate Medication Safety:</strong> Documenting CPIC pharmacogenomic diplotypes prevents avoidable drug toxicity and therapeutic failure before the first prescription is filled.</li>
-      <li><strong>Low-Cost Biomarker Baselines:</strong> Pathway-matched venous blood tests incorporate seamlessly into the annual physical without procedural diagnostic burdens.</li>
-      <li><strong>Proactive Specialist Coordination:</strong> Sharing variant-specific guardrails ensures appropriate situational precautions without over-medicalization.</li>
+      <li><strong>Proactive Medication Safety:</strong> Documenting pharmacogenomic diplotypes prevents avoidable drug side effects and subtherapeutic dosing before a prescription is started.</li>
+      <li><strong>Routine Preventive Care:</strong> High-level wellness topics integrate naturally into the annual primary care physical.</li>
+      <li><strong>Specialist Coordination:</strong> Sharing finding-specific precautions supports informed care without unnecessary medicalization.</li>
     """
     args_against_items = """
-      <li><strong>Heterozygous Carrier &amp; Modifier Reserve:</strong> Heterozygous variants retain an intact wild-type parental allele (~50–100% capacity) and <strong>do not warrant invasive diagnostic procedures</strong>.</li>
-      <li><strong>Phased Allelic Reassurance:</strong> Whole-genome parental phasing confirms <strong>0 confirmed pathogenic biallelic (trans) recessive compound-heterozygotes</strong>.</li>
-      <li><strong>Polygenic Modifiers ≠ Deterministic Disease:</strong> Modest statistical variants must never trigger unprovoked chronic anticoagulation or off-label polypharmacy.</li>
+      <li><strong>Single-Copy Carrier Reassurance:</strong> Single-copy recessive carriers retain a functional gene copy and maintain normal baseline health.</li>
+      <li><strong>Absence of Biallelic Recessive Disease:</strong> Zero two-copy pathogenic recessive disease genotypes are present in this profile.</li>
+      <li><strong>Pathway Modifiers Are Not Diagnoses:</strong> Common physiological modifiers should never trigger unprovoked medication changes or invasive testing.</li>
     """
 
-    conf_row2_title = f"Primary Pathogenic Carrier Status ({', '.join(carrier_genes[:3]) or 'Curated Loci'})"
-    conf_row2_val = "95%"
-    conf_row2_desc = "Orthogonal concordance between ClinVar Pathogenic curations and AlphaGenome AVI / CADD scores."
-    conf_row3_title = f"Pharmacogenomic PGx Diplotypes ({', '.join(active_pgx[:3]) or 'CPIC Loci'})"
-    conf_row3_val = "98%"
-    conf_row3_desc = "Dual-engine verified concordance (PharmCAT + Aldy consensus); CPIC Level A clinical guidelines."
+    conf_row2_title = f"Primary Carrier & Susceptibility Findings ({', '.join(carrier_genes[:3]) or 'Curated Loci'})"
+    conf_row2_val = "High"
+    conf_row2_desc = "Established clinical curation records (ClinVar / OMIM) with clear inheritance context."
+    conf_row3_title = f"Pharmacogenomic Diplotypes ({', '.join(active_pgx[:3]) or 'CPIC Loci'})"
+    conf_row3_val = "High"
+    conf_row3_desc = "CPIC / DPWG clinical dosing guidelines with established star-allele assignments."
 
     top_findings_str = "; ".join([
         f"{g['symbol']} ({_format_variant_descriptor(v, g)['hgvs_line']}, {v.get('zygosity')})"
@@ -306,10 +305,10 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     pgx_summary_str = ", ".join([f"{pg} {pgi.get('diplotype')}" for pg, pgi in list((pharma_data or {}).get("pharmacogenes", {}).items())[:4] if not _is_wildtype_pgx_diplotype(pgi.get("diplotype"), pgi.get("phenotype"))])
 
     ehr_note_html = f"""
-      PATIENT GENOMIC REVIEW SUMMARY ({bam_mean_dp} BAM Mean Depth Phased WGS):<br>
-      - KEY GENOMIC &amp; CARRIER FINDINGS: {top_findings_str}. Zero biallelic pathogenic recessive compound-heterozygotes detected; heterozygous carrier/modifier findings retain one wild-type allele and do NOT warrant invasive diagnostic procedures.<br>
-      - PHARMACOGENOMIC GUARDRAILS (CPIC Level A): {pgx_summary_str or 'Follow standard CPIC dosing'}. Review patient CPIC diplotypes prior to prescribing; adhere to dosage reduction, drug avoidance, and TDM precautions.<br>
-      - PREVENTIVE SURVEILLANCE: Incorporate pathway-matched venous blood panels and preventive wellness checks during the routine annual physical.
+      CLINICAL GENOMICS &amp; PHARMACOGENOMICS SUMMARY ({patient_name} | ID: {patient_id}):<br>
+      - PRIORITY GENOMIC &amp; CARRIER FINDINGS: {top_findings_str}. Single-copy recessive carrier findings retain one functional gene copy and do not cause primary recessive disease.<br>
+      - PHARMACOGENOMIC PRECAUTIONS (CPIC / FDA): {pgx_summary_str or 'Follow standard CPIC dosing'}. Review pharmacogenomic diplotypes prior to prescribing substrate medications.<br>
+      - PREVENTIVE CARE PLAN: Discuss high-level wellness and screening topics (Section 3) during routine primary care checkups.
     """
 
     html = f"""<!DOCTYPE html>
@@ -317,7 +316,7 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clinician Genomic Action Brief (old) — {patient_name}</title>
+<title>Clinician Genomic Action Brief (Deterministic Baseline) — {patient_name}</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -386,12 +385,11 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
   <!-- Top Action Toolbar (Print / Save PDF / Version Switcher) -->
   <div class="no-print sticky top-0 z-50 bg-slate-900 text-white px-6 py-2.5 shadow-md flex flex-wrap items-center justify-between gap-3">
     <div class="flex items-center gap-3">
-      <span class="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-400/40 rounded text-xs font-bold uppercase">Determinative Edition (old)</span>
-      <span class="text-sm font-semibold">{patient_name} — 3-Page Portrait Clinician Action Brief (old)</span>
-      <span class="text-xs text-slate-400 font-mono">BAM Mean Depth: {bam_mean_dp}</span>
+      <span class="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-400/40 rounded text-xs font-bold uppercase">Deterministic Baseline (Option 2)</span>
+      <span class="text-sm font-semibold">{patient_name} — 3-Page Portrait Clinician Action Brief</span>
     </div>
     <div class="flex items-center gap-2">
-      <a href="{new_brief_filename}" class="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded text-xs font-semibold transition">Switch to New Clinical Brief ↗</a>
+      <a href="{new_brief_filename}" class="px-3 py-1.5 bg-teal-700 hover:bg-teal-600 text-white rounded text-xs font-semibold transition">Switch to Hybrid AI-Enhanced Brief ↗</a>
       <a href="{old_deep_filename}" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded text-xs font-medium transition">Deep Research (old)</a>
       <a href="{dashboard_filename}" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded text-xs font-medium transition">Command Center</a>
       <button onclick="window.print()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-semibold transition cursor-pointer">🖨️ Print Report</button>
@@ -404,15 +402,15 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     <!-- Header -->
     <div class="flex items-start justify-between border-b-2 border-slate-900 pb-2 mb-2.5">
       <div>
-        <div class="text-[8.5pt] uppercase font-bold tracking-wider text-blue-700">Precision Medicine • Clinician Action Brief (Determinative Edition)</div>
+        <div class="text-[8.5pt] uppercase font-bold tracking-wider text-blue-700">Precision Medicine • Clinician Action Brief (Deterministic Baseline)</div>
         <h1 class="text-base font-extrabold text-slate-900 tracking-tight">Genomic &amp; Pharmacogenomic Clinical Summary</h1>
         <div class="text-[8.0pt] text-slate-600 mt-0.5">
-          <strong>Patient / Sample ID:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>) | <strong>Assay:</strong> {bam_mean_dp} BAM mean depth Phased WGS (GRCh38.p14) | <strong>Date:</strong> {datetime.now().strftime('%B %d, %Y')}
+          <strong>Patient:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>) | <strong>Date:</strong> {datetime.now().strftime('%B %d, %Y')}
         </div>
       </div>
       <div class="text-right">
         <span class="inline-block bg-slate-900 text-white text-[8.0pt] font-bold px-2 py-0.5 rounded">
-          3-PAGE PORTRAIT BRIEF (OLD)
+          DETERMINISTIC BRIEF
         </span>
         <div class="text-[7.5pt] text-slate-500 mt-0.5">Page 1 of 3</div>
       </div>
@@ -440,17 +438,16 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     <!-- Section 1: Priority Genomic Findings & Carrier Status -->
     <div class="flex items-center justify-between border-b-2 border-slate-300 pb-1 mb-2">
       <h2 class="text-[9.2pt] font-extrabold uppercase tracking-wider text-slate-800">1. Priority Genomic Findings &amp; Carrier Status</h2>
-      <span class="text-[7.5pt] font-mono text-slate-600">Primary Care &amp; Specialist Triage</span>
+      <span class="text-[7.5pt] font-mono text-slate-600">Clinical Findings Summary</span>
     </div>
     <table class="mb-2">
       <thead>
         <tr>
-          <th style="width:9%;">Gene</th>
-          <th style="width:17%;">Variant &amp; Locus</th>
-          <th style="width:10%;">Zygosity</th>
-          <th style="width:12%;">Classification</th>
-          <th style="width:14%;">AI Impact (Phred)</th>
-          <th>Clinical Impact &amp; Primary Care Guidance</th>
+          <th style="width:11%;">Gene</th>
+          <th style="width:20%;">Variant</th>
+          <th style="width:12%;">Zygosity</th>
+          <th style="width:14%;">Classification</th>
+          <th>Clinical Meaning &amp; Practical Guidance</th>
         </tr>
       </thead>
       <tbody>
@@ -459,37 +456,37 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     </table>
 
     <div class="text-[7.4pt] text-slate-500 text-center border-t border-slate-200 pt-1.5 mt-2">
-      {patient_name} Clinical Action Brief (old) • Page 1 of 3 • Continue to Page 2 for CPIC Prescribing Guardrails &amp; Preventive Surveillance Schedule
+      {patient_name} Clinical Action Brief • Page 1 of 3 • Continue to Page 2 for Prescribing Precautions &amp; Preventive Care Topics
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: PRESCRIBING GUARDRAILS & SURVEILLANCE SCHEDULE ======================= -->
+  <!-- ======================= PAGE 2 OF 3: PRESCRIBING PRECAUTIONS & PREVENTIVE CARE ======================= -->
   <div class="page-container">
     <div class="flex items-start justify-between border-b-2 border-slate-900 pb-1.5 mb-2.5">
       <div>
-        <div class="text-[8.0pt] uppercase font-bold tracking-wider text-blue-700">Pharmacogenomics &amp; Preventive Medicine • Protocol Matrix</div>
-        <h2 class="text-sm font-extrabold text-slate-900">Prescribing Guardrails &amp; Annual Preventive Surveillance Schedule</h2>
+        <div class="text-[8.0pt] uppercase font-bold tracking-wider text-blue-700">Pharmacogenomics &amp; Preventive Care</div>
+        <h2 class="text-sm font-extrabold text-slate-900">Prescribing Precautions &amp; Annual Checkup Discussion Topics</h2>
         <div class="text-[7.6pt] text-slate-600 mt-0.5">
-          <strong>Subject:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>) | <strong>Reference:</strong> GRCh38.p14 ({bam_mean_dp} BAM mean depth)
+          <strong>Patient:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>)
         </div>
       </div>
       <div class="text-right">
         <span class="inline-block bg-blue-50 text-blue-800 border border-blue-200 text-[7.8pt] font-bold px-2 py-0.5 rounded">
-          RX &amp; SURVEILLANCE
+          RX &amp; PREVENTIVE CARE
         </span>
         <div class="text-[7.5pt] text-slate-500 mt-0.5">Page 2 of 3</div>
       </div>
     </div>
 
     <!-- Section 2: Prescribing & Perioperative Guardrails -->
-    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">2. Prescribing &amp; Perioperative Guardrails (CPIC Level A &amp; Acute Risk Triage)</h2>
+    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">2. High-Priority Medication &amp; Exposure Precautions (CPIC / FDA)</h2>
     <table class="mb-3">
       <thead>
         <tr>
-          <th style="width:19%;">Gene &amp; Variant / Diplotype</th>
-          <th style="width:17%;">Phenotype / Mechanism</th>
-          <th style="width:24%;">High-Risk Medications / Exposures</th>
-          <th>Prescribing Action &amp; Guidance (CPIC Level A Grounded)</th>
+          <th style="width:19%;">Gene &amp; Diplotype</th>
+          <th style="width:17%;">Phenotype</th>
+          <th style="width:24%;">Affected Medications</th>
+          <th>Prescribing Action &amp; Guidance</th>
         </tr>
       </thead>
       <tbody>
@@ -497,15 +494,15 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
       </tbody>
     </table>
 
-    <!-- Section 3: Surveillance Table -->
-    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">3. Suggested Clinical &amp; Laboratory Surveillance Schedule (Annual Physical)</h2>
+    <!-- Section 3: Preventive Care Table -->
+    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">3. High-Level Preventive Care &amp; Annual Checkup Topics</h2>
     <table class="mb-2">
       <thead>
         <tr>
-          <th style="width:22%;">Evaluation / Laboratory Test</th>
-          <th style="width:23%;">Triggering Gene, Variant &amp; Zygosity</th>
-          <th style="width:13%;">Suggested Frequency</th>
-          <th>Clinical Rationale &amp; Actionable Thresholds</th>
+          <th style="width:22%;">Preventive Care Topic</th>
+          <th style="width:23%;">Triggering Gene &amp; Variant</th>
+          <th style="width:13%;">Timing</th>
+          <th>Clinical Context &amp; Practical Rationale</th>
         </tr>
       </thead>
       <tbody>
@@ -514,61 +511,56 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
     </table>
 
     <div class="text-[7.4pt] text-slate-500 text-center border-t border-slate-200 pt-1.5 mt-2">
-      {patient_name} Clinical Action Brief (old) • Page 2 of 3 • Continue to Page 3 for Clinical Decision Calculus, Evidence Confidence &amp; EHR Note
+      {patient_name} Clinical Action Brief • Page 2 of 3 • Continue to Page 3 for Clinical Perspective &amp; EHR Summary Note
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: CLINICAL DECISION CALCULUS, EVIDENCE CONFIDENCE & EHR NOTE ======================= -->
+  <!-- ======================= PAGE 3 OF 3: CLINICAL PERSPECTIVE & EHR SUMMARY NOTE ======================= -->
   <div class="page-container">
     <div class="flex items-start justify-between border-b-2 border-slate-900 pb-1.5 mb-2.5">
       <div>
         <div class="text-[8.0pt] uppercase font-bold tracking-wider text-blue-700">Clinical Decision Support &amp; EHR Integration</div>
-        <h2 class="text-sm font-extrabold text-slate-900">Clinical Decision Calculus, Evidence Confidence &amp; EHR Integration</h2>
+        <h2 class="text-sm font-extrabold text-slate-900">Clinical Perspective, Evidence Context &amp; EHR Chart Summary</h2>
         <div class="text-[7.6pt] text-slate-600 mt-0.5">
-          <strong>Subject:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>) | <strong>Assay:</strong> {bam_mean_dp} BAM Mean Depth Phased WGS
+          <strong>Patient:</strong> <code>{patient_name}</code> (<code>{patient_id}</code>)
         </div>
       </div>
       <div class="text-right">
         <span class="inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 text-[7.8pt] font-bold px-2 py-0.5 rounded">
-          CLINICAL DECISION MATRIX
+          CLINICAL SUMMARY
         </span>
         <div class="text-[7.5pt] text-slate-500 mt-0.5">Page 3 of 3</div>
       </div>
     </div>
 
     <!-- Section 4: Arguments For and Against -->
-    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">4. Clinical Decision Calculus: Balanced Interventional Rationale</h2>
+    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">4. Clinical Perspective: Proactive Care vs. Avoiding Over-Intervention</h2>
     <div class="grid grid-cols-2 gap-3 mb-3">
       <div class="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded">
-        <div class="text-[8.0pt] font-extrabold uppercase tracking-wider text-emerald-900 mb-1">✅ Arguments FOR Targeted Preventive Surveillance &amp; PGx</div>
+        <div class="text-[8.0pt] font-extrabold uppercase tracking-wider text-emerald-900 mb-1">✅ Why These Findings Are Useful</div>
         <ul class="text-[8.0pt] text-slate-800 space-y-1.5 list-disc list-inside leading-snug">
           {args_for_items}
         </ul>
       </div>
       <div class="p-2.5 bg-red-50/70 border border-red-200 rounded">
-        <div class="text-[8.0pt] font-extrabold uppercase tracking-wider text-red-900 mb-1">🛑 Arguments AGAINST Aggressive Over-Intervention</div>
+        <div class="text-[8.0pt] font-extrabold uppercase tracking-wider text-red-900 mb-1">🛑 Why Aggressive Intervention Is Not Needed</div>
         <ul class="text-[8.0pt] text-slate-800 space-y-1.5 list-disc list-inside leading-snug">
           {args_against_items}
         </ul>
       </div>
     </div>
 
-    <!-- Section 5: Calculated Confidence Table -->
-    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">5. Calculated Evidence Confidence Metrics</h2>
+    <!-- Section 5: Evidence Context Table -->
+    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-2">5. Clinical Evidence Context by Finding Category</h2>
     <table class="mb-3">
       <thead>
         <tr>
-          <th style="width:32%;">Evidence Domain</th>
-          <th style="width:16%;">Calculated Confidence</th>
-          <th>Analytical Basis &amp; Concordance Factors</th>
+          <th style="width:32%;">Finding Category</th>
+          <th style="width:16%;">Evidence Tier</th>
+          <th>Clinical Interpretation Basis</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td class="font-bold">WGS Analytical Callset</td>
-          <td class="font-bold text-blue-700">98%</td>
-          <td>{bam_mean_dp} BAM mean depth pan-genome aligned short-read WGS (GRCh38.p14).</td>
-        </tr>
         <tr>
           <td class="font-bold">{conf_row2_title}</td>
           <td class="font-bold text-emerald-700">{conf_row2_val}</td>
@@ -580,21 +572,21 @@ def generate_old_clinical_brief_html(patient_name, patient_id, target_key, mean_
           <td>{conf_row3_desc}</td>
         </tr>
         <tr>
-          <td class="font-bold">Endogenous Protective &amp; Polygenic Risk Alleles</td>
-          <td class="font-bold text-slate-600">65%</td>
-          <td>Population-level statistical GWAS meta-analyses requiring longitudinal correlation.</td>
+          <td class="font-bold">Physiological &amp; Pathway Modifiers</td>
+          <td class="font-bold text-slate-600">Moderate</td>
+          <td>Population-level associations guiding general wellness discussions rather than diagnostic labeling.</td>
         </tr>
       </tbody>
     </table>
 
     <!-- Section 6: Suggested Clinical Note Template -->
-    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-1.5">6. Recommended Clinical Note / EHR Problem-List Integration Text</h2>
+    <h2 class="text-[9.0pt] font-extrabold uppercase tracking-wider text-slate-800 border-b-2 border-slate-300 pb-1 mb-1.5">6. Copy-Paste Physician Handoff / EHR Chart Summary</h2>
     <div class="bg-slate-100 p-2.5 rounded border border-slate-300 font-mono text-[8.0pt] text-slate-800 leading-snug">
       {ehr_note_html}
     </div>
 
     <div class="text-[7.4pt] text-slate-500 text-center border-t border-slate-200 pt-1.5 mt-2">
-      {patient_name} Clinical Action Brief (old) • Page 3 of 3 • End of 3-Page Portrait Clinical Summary Document
+      {patient_name} Clinical Action Brief • Page 3 of 3 • End of 3-Page Portrait Clinical Summary
     </div>
   </div>
 

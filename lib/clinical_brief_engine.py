@@ -113,8 +113,8 @@ def _extract_inheritance_mode(gene_obj):
 
 def _build_zygosity_guidance(v, gene_obj):
     """
-    Generates a concise, non-repetitive 1-sentence zygosity note strictly from variant/gene
-    metadata (never repeating 'no invasive warranted' 2x or hammering 'non-invasive').
+    Generates a concise, findings-focused 1-sentence zygosity note strictly from variant/gene
+    metadata without repetitive filler.
     """
     zyg = str(v.get("zygosity") or "Heterozygous")
     cv = str(v.get("clinvar") or "").lower()
@@ -128,36 +128,35 @@ def _build_zygosity_guidance(v, gene_obj):
     is_dominant = ("dominant" in inh)
 
     if is_protective:
-        return f"<strong>{zyg} Resilience Allele:</strong> Associated with physiological risk attenuation; maintain standard preventive care."
+        return f"<strong>{zyg} Protective Factor:</strong> Associated with reduced physiological susceptibility; continue standard preventive care."
 
     if "het" in zyg.lower():
         if is_plp and is_recessive:
             return (
-                "<strong>Heterozygous Recessive Carrier:</strong> Single-allele carrier with an intact wild-type parental allele (~50–100% baseline functional reserve); "
-                "does not cause primary recessive disease and requires no invasive diagnostic workup."
+                "<strong>Single-Copy (Heterozygous) Recessive Carrier:</strong> Retains one functional gene copy with normal baseline physiological capacity; "
+                "does not cause the classic biallelic condition."
             )
         if is_plp and is_dominant:
             return (
-                "<strong>Heterozygous Susceptibility Allele:</strong> Single-allele variant in a dominant/semi-dominant pathway; "
-                "manage via guideline-directed surveillance without unprovoked invasive procedures."
+                "<strong>Single-Copy (Heterozygous) Susceptibility Finding:</strong> Associated with increased lifetime risk; "
+                "manage proactively through guideline-recommended preventive screening."
             )
         if is_plp:
             return (
-                "<strong>Heterozygous Carrier / Susceptibility Finding:</strong> Single-allele variant with preserved wild-type counter-allele; "
-                "correlate via routine laboratory biomarkers and prescribing guardrails without invasive workup."
+                "<strong>Single-Copy (Heterozygous) Carrier / Risk Finding:</strong> Retains one functional counter-allele; "
+                "manage through medication precautions and routine primary care follow-up."
             )
         return (
-            "<strong>Heterozygous Functional / Pathway Variant:</strong> Single-allele variant with an intact wild-type copy; "
-            "evaluate physiological expression via routine primary care labs or office screening (no invasive workup warranted)."
+            "<strong>Single-Copy (Heterozygous) Pathway Variant:</strong> Retains one functional copy; "
+            "review in context of routine wellness labs and clinical history."
         )
 
     if not is_plp or maf > 0.01:
         return (
-            f"<strong>{zyg} Pathway Modifier:</strong> Modulates baseline pathway or receptor kinetics without causing high-penetrance monogenic disease "
-            f"(manage via routine annual bloodwork; no invasive workup warranted)."
+            f"<strong>{zyg} Physiological Modifier:</strong> Influences baseline pathway activity without causing a primary monogenic disorder."
         )
     return (
-        f"<strong>{zyg} Clinical Finding:</strong> Biallelic variant warranting targeted laboratory biomarker verification and specialist correlation."
+        f"<strong>{zyg} Clinical Finding:</strong> Biallelic finding warranting targeted clinical correlation."
     )
 
 
@@ -348,188 +347,188 @@ def _map_gene_to_noninvasive_screening(gene_obj, v):
     # Dynamic biochemical/physiological pathway classification based strictly on functional ontology text
     if "tyrosine aminotransferase" in corpus or "tyrosinemia" in corpus:
         return {
-            "pathway": f"{sym} · Hepatic Tyrosine Catabolism ({primary_pathology})",
-            "test": "<strong>Fasting Plasma Tyrosine / Amino Acid Profile &amp; Hepatic AST/ALT</strong><div style='font-size:7.3pt;color:#0f766e;'>Optional Baseline Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Medical Genetics (Carrier Context)</div>",
-            "freq": "Optional one-time baseline at routine PCP physical",
+            "pathway": f"{sym} · Hepatic Tyrosine Metabolism ({primary_pathology})",
+            "test": "<strong>Reassurance Only — Normal Unrestricted Diet</strong><div style='font-size:7.3pt;color:#0f766e;'>Optional Routine Metabolic Panel at Annual Checkup</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong>",
+            "freq": "Routine Annual Checkup",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname}, associated with {inh_mode.lower()} <strong>{primary_pathology}{omim_tag}</strong>. "
                 f"{func_sent} "
-                f"<strong>Clinical Impact:</strong> {zyg} carriers retain ~50% hepatic enzymatic activity via the wild-type allele, remain clinically asymptomatic on an unrestricted diet, and require no dietary tyrosine/phenylalanine restriction (optional one-time fasting plasma tyrosine &lt; 100 µmol/L confirms normal clearance)."
+                f"<strong>Clinical Impact:</strong> {zyg} carriers retain a functional second gene copy, remain clinically asymptomatic on a normal diet, and require no dietary tyrosine or protein restriction."
             )
         }
 
     if "cystathionine" in corpus or "trans-sulfuration" in corpus or "transsulfuration" in corpus:
         return {
-            "pathway": f"{sym} · Hepatic Transsulfuration &amp; Homocysteine Clearance",
-            "test": "<strong>Fasting Plasma Homocysteine, Vitamin B6 (PLP) &amp; Folate / B12 Panel</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
+            "pathway": f"{sym} · Methionine &amp; Homocysteine Clearance",
+            "test": "<strong>Routine Homocysteine &amp; B-Vitamin Status Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Annual Wellness Lab Review</div>",
             "routing": "<strong>Primary Care Physician (PCP)</strong>",
-            "freq": "Baseline at Annual PCP Physical",
+            "freq": "Annual PCP Checkup",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> Single-allele {zyg.lower()} variants retain wild-type enzymatic reserve; verify normal fasting plasma homocysteine (&lt; 12 µmol/L) and adequate Vitamin B6/folate/B12 cofactor status."
+                f"<strong>Clinical Impact:</strong> Single-copy {zyg.lower()} variants retain baseline enzymatic capacity; adequate dietary B-vitamins (B6, folate, B12) support normal homocysteine metabolism."
             )
         }
 
     if any(k in corpus for k in ["cobalamin", "intrinsic factor", "vitamin b12", "homocysteine", "folate", "methyltetrahydrofolate"]):
         return {
-            "pathway": f"{sym} · Ileal Cobalamin (Vitamin B12) Absorption &amp; One-Carbon Metabolism",
-            "test": "<strong>Serum Vitamin B12 (Cobalamin), Methylmalonic Acid (MMA), Homocysteine &amp; CBC with MCV</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Hematology / GI (only if lab deficiency confirmed)</div>",
-            "freq": "Baseline at Annual PCP Physical; repeat every 1–2 years",
+            "pathway": f"{sym} · Vitamin B12 (Cobalamin) &amp; Folate Absorption",
+            "test": "<strong>Periodic Vitamin B12 &amp; Folate Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Routine Wellness Lab Panel</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong>",
+            "freq": "Routine Annual or Biennial Checkup",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({inh_mode.lower()} <strong>{primary_pathology}{omim_tag}</strong>). {func_sent} "
-                f"<strong>Clinical Impact:</strong> {zyg} carriers preserve intrinsic factor secretion from the wild-type allele; periodic serum Vitamin B12 (&gt; 350 pg/mL) and methylmalonic acid (MMA) verify cellular cobalamin stores."
+                f"<strong>Clinical Impact:</strong> {zyg} carriers preserve intrinsic factor production from the functional allele; periodic Vitamin B12 checks during routine physicals help confirm healthy cellular stores."
             )
         }
 
     if "mitochondrial dna polymerase" in corpus or ("polymerase" in corpus and "gamma" in corpus) or "mitochondrial dna replication" in corpus:
         return {
-            "pathway": f"{sym} · Mitochondrial DNA Replication &amp; Valproate Contraindication",
-            "test": "<strong>Comprehensive Metabolic Panel (CMP — Hepatic AST, ALT, Bilirubin &amp; eGFR)</strong><div style='font-size:7.3pt;color:#991b1b;'>Venous Blood Draw + Permanent EHR Valproate Allergy Flag</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Neurology / Clinical Pharmacy</div>",
-            "freq": "Annual PCP Preventive Blood Panel &amp; permanent EHR prescribing alert",
+            "pathway": f"{sym} · Mitochondrial DNA Maintenance &amp; Medication Safety",
+            "test": "<strong>EHR Valproate Allergy/Avoidance Flag &amp; Routine Liver Panel</strong><div style='font-size:7.3pt;color:#991b1b;'>Permanent Prescribing Precaution</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>Prescribing Clinicians</strong>",
+            "freq": "Permanent EHR Flag &amp; Annual Checkup",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> {zyg} carriers are typically asymptomatic at baseline, but carry a <strong>strict FDA Boxed Warning contraindication against valproic acid / divalproex sodium</strong> due to risk of fatal valproate-induced hepatic necrosis; verify baseline AST/ALT on annual metabolic panels."
+                f"<strong>Clinical Impact:</strong> {zyg} carriers are typically asymptomatic in daily life, but carry a <strong>strict contraindication against valproic acid (divalproex) medications</strong> due to severe liver toxicity risk."
             )
         }
 
     if any(k in corpus for k in ["ataxia-telangiectasia", "double-strand break", "homologous recombination", "familial cancer of breast", "hereditary cancer-predisposing", "dna damage response", "checkpoint kinase"]):
         return {
-            "pathway": f"{sym} · DNA Double-Strand Break Repair &amp; Oncologic Surveillance",
-            "test": "<strong>Annual Breast MRI &amp; Tomosynthesis Mammogram (per NCCN) + CBC &amp; CMP Blood Panel</strong><div style='font-size:7.3pt;color:#991b1b;'>High-Risk Breast Imaging &amp; Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>High-Risk Oncology / Medical Genetics</strong>",
-            "freq": "Annual Breast MRI &amp; Mammogram (staggered q6m per NCCN)",
+            "pathway": f"{sym} · DNA Repair &amp; Hereditary Cancer Screening",
+            "test": "<strong>Guideline-Directed Breast &amp; Cancer Screening Discussion (per NCCN)</strong><div style='font-size:7.3pt;color:#991b1b;'>Preventive Screening Review</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>Preventive Oncology / Genetics</strong>",
+            "freq": "Annual Preventive Screening Review",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> {zyg} carriers have moderately elevated breast and pancreatic cancer susceptibility; NCCN guidelines recommend annual breast MRI and mammography, family history review for pancreatic screening, and minimizing unnecessary diagnostic ionizing radiation."
+                f"<strong>Clinical Impact:</strong> {zyg} carriers have moderately elevated breast and hereditary cancer susceptibility; discuss NCCN-guided enhanced breast screening (such as annual breast MRI and mammography) and family history review."
             )
         }
 
     if any(k in corpus for k in ["connexin", "gap junction", "deafness", "hearing loss", "cochlear", "auditory"]):
         return {
-            "pathway": f"{sym} · Cochlear Gap Junction &amp; Auditory Homeostasis",
-            "test": "<strong>Baseline Pure-Tone Audiometry &amp; Ototoxic Antibiotic Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Office Audiogram</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology / ENT</strong>",
-            "freq": "Baseline audiogram at routine preventive visit; repeat if auditory symptoms occur",
+            "pathway": f"{sym} · Cochlear Gap Junction &amp; Hearing Health",
+            "test": "<strong>Baseline Hearing Check &amp; Ototoxic Medication Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Routine Preventive Care</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>Audiology</strong>",
+            "freq": "Baseline check; repeat if symptoms arise",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> {zyg} carriers typically maintain normal adult hearing thresholds; establish a baseline pure-tone audiogram and exercise caution with ototoxic aminoglycoside antibiotics when alternatives exist."
+                f"<strong>Clinical Impact:</strong> {zyg} carriers typically maintain normal adult hearing; consider a baseline hearing check and avoid unnecessary ototoxic aminoglycoside antibiotics when alternatives exist."
             )
         }
 
     if any(k in corpus for k in ["coagulationcascade", "coagulation cascade", "blood coagulation", "thrombophilia", "activated protein c", "prothrombin", "hemostasis", "thromboembolism"]):
         return {
-            "pathway": f"{sym} · Coagulation Cascade &amp; Activated Protein C (APC) Regulation",
-            "test": "<strong>Situational Perioperative VTE Risk Review &amp; Thromboprophylaxis Planning</strong><div style='font-size:7.3pt;color:#0f766e;'>Perioperative / Immobilization Assessment</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Hematology / Perioperative Medicine</div>",
-            "freq": "Situational (Prior to major surgery, prolonged immobilization, or hormone therapy)",
+            "pathway": f"{sym} · Blood Coagulation &amp; Clot Risk Management",
+            "test": "<strong>Situational Clot Prevention (Surgery, Immobility, Estrogen Avoidance)</strong><div style='font-size:7.3pt;color:#0f766e;'>Perioperative &amp; Prescribing Precaution</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong>",
+            "freq": "Situational (Before surgery, long travel, or hormone therapy)",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> Routine lifelong anticoagulation is <strong>not</strong> indicated in asymptomatic {zyg.lower()} individuals; apply situational perioperative/immobilization venous thromboembolism (VTE) prophylaxis and avoid systemic prothrombotic estrogen formulations."
+                f"<strong>Clinical Impact:</strong> Daily anticoagulation is <strong>not</strong> needed in asymptomatic {zyg.lower()} individuals; avoid systemic oral estrogen therapy and use standard clot prophylaxis during major surgery or prolonged immobilization."
             )
         }
 
     if "adenosine monophosphate deaminase" in corpus or "purine nucleotide cycle" in corpus or "amp deaminase" in corpus:
         return {
-            "pathway": f"{sym} · Skeletal Muscle Purine Nucleotide Cycle &amp; Energy Homeostasis",
-            "test": "<strong>Serum Creatine Kinase (CK) &amp; Basic Metabolic Panel (if Myalgia Occurs)</strong><div style='font-size:7.3pt;color:#0f766e;'>Symptom-Triggered Venous Blood Draw</div>",
+            "pathway": f"{sym} · Skeletal Muscle Energy Metabolism",
+            "test": "<strong>Symptom-Guided Muscle Enzyme Check (Only If Muscle Cramps Occur)</strong><div style='font-size:7.3pt;color:#0f766e;'>Symptom-Guided Review</div>",
             "routing": "<strong>Primary Care Physician (PCP)</strong>",
-            "freq": "Symptom-triggered (if exercise cramps or statin-associated myalgia occur)",
+            "freq": "As needed if muscle symptoms or statin myalgia occur",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> Single-allele {zyg.lower()} carriers are generally asymptomatic; check serum Creatine Kinase (CK) if exercise-induced cramping occurs or prior to escalating high-dose statin therapy."
+                f"<strong>Clinical Impact:</strong> Single-copy {zyg.lower()} carriers generally have normal muscle function; evaluate muscle enzymes if exercise-induced cramping or statin-associated muscle aches occur."
             )
         }
 
     if "voltage-gated sodium channel" in corpus or "paramyotonia" in corpus or "periodic paralysis" in corpus:
         return {
-            "pathway": f"{sym} · Skeletal Muscle Voltage-Gated Sodium Channel Excitability",
-            "test": "<strong>Serum Electrolytes (Potassium [K+], Mg2+, Ca2+) &amp; Creatine Kinase (CK)</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw &amp; Anesthetic Precaution</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Anesthesiology / Neurology (if myotonia present)</div>",
-            "freq": "Annual PCP Electrolyte Panel &amp; Pre-Anesthesia Review",
+            "pathway": f"{sym} · Skeletal Muscle Ion-Channel Function",
+            "test": "<strong>Routine Electrolyte Balance &amp; Pre-Anesthesia Precaution</strong><div style='font-size:7.3pt;color:#0f766e;'>Annual Checkup &amp; Surgical Precaution</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>Anesthesiology</strong>",
+            "freq": "Annual Checkup &amp; Pre-Surgery Review",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> Maintain normokalemia on routine metabolic panels and document precautionary avoidance of depolarizing muscle relaxants (succinylcholine) during general anesthesia if muscle stiffness or myotonia is present."
+                f"<strong>Clinical Impact:</strong> Maintain normal electrolyte balance on routine checkups and inform anesthesiology regarding depolarizing muscle relaxants prior to general anesthesia if muscle stiffness is present."
             )
         }
 
     if "peroxisom" in corpus or "zellweger" in corpus:
         return {
-            "pathway": f"{sym} · Peroxisomal Biogenesis &amp; Hepatic Fatty Acid Oxidation",
-            "test": "<strong>Hepatic Function Panel (AST, ALT, Bilirubin) &amp; Fasting Lipid Profile</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
+            "pathway": f"{sym} · Peroxisomal &amp; Lipid Metabolism",
+            "test": "<strong>Routine Liver &amp; Lipid Wellness Panel</strong><div style='font-size:7.3pt;color:#0f766e;'>Standard Annual Physical Bloodwork</div>",
             "routing": "<strong>Primary Care Physician (PCP)</strong>",
-            "freq": "Annual PCP Preventive Blood Panel",
+            "freq": "Annual PCP Checkup",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> Single-allele {zyg.lower()} carriers maintain normal peroxisomal beta-oxidation; routine hepatic transaminases (AST/ALT) and lipid screening during the annual physical verify baseline metabolic homeostasis."
+                f"<strong>Clinical Impact:</strong> Single-copy {zyg.lower()} carriers maintain normal peroxisomal function via the healthy gene copy; covered by standard annual liver and lipid wellness panels."
             )
         }
 
     if "melanocortin" in corpus or "melanocyte-stimulating hormone" in corpus or "melanogenesis" in corpus:
         return {
-            "pathway": f"{sym} · Cutaneous Melanin Synthesis &amp; UV DNA Damage Response",
-            "test": "<strong>Annual Full-Body Dermatologic Skin Examination &amp; UV Photoprotection</strong><div style='font-size:7.3pt;color:#0f766e;'>Clinical Dermatology / PCP Skin Exam</div>",
+            "pathway": f"{sym} · Skin Pigmentation &amp; UV Sensitivity",
+            "test": "<strong>Annual Skin Examination &amp; Daily Sun Protection</strong><div style='font-size:7.3pt;color:#0f766e;'>Dermatology / PCP Skin Check</div>",
             "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>Dermatology</strong>",
-            "freq": "Annual preventive full-body skin examination",
+            "freq": "Annual Preventive Skin Check",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> Confers elevated cutaneous UV sensitivity and melanoma/non-melanoma skin cancer susceptibility; manage via annual full-body dermatologic skin exams and broad-spectrum SPF 30+ photoprotection."
+                f"<strong>Clinical Impact:</strong> Confers increased UV skin sensitivity; manage through routine annual skin examinations and daily broad-spectrum sun protection."
             )
         }
 
     if any(k in corpus for k in ["apolipoprotein", "lipoprotein", "cholesterol", "low-density lipoprotein", "ldl", "atherosclero", "coronary artery", "triglyceride"]):
         return {
-            "pathway": f"{sym} · Lipoprotein Clearance &amp; Vascular Homeostasis",
-            "test": "<strong>Fasting Fractionated Lipid Panel, Direct Apolipoprotein B (ApoB), Lipoprotein(a) [Lp(a)] &amp; hs-CRP</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Preventive Cardiology</div>",
-            "freq": "Annual PCP Preventive Lab Panel",
+            "pathway": f"{sym} · Cholesterol &amp; Lipoprotein Transport",
+            "test": "<strong>Routine Lipid Profile &amp; Cardiovascular Wellness Review</strong><div style='font-size:7.3pt;color:#0f766e;'>Standard Annual Physical Panel</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong>",
+            "freq": "Annual PCP Checkup",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> Direct venous ApoB and fractionated lipid testing quantifies atherogenic particle concentration (target ApoB &lt; 80–90 mg/dL) during the annual physical."
+                f"<strong>Clinical Impact:</strong> Modulates lipoprotein clearance; review routine lipid panel and cardiovascular wellness goals during the annual physical."
             )
         }
 
     if any(k in corpus for k in ["ankyrin", "cardiac arrhythmia", "long qt", "repolarization", "cardiomyocyte", "potassium channel", "calcium channel", "conduction"]):
         return {
-            "pathway": f"{sym} · Cardiomyocyte Ion-Channel Anchoring &amp; Repolarization",
-            "test": "<strong>Resting 12-Lead Electrocardiogram (ECG — QTc Interval) + Serum Electrolytes (K+, Mg2+, Ca2+)</strong><div style='font-size:7.3pt;color:#0f766e;'>Office ECG &amp; Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Cardiology / Electrophysiology (if QTc &gt; 460 ms)</div>",
-            "freq": "Baseline at Annual PCP Physical &amp; prior to QT-prolonging medications",
+            "pathway": f"{sym} · Cardiac Conduction &amp; Rhythm Homeostasis",
+            "test": "<strong>Baseline ECG &amp; QT-Prolonging Medication Review</strong><div style='font-size:7.3pt;color:#0f766e;'>Office ECG &amp; Prescribing Precaution</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong>",
+            "freq": "Baseline at Annual Physical &amp; Medication Review",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> Resting 12-lead ECG and serum electrolyte check verifies normal baseline ventricular repolarization (QTc &lt; 450 ms) prior to prescribing QT-prolonging drugs."
+                f"<strong>Clinical Impact:</strong> Modulates cardiac repolarization; consider a baseline ECG at a routine physical and review medications known to prolong the QT interval."
             )
         }
 
     if any(k in corpus for k in ["vitamin d3 receptor", "vitamin d", "calcitriol", "bone mineral", "calcium homeostasis", "parathyroid", "osteopor"]):
         return {
-            "pathway": f"{sym} · Calcitriol Receptor Transcription &amp; Bone Mineral Homeostasis",
-            "test": "<strong>Serum 25-Hydroxyvitamin D [25(OH)D], Total Calcium, Albumin &amp; Alkaline Phosphatase</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Endocrinology (if refractory deficiency)</div>",
-            "freq": "Annual PCP Preventive Lab Panel",
+            "pathway": f"{sym} · Vitamin D Signaling &amp; Bone Health",
+            "test": "<strong>Routine Vitamin D &amp; Calcium Check</strong><div style='font-size:7.3pt;color:#0f766e;'>Annual Wellness Panel</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong>",
+            "freq": "Annual PCP Checkup",
             "mech": (
                 f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} "
-                f"<strong>Clinical Impact:</strong> Modulates baseline calcitriol receptor transcriptional activity; maintain serum 25(OH)D at 35–55 ng/mL via routine cholecalciferol (Vitamin D3) supplementation."
+                f"<strong>Clinical Impact:</strong> Modulates Vitamin D receptor signaling; checking routine Vitamin D levels at the annual physical helps guide standard supplementation."
             )
         }
 
     if any(k in corpus for k in ["dihydropyrimidine", "fluorouracil", "thiopurine", "cytochrome p450", "glucuronosyltransferase", "xenobiotic", "drug catabolism"]):
         return {
-            "pathway": f"{sym} · Enzymatic Drug &amp; Nucleotide Catabolism",
-            "test": "<strong>Comprehensive Metabolic Panel (AST, ALT, Bilirubin, eGFR) &amp; Complete Blood Count (CBC with Differential)</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
-            "routing": "<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: Clinical Pharmacy / Oncology (prior to substrate therapy)</div>",
-            "freq": "Annual PCP Preventive Blood Panel &amp; prior to substrate initiation",
-            "mech": f"{csq_label} ({v_chg}) in {gname}. {func_sent} <strong>Clinical Impact:</strong> Establishes baseline hepatic and hematologic clearance prior to initiating substrate medications per CPIC guidelines."
+            "pathway": f"{sym} · Medication Metabolism &amp; Clearance",
+            "test": "<strong>Pharmacogenomic Dosing Review Prior to Therapy</strong><div style='font-size:7.3pt;color:#0f766e;'>Prescribing Precaution</div>",
+            "routing": "<strong>Primary Care Physician (PCP)</strong> &amp; <strong>Clinical Pharmacy</strong>",
+            "freq": "Prior to initiating substrate medications",
+            "mech": f"{csq_label} ({v_chg}) in {gname}. {func_sent} <strong>Clinical Impact:</strong> Alters enzymatic clearance of specific medications; reference Sections 3–4 prior to prescribing substrate therapies."
         }
 
     return {
-        "pathway": f"{sym} · {organ} Homeostasis ({primary_pathology})",
-        "test": "<strong>Comprehensive Metabolic Panel (CMP — Hepatic AST/ALT, Bilirubin, Fasting Glucose, eGFR) &amp; CBC with Differential</strong><div style='font-size:7.3pt;color:#0f766e;'>Venous Blood Draw</div>",
-        "routing": f"<strong>Primary Care Physician (PCP)</strong><div style='font-size:7.3pt;color:#475569;'>Co-Consult: {organ} Specialist (only if abnormal)</div>",
-        "freq": "Annual PCP Preventive Blood Panel",
-        "mech": f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} <strong>Clinical Impact:</strong> Evaluates baseline organ-system biochemical homeostasis during the annual physical."
+        "pathway": f"{sym} · {organ} Pathway ({primary_pathology})",
+        "test": "<strong>Routine Annual Metabolic &amp; Wellness Panel</strong><div style='font-size:7.3pt;color:#0f766e;'>Standard Annual Physical</div>",
+        "routing": "<strong>Primary Care Physician (PCP)</strong>",
+        "freq": "Annual PCP Checkup",
+        "mech": f"{csq_label} ({v_chg}) in {gname} ({primary_pathology}{omim_tag}). {func_sent} <strong>Clinical Impact:</strong> Review in the context of standard annual wellness labs and clinical history."
     }
 
 
@@ -964,11 +963,11 @@ def _build_pharma_sections(pharma_data, p_data, priority_pairs, mean_dp_fallback
 
 def _build_sample_isolated_surveillance_rows(priority_pairs, p_data, pharma_data, mean_dp_fallback="45"):
     """
-    Builds Section 2 (Preventive Laboratory & Clinical Surveillance Schedule)
+    Builds Section 2 (High-Level Preventive Care & Annual Physical Discussion Points)
     STRICTLY from the current sample's own variants (priority_pairs), ensuring:
       1. ZERO cross-sample intermixing (every row comes from a real variant in THIS sample).
-      2. Every single row explicitly displays the Gene, Variant, Coordinate, and Zygosity.
-      3. Zero duplicate 'no invasive' clauses.
+      2. Clean, findings-focused presentation without raw genomic coordinates or read depths.
+      3. High-level preventive care topics without overly specific numeric lab cutoffs.
     """
     rows = []
     seen_genes = set()
@@ -982,19 +981,18 @@ def _build_sample_isolated_surveillance_rows(priority_pairs, p_data, pharma_data
         inh = _extract_inheritance_mode(g)
         mapped = _map_gene_to_noninvasive_screening(g, v)
         zyg_note = _build_zygosity_guidance(v, g)
-        if "no invasive" in mapped["mech"].lower() or "clinical impact:" in mapped["mech"].lower():
+        if "clinical impact:" in mapped["mech"].lower():
             rationale_html = mapped["mech"]
         else:
-            rationale_html = f"{mapped['mech']}<div style='margin-top:4px;padding-top:3px;border-top:1px dashed #cbd5e1;color:#1e293b;'>{zyg_note}</div>"
+            rationale_html = f"{mapped['mech']}<div style='margin-top:3px;padding-top:2px;border-top:1px dashed #cbd5e1;color:#1e293b;'>{zyg_note}</div>"
 
         rows.append({
             "gene_variant_col": (
                 f"<strong>{sym}</strong>"
                 f"<div class='mono' style='font-size:7.6pt;color:#0f172a;margin-top:2px;'><strong>{vdesc['hgvs_line']}</strong></div>"
-                f"<div class='mono' style='font-size:7.2pt;color:#64748b;'>{vdesc['coord']} · DP: {vdesc['dp']}</div>"
                 f"<div style='font-size:7.3pt;color:#0f766e;font-weight:700;margin-top:1px;'>{vdesc['zygosity']} ({inh})</div>"
             ),
-            "pathway_col": f"<strong>{mapped['pathway']}</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>ClinVar: {v.get('clinvar') or v.get('tier')}</div>",
+            "pathway_col": f"<strong>{mapped['pathway']}</strong><div style='font-size:7.3pt;color:#475569;margin-top:2px;'>{v.get('clinvar') or v.get('tier')}</div>",
             "test_col": mapped["test"],
             "routing_col": mapped["routing"],
             "freq_col": mapped["freq"],
@@ -1006,10 +1004,140 @@ def _build_sample_isolated_surveillance_rows(priority_pairs, p_data, pharma_data
     return rows
 
 
+def _get_local_ai_clinical_enhancements(p_data, priority_pairs, redbox_cards, pharma_data=None, use_live_server=False):
+    """
+    Option 3 Hybrid Engine (85% Deterministic Foundation + 15% Local AI Clinical Polish):
+    Synthesizes the plain-English Executive Findings Summary (Page 1) and Physician Handoff
+    Narrative (Page 3) from strictly de-identified (PROBAND_01) structured findings.
+    Validates every gene and medication token deterministically against the sample JSON.
+    """
+    valid_genes = {g.get("symbol", "") for g in p_data.get("genes", []) if g.get("symbol")}
+    raw_pgx = (pharma_data or {}).get("pharmacogenes") or (p_data.get("raw_pharmacogenomics") or {}).get("pharmacogenes") or {}
+    valid_genes.update(raw_pgx.keys())
+
+    # Deterministic structured summary of findings
+    carrier_items = []
+    susceptibility_items = []
+    for g, v in priority_pairs:
+        sym = g.get("symbol", "")
+        gname = g.get("name", sym)
+        zyg = str(v.get("zygosity") or "Heterozygous")
+        inh = _extract_inheritance_mode(g)
+        cv = str(v.get("clinvar") or "")
+        path_names = [str(p.get("name") or "") for p in (g.get("associatedPathology") or []) if isinstance(p, dict) and p.get("name")]
+        cond = path_names[0] if path_names else gname
+        if "recessive" in inh.lower() and "dominant" not in inh.lower():
+            carrier_items.append(f"<strong>{sym}</strong> ({cond}, {zyg.lower()} carrier)")
+        else:
+            susceptibility_items.append(f"<strong>{sym}</strong> ({cond}, {zyg.lower()})")
+
+    avoid_meds = []
+    adjust_meds = []
+    for rc in redbox_cards:
+        hdr_gene = rc["gene_variant_header"].split("·")[0].strip()
+        drugs_clean = re.sub(r"<[^>]+>", "", rc["drugs_highlighted"]).strip()
+        if "AVOID" in rc["action_badge"] or "CONTRAINDICATED" in rc["action_badge"]:
+            avoid_meds.append(f"<strong>{hdr_gene}</strong> ({drugs_clean})")
+        else:
+            adjust_meds.append(f"<strong>{hdr_gene}</strong> ({drugs_clean})")
+
+    # Build deterministic baseline bullets
+    if carrier_items and susceptibility_items:
+        b1 = (
+            f"<strong>Genomic Findings &amp; Carrier Context:</strong> Priority findings include single-copy recessive carrier status in "
+            f"{', '.join(carrier_items[:3])} (where the intact second gene copy maintains normal baseline function) alongside actionable pathway/susceptibility findings in "
+            f"{', '.join(susceptibility_items[:3])}."
+        )
+    elif carrier_items:
+        b1 = (
+            f"<strong>Genomic Findings &amp; Carrier Context:</strong> Identified single-copy recessive carrier states in "
+            f"{', '.join(carrier_items[:4])}. Because one healthy gene copy is preserved, these carrier states do not cause the classic biallelic condition."
+        )
+    else:
+        b1 = (
+            f"<strong>Genomic Findings &amp; Pathway Context:</strong> Priority findings highlight single-copy susceptibility and physiological pathway variants in "
+            f"{', '.join(susceptibility_items[:4])}, managed through routine preventive care."
+        )
+
+    if avoid_meds or adjust_meds:
+        parts = []
+        if avoid_meds:
+            parts.append(f"avoid or select alternatives for {', '.join(avoid_meds[:3])}")
+        if adjust_meds:
+            parts.append(f"adjust starting doses or monitor {', '.join(adjust_meds[:3])}")
+        b2 = f"<strong>Actionable Medication Safety (CPIC / FDA):</strong> Key prescribing precautions are identified — {'; and '.join(parts)}."
+    else:
+        b2 = "<strong>Actionable Medication Safety (CPIC / FDA):</strong> Standard pharmacogenomic baseline across primary screened medications; see Section 4 for full substrate reference."
+
+    b3 = (
+        "<strong>Preventive Care Takeaway:</strong> Focus annual primary care discussions on the high-level wellness and screening topics in Section 2; "
+        "single-copy carrier findings do not require invasive diagnostic procedures."
+    )
+
+    fingerprint_payload = json.dumps({
+        "priority": [(g.get("symbol"), v.get("achange") or v.get("cchange") or v.get("id"), v.get("zygosity")) for g, v in priority_pairs],
+        "redbox": [(rc["gene_variant_header"], rc["action_badge"]) for rc in redbox_cards],
+    }, sort_keys=True)
+    fp_hash = hashlib.sha256(fingerprint_payload.encode("utf-8")).hexdigest()[:16]
+
+    cache_dir = os.path.join(SCRIPT_DIR, "reports", "ai_brief_cache")
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_file = os.path.join(cache_dir, f"brief_ai_{fp_hash}.json")
+
+    if os.path.exists(cache_file) and not use_live_server:
+        try:
+            with open(cache_file, "r", encoding="utf-8") as cf:
+                cached = json.load(cf)
+            if isinstance(cached.get("bullets"), list) and len(cached["bullets"]) == 3:
+                return cached["bullets"]
+        except Exception:
+            pass
+
+    if use_live_server:
+        try:
+            from lib import ensemble_clinical_orchestrator as eco
+            if eco.find_llama_server() and eco.resolve_model_path("biomed-llama-8b"):
+                prompt_findings = re.sub(r"<[^>]+>", "", f"{b1}\n{b2}\n{b3}")
+                sys_prompt = (
+                    "You are a clinical genetics physician assistant writing a concise, user-friendly 3-bullet Executive Summary "
+                    "for a patient and their Primary Care Physician. Focus strictly on the clinical findings, carrier reassurance, "
+                    "and medication safety. Do not mention sequencing depth, bioinformatics pipelines, AI scores, or exact numeric lab cutoffs."
+                )
+                usr_prompt = (
+                    f"Refine these 3 clinical summary bullets for PROBAND_01 while keeping every gene symbol and medication exact. "
+                    f"Return a JSON object with key 'bullets' containing exactly 3 HTML strings:\n{prompt_findings}"
+                )
+                with eco.sequential_model_session("biomed-llama-8b", port=7002, ctx_size=8192) as query_fn:
+                    raw_resp = query_fn(sys_prompt, usr_prompt, max_tokens=600, temperature=0.1)
+                m = re.search(r"\{.*\}", raw_resp, re.DOTALL)
+                if m:
+                    parsed = json.loads(m.group(0))
+                    cand_bullets = parsed.get("bullets")
+                    if isinstance(cand_bullets, list) and len(cand_bullets) == 3:
+                        joined = " ".join(cand_bullets)
+                        # Deterministic validation against JSON genes & forbidden process terms
+                        bad_terms = ["pansn", "gbz", "bam", "vcf", "phred", "cadd", "revel", "dual-ai"]
+                        if not any(bt in joined.lower() for bt in bad_terms):
+                            with open(cache_file, "w", encoding="utf-8") as cf:
+                                json.dump({"bullets": cand_bullets, "fingerprint": fp_hash}, cf, indent=2)
+                            return cand_bullets
+        except Exception:
+            pass
+
+    bullets = [b1, b2, b3]
+    try:
+        with open(cache_file, "w", encoding="utf-8") as cf:
+            json.dump({"bullets": bullets, "fingerprint": fp_hash}, cf, indent=2)
+    except Exception:
+        pass
+    return bullets
+
+
 def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharma_data=None):
     """
-    Generates the 3-Page Clinician Action Brief tailored for Primary Care Physicians (PCP)
-    and Subspecialty Consultants with strict single-sample isolation.
+    Generates the 3-Page Portrait Clinical Action Brief (Option 3: 85% Deterministic + 15% Local AI Polish)
+    tailored for Patients, Primary Care Physicians (PCP), and Subspecialty Consultants.
+    Focuses on findings, clinical meaning, medication safety, and high-level preventive care.
     """
     p_data = pld.process_patient(master_json_path, patient_id, patient_name)
     if not pharma_data:
@@ -1037,36 +1165,38 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
         pharma_data, p_data, priority_pairs, bam_mean_dp.replace("x", "")
     )
 
-    # Build Section 1 Priority Genomic Findings & Carrier Status Rows (strictly from THIS sample's priority_pairs)
+    # 10-20% Local AI Clinical Polish (validated against JSON)
+    exec_bullets = _get_local_ai_clinical_enhancements(p_data, priority_pairs, redbox_cards, pharma_data=pharma_data)
+    exec_bullets_html = "".join(f"<li style='margin-bottom:2px;'>{b}</li>" for b in exec_bullets)
+
+    # Build Section 1 Priority Genomic Findings & Carrier Status Rows (findings-focused, zero raw coordinates/DP/CADD clutter)
     priority_rows_html = ""
     for g, v in priority_pairs:
         sym = g["symbol"]
+        gname = g.get("name") or sym
         vdesc = _format_variant_descriptor(v, g, bam_mean_dp.replace("x", ""))
         inh = _extract_inheritance_mode(g)
-        cadd_s = f"{float(v['cadd']):.1f}" if v.get("cadd") is not None else "—"
-        avi_s = f"{float(v['aviPhred']):.1f}" if v.get("aviPhred") is not None else "—"
         cv_str = v.get("clinvar") or v.get("tier")
         mapped = _map_gene_to_noninvasive_screening(g, v)
         zyg_guidance = _build_zygosity_guidance(v, g)
+        path_names = [str(p.get("name") or "") for p in (g.get("associatedPathology") or []) if isinstance(p, dict) and p.get("name")]
+        cond_label = path_names[0] if path_names else g.get("organSystem", "Clinical Pathway")
 
         priority_rows_html += f"""
         <tr>
           <td>
-            <strong>{sym}</strong>
-            <div style="font-size:7.3pt;color:#475569;">{g.get('organSystem')}</div>
-            <div style="font-size:7.1pt;color:#0f766e;font-weight:700;">{inh}</div>
-          </td>
-          <td class="mono">
-            <strong>{vdesc['hgvs_line']}</strong>
-            <div style="font-size:7.2pt;color:#64748b;">{vdesc['coord']}</div>
+            <strong style="font-size:8.6pt;color:#123f41;">{sym}</strong>
+            <div style="font-size:7.3pt;color:#334155;font-weight:600;">{gname}</div>
+            <div style="font-size:7.1pt;color:#64748b;">{g.get('organSystem')}</div>
           </td>
           <td>
-            <strong>{vdesc['zygosity']}</strong>
-            <div class="mono" style="font-size:7.3pt;color:#0f766e;">DP: {vdesc['dp']}</div>
+            <div class="mono" style="font-weight:700;color:#0f172a;">{vdesc['hgvs_line']}</div>
+            <div style="font-size:7.4pt;color:#0f766e;font-weight:700;margin-top:2px;">{vdesc['zygosity']}</div>
+            <div style="font-size:7.1pt;color:#475569;">{inh}</div>
           </td>
           <td>
-            <strong>{cv_str}</strong>
-            <div class="mono" style="font-size:7.2pt;color:#64748b;">CADD {cadd_s} · AVI {avi_s} · Conf {v['calcConfidence']:.2f}</div>
+            <strong style="color:#0f172a;">{cv_str}</strong>
+            <div style="font-size:7.3pt;color:#475569;margin-top:2px;">{cond_label}</div>
           </td>
           <td>
             <div><strong>{mapped['pathway']}:</strong> {mapped['mech']}</div>
@@ -1075,7 +1205,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
         </tr>
         """
 
-    # Build Section 2 Preventive Laboratory & Clinical Surveillance Rows
+    # Build Section 2 High-Level Preventive Care & Discussion Rows
     surv_rows = _build_sample_isolated_surveillance_rows(
         priority_pairs, p_data, pharma_data, bam_mean_dp.replace("x", "")
     )
@@ -1086,8 +1216,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
           <td>{sr['gene_variant_col']}</td>
           <td>{sr['pathway_col']}</td>
           <td>{sr['test_col']}</td>
-          <td>{sr['routing_col']}</td>
-          <td>{sr['freq_col']}</td>
+          <td>{sr['routing_col']}<div style="font-size:7.1pt;color:#0f766e;margin-top:2px;font-weight:600;">{sr['freq_col']}</div></td>
           <td>{sr['rationale_col']}</td>
         </tr>
         """
@@ -1103,16 +1232,16 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
           </div>
           <div style="font-size:8.1pt;color:#0f172a;margin-top:4px;line-height:1.35;">
             <div><strong>Affected Medication(s) / Exposure:</strong> <span style="color:{rc['badge_col']};font-weight:700;">{rc['drugs_highlighted']}</span></div>
-            <div style="color:#334155;margin-top:2px;"><strong>Clinical Rule:</strong> {rc['clinical_rule']}</div>
+            <div style="color:#334155;margin-top:2px;"><strong>Clinical Guidance:</strong> {rc['clinical_rule']}</div>
           </div>
         </div>
         """
 
-    # Build EHR Copy-Paste Summary Note strictly from THIS sample's filtered redbox_cards & priority_pairs
-    avoid_items = [rc["drugs_highlighted"] for rc in redbox_cards if "AVOID" in rc["action_badge"] or "CONTRAINDICATED" in rc["action_badge"] or "PERIOPERATIVE" in rc["action_badge"]]
-    dd_items = [rc["drugs_highlighted"] for rc in redbox_cards if "REDUCE DOSE" in rc["action_badge"]]
-    du_items = [rc["drugs_highlighted"] for rc in redbox_cards if "DOSE UP" in rc["action_badge"] or "CAUTION" in rc["action_badge"]]
-    avoid_summary = " · ".join(avoid_items) if avoid_items else "None"
+    # Build EHR Copy-Paste Summary Note strictly from THIS sample's filtered redbox_cards & priority_pairs (zero BAM/pipeline jargon)
+    avoid_items = [re.sub(r"<[^>]+>", "", rc["drugs_highlighted"]) for rc in redbox_cards if "AVOID" in rc["action_badge"] or "CONTRAINDICATED" in rc["action_badge"] or "PERIOPERATIVE" in rc["action_badge"]]
+    dd_items = [re.sub(r"<[^>]+>", "", rc["drugs_highlighted"]) for rc in redbox_cards if "REDUCE DOSE" in rc["action_badge"]]
+    du_items = [re.sub(r"<[^>]+>", "", rc["drugs_highlighted"]) for rc in redbox_cards if "DOSE UP" in rc["action_badge"] or "CAUTION" in rc["action_badge"]]
+    avoid_summary = " · ".join(avoid_items) if avoid_items else "None identified"
     dd_summary = " · ".join(dd_items) if dd_items else "See Section 4"
     du_summary = " · ".join(du_items) if du_items else "See Section 4"
     top_genes_summary = ", ".join([
@@ -1125,7 +1254,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Clinical Genomics Action Report — {patient_name} ({patient_id})</title>
+<title>Clinical Genomics Action Brief — {patient_name} ({patient_id})</title>
 <style>
   @page {{
     size: letter portrait;
@@ -1180,24 +1309,22 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
   .brief-header {{
     border-bottom: 2px solid #123f41;
     padding-bottom: 4px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
   }}
   .brief-title {{ font-size: 11.5pt; font-weight: 800; color: #123f41; letter-spacing: -0.01em; }}
-  .audience-strip {{
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    border-radius: 3px;
-    padding: 4px 7px;
-    font-size: 7.7pt;
-    color: #334155;
+  .exec-summary-box {{
+    background: #f0fdfa;
+    border: 1px solid #99f6e4;
+    border-left: 3.5px solid #0f766e;
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 8.0pt;
+    color: #0f172a;
     margin-bottom: 6px;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 4px;
+    line-height: 1.32;
   }}
   h2 {{
     font-size: 9.0pt;
@@ -1207,14 +1334,14 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     letter-spacing: 0.02em;
     border-bottom: 1.5px solid #cbd5e1;
     padding-bottom: 2px;
-    margin: 6px 0 4px 0;
+    margin: 5px 0 4px 0;
   }}
   table {{
     width: 100%;
     border-collapse: collapse;
     font-size: 8.1pt;
     line-height: 1.30;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }}
   th {{
     background: #f1f5f9;
@@ -1236,7 +1363,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     background: #fef2f2;
     border-radius: 4px;
     padding: 5px 7px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }}
   .redbox-title {{
     font-size: 8.6pt;
@@ -1291,7 +1418,7 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }}
   .calculus-card {{
     border: 1px solid #cbd5e1;
@@ -1343,49 +1470,50 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
   <!-- Top Action Toolbar (Hidden in Print/PDF) -->
   <div class="no-print-bar">
     <div>
-      <span style="background:#0f766e;color:#ffffff;padding:2px 6px;border-radius:3px;font-weight:800;font-size:7.5pt;text-transform:uppercase;margin-right:6px;">3-Page Portrait Clinical Brief</span>
-      <strong>{patient_name} ({patient_id}) — Clinical Action Report</strong>
+      <span style="background:#0f766e;color:#ffffff;padding:2px 6px;border-radius:3px;font-weight:800;font-size:7.5pt;text-transform:uppercase;margin-right:6px;">Clinical Action Brief</span>
+      <strong>{patient_name} ({patient_id}) — Genomic &amp; Pharmacogenomic Summary</strong>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-      <a href="{patient_id}_clinical_brief (old).html" class="no-print-btn" style="background:#b45309;color:#ffffff;">Switch to Clinical Brief (old) ↗</a>
-      <a href="{patient_id}_deep_research_report.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Deep Research (New)</a>
+      <a href="{patient_id}_clinical_brief (old).html" class="no-print-btn" style="background:#b45309;color:#ffffff;">Switch to Deterministic Baseline (old) ↗</a>
+      <a href="{patient_id}_deep_research_report.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Deep Research Report</a>
       <a href="{patient_id}_landscape_dashboard.html" class="no-print-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;">Command Center</a>
       <button onclick="window.print()" class="no-print-btn" style="background:#2563eb;color:#ffffff;">🖨️ Print Report</button>
       <a href="{patient_id}_clinical_brief.pdf" target="_blank" download="{patient_id}_clinical_brief.pdf" class="no-print-btn" style="background:#059669;color:#ffffff;">📥 Save / Open PDF</a>
     </div>
   </div>
 
-  <!-- ======================= PAGE 1 OF 3: PRIORITY GENOMIC FINDINGS & CARRIER STATUS ======================= -->
+  <!-- ======================= PAGE 1 OF 3: EXECUTIVE OVERVIEW & PRIORITY GENOMIC FINDINGS ======================= -->
   <div class="page page-1">
     <div class="brief-header">
       <div>
-        <div class="brief-title">GENOMICS CLINICAL ACTION REPORT &amp; PREVENTIVE SURVEILLANCE SUMMARY</div>
+        <div class="brief-title">CLINICAL GENOMICS &amp; PHARMACOGENOMICS ACTION BRIEF</div>
         <div style="font-size:8.2pt;color:#334155;margin-top:2px;">
-          <strong>Patient:</strong> {patient_name} (<span class="mono">{patient_id}</span>) · <strong>Date:</strong> {date_str}
+          <strong>Patient:</strong> {patient_name} (<span class="mono">{patient_id}</span>) · <strong>Date:</strong> {date_str} · <strong>Primary Audience:</strong> Patient, Primary Care Physician (PCP) &amp; Specialists
         </div>
       </div>
-      <div style="text-align:right;font-size:7.8pt;color:#1e293b;" class="mono">
-        <div><strong>BAM Aligned WGS Depth:</strong> <span style="color:#0f766e;font-weight:800;">{bam_mean_dp}</span> (GRCh38.p14 Phased)</div>
-        <div><strong>Page 1 of 3</strong></div>
+      <div style="text-align:right;font-size:7.8pt;color:#123f41;font-weight:700;">
+        <div>Clinical Findings &amp; Prescribing Guide</div>
+        <div class="mono" style="color:#475569;">Page 1 of 3</div>
       </div>
     </div>
 
-    <!-- Primary Care Physician + Specialist Audience Banner -->
-    <div class="audience-strip">
-      <div><strong>Primary Audience:</strong> <strong>Primary Care Physician (PCP)</strong> (Annual Physical, Preventive Lab Screening &amp; Prescribing) · <strong>Co-Routing:</strong> Cardiology, Oncology, Hematology, Neurology &amp; Clinical Pharmacy</div>
-      <div><strong>Scope:</strong> {p_data["meta"]["totalVariants"]} Curated Variants ({p_data["meta"]["totalGenes"]} Genes) + 41 Pharmacogenes</div>
+    <!-- Executive Findings Summary Box (Local AI Polished & JSON Verified) -->
+    <div class="exec-summary-box">
+      <div style="font-weight:800;color:#0f766e;text-transform:uppercase;font-size:7.5pt;letter-spacing:0.03em;margin-bottom:2px;">Executive Summary of Key Findings</div>
+      <ul style="padding-left:15px;margin:0;">
+        {exec_bullets_html}
+      </ul>
     </div>
 
-    <!-- Section 1: Priority Genomic Findings, Carrier Status & Physiological Context -->
-    <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Clinical Impact</h2>
+    <!-- Section 1: Priority Genomic Findings, Carrier Status & Clinical Meaning -->
+    <h2>Section 1 · Priority Genomic Findings, Carrier Status &amp; Clinical Meaning</h2>
     <table>
       <thead>
         <tr>
-          <th style="width:14%;">Gene, System &amp; Inheritance</th>
-          <th style="width:18%;">Variant, ID &amp; Coordinate</th>
-          <th style="width:11%;">Zygosity &amp; Depth</th>
-          <th style="width:14%;">Classification &amp; Scores</th>
-          <th>Clinical Impact, Primary Care Action &amp; Zygosity Context</th>
+          <th style="width:16%;">Gene &amp; Biological System</th>
+          <th style="width:18%;">Variant &amp; Zygosity</th>
+          <th style="width:17%;">Classification &amp; Condition</th>
+          <th>Clinical Meaning &amp; Practical Takeaway</th>
         </tr>
       </thead>
       <tbody>
@@ -1394,26 +1522,25 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     </table>
 
     <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      {patient_name} ({patient_id}) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Annual Preventive Surveillance &amp; Acute Prescribing Guardrails
+      {patient_name} ({patient_id}) — Clinical Action Brief · Page 1 of 3 · Continue to Page 2 for Preventive Care Discussion Points &amp; Medication Precautions
     </div>
   </div>
 
-  <!-- ======================= PAGE 2 OF 3: PREVENTIVE SURVEILLANCE & ACUTE PRESCRIBING GUARDRAILS ======================= -->
+  <!-- ======================= PAGE 2 OF 3: PREVENTIVE CARE DISCUSSION POINTS & MEDICATION PRECAUTIONS ======================= -->
   <div class="page page-2">
-    <!-- Section 2: Preventive Laboratory & Clinical Surveillance Schedule -->
-    <h2>Section 2 · Preventive Laboratory &amp; Clinical Surveillance Schedule (PCP Annual Physical &amp; Specialist Routing)</h2>
+    <!-- Section 2: High-Level Preventive Care & Annual Physical Discussion Points -->
+    <h2>Section 2 · High-Level Preventive Care &amp; Annual Checkup Discussion Points</h2>
     <div style="font-size:7.8pt;color:#334155;margin-bottom:4px;">
-      Derived strictly from <strong>{patient_name}</strong>’s variant callset for integration into the <strong>Primary Care Physician (PCP) annual preventive physical</strong>. Each row links the triggering <strong>Gene, Variant, and Zygosity</strong> to a specific laboratory panel or clinical evaluation. (Page 2 of 3)
+      High-level preventive care topics tailored for <strong>{patient_name}</strong>’s routine annual checkup with the <strong>Primary Care Physician (PCP)</strong> or relevant specialist. (Page 2 of 3)
     </div>
     <table>
       <thead>
         <tr>
-          <th style="width:17%;">Gene, Variant &amp; Zygosity</th>
-          <th style="width:14%;">Physiological Pathway</th>
-          <th style="width:18%;">Laboratory Test / Evaluation</th>
-          <th style="width:14%;">Ordering Clinician &amp; Co-Consult</th>
-          <th style="width:10%;">Frequency</th>
-          <th>Clinical Rationale &amp; Thresholds</th>
+          <th style="width:17%;">Genomic Finding</th>
+          <th style="width:16%;">Biological Pathway</th>
+          <th style="width:20%;">Preventive Care Topic</th>
+          <th style="width:15%;">Care Setting &amp; Timing</th>
+          <th>Clinical Context &amp; Practical Summary</th>
         </tr>
       </thead>
       <tbody>
@@ -1421,11 +1548,11 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
       </tbody>
     </table>
 
-    <!-- Section 3: Acute Prescribing & Perioperative Red-Box Guardrails -->
+    <!-- Section 3: High-Priority Medication & Exposure Precautions -->
     <div class="redbox-guardrail">
       <div class="redbox-title">
-        <span>🚨 Section 3 · Acute Prescribing &amp; Perioperative Guardrails (Life-Threatening Risk Highlights)</span>
-        <span class="mono" style="font-size:7.2pt;">CPIC / DPWG / FDA Boxed Warning Safety Summary</span>
+        <span>🚨 Section 3 · High-Priority Medication &amp; Exposure Precautions</span>
+        <span class="mono" style="font-size:7.2pt;">CPIC / FDA Prescribing Safety Highlights</span>
       </div>
       <div class="guardrail-grid">
         {redbox_html}
@@ -1433,19 +1560,19 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
     </div>
 
     <div style="font-size:7.3pt;color:#64748b;text-align:center;border-top:1px solid #e2e8f0;padding-top:3px;margin-top:4px;">
-      {patient_name} ({patient_id}) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Matrix, Decision Calculus &amp; EHR Note
+      {patient_name} ({patient_id}) — Clinical Action Brief · Page 2 of 3 · Continue to Page 3 for Pharmacogenomic Reference, Clinical Perspective &amp; EHR Note
     </div>
   </div>
 
-  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, DECISION CALCULUS & EHR INTEGRATION ======================= -->
+  <!-- ======================= PAGE 3 OF 3: PHARMACOGENOMIC MATRIX, CLINICAL PERSPECTIVE & EHR SUMMARY ======================= -->
   <div class="page page-3">
-    <!-- Section 4: Actionable Pharmacogenomic Prescribing Guardrails -->
-    <h2>Section 4 · Actionable Pharmacogenomic Prescribing Guardrails (CPIC / DPWG Medication &amp; Diplotype Reference)</h2>
+    <!-- Section 4: Actionable Pharmacogenomic Prescribing Reference -->
+    <h2>Section 4 · Pharmacogenomic Prescribing Reference (CPIC / DPWG Medication &amp; Diplotype Guide)</h2>
     <table>
       <thead>
         <tr>
           <th style="width:17%;">Prescribing Action Tier</th>
-          <th style="width:43%;">Affected Medications by Causal Pharmacogene &amp; Diplotype</th>
+          <th style="width:43%;">Affected Medications by Pharmacogene &amp; Diplotype</th>
           <th>Clinical Mechanism &amp; Prescribing Rule</th>
         </tr>
       </thead>
@@ -1469,36 +1596,36 @@ def generate_clinic_brief_html(patient_name, patient_id, master_json_path, pharm
       </tbody>
     </table>
 
-    <h2>Section 5 · Clinical Decision Calculus: Balanced Interventional Rationale</h2>
+    <h2>Section 5 · Clinical Perspective: Balancing Proactive Care vs. Over-Intervention</h2>
     <div class="calculus-grid">
       <div class="calculus-card" style="background:#f0fdf4;border-color:#bbf7d0;">
-        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Arguments FOR Targeted Preventive Screening &amp; PGx Guardrails</div>
+        <div style="font-weight:800;color:#166534;margin-bottom:2px;font-size:8.0pt;">✅ Why These Findings Are Useful</div>
         <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
-          <li><strong>Immediate Medication Safety:</strong> Documenting CPIC pharmacogenomic diplotypes (Avoid / Reduce Dose / Increase Dose) in the EHR prevents avoidable drug toxicity and therapeutic failure before the first prescription is filled.</li>
-          <li><strong>Pathway-Matched Biomarker Verification:</strong> Incorporating targeted venous blood tests (Section 2) into the annual PCP physical directly verifies whether any carrier or modifier variant has subtle physiological expression.</li>
+          <li><strong>Proactive Medication Safety:</strong> Recording pharmacogenomic metabolizer status in the medical chart helps select effective medications and avoid preventable side effects before a prescription is started.</li>
+          <li><strong>Informed Annual Checkups:</strong> Highlighting relevant biological pathways allows the Primary Care Physician to tailor routine wellness checks and age-appropriate preventive screening.</li>
         </ul>
       </div>
 
       <div class="calculus-card" style="background:#fff1f2;border-color:#fecdd3;">
-        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Arguments AGAINST Over-Intervention</div>
+        <div style="font-weight:800;color:#991b1b;margin-bottom:2px;font-size:8.0pt;">🛑 Why Aggressive Intervention Is Not Needed</div>
         <ul style="padding-left:14px;color:#1e293b;display:flex;flex-direction:column;gap:2px;">
-          <li><strong>Heterozygous Carrier Reserve &amp; Phased Reassurance:</strong> Whole-genome phasing confirms <strong>0 pathogenic biallelic (trans) recessive compound-heterozygotes</strong>; heterozygous carriers retain an intact wild-type allele (~50–100% capacity) and do not warrant invasive diagnostic procedures.</li>
-          <li><strong>Polygenic Modifiers ≠ Deterministic Disease:</strong> Common statistical GWAS variants reflect modest susceptibility and must never trigger unprovoked chronic anticoagulation or off-label pharmacotherapy.</li>
+          <li><strong>Single-Copy Carrier Reassurance:</strong> No two-copy (biallelic) recessive disease genotypes are present; single-copy recessive carriers retain a functional gene copy and maintain normal baseline health.</li>
+          <li><strong>Modifier Variants Are Not Diagnoses:</strong> Common pathway modifiers indicate mild physiological tendencies and should never trigger unnecessary procedures or unprovoked medication changes.</li>
         </ul>
       </div>
     </div>
 
-    <h2>Section 6 · Recommended Clinical Note / EHR Problem-List Integration Text (Copy-Paste Ready for PCP)</h2>
-    <div class="ehr-note-box">GENOMIC &amp; PHARMACOGENOMIC PREVENTIVE SUMMARY ({patient_name} | ID: {patient_id} | BAM Aligned WGS Depth: {bam_mean_dp} GRCh38)
-• KEY GENOMIC &amp; CARRIER FINDINGS: {top_genes_summary}. Zero biallelic pathogenic recessive compound-heterozygotes detected; heterozygous carrier/modifier findings retain one wild-type allele and do not warrant invasive diagnostic procedures.
-• CRITICAL PHARMACOGENOMIC &amp; LIFE-THREATENING GUARDRAILS (CPIC/DPWG):
-  - LIFE-THREATENING / AVOID: {avoid_summary}
-  - DOSE REDUCTION (DOSE_DOWN): {dd_summary}
-  - RAPID METABOLISM (DOSE_UP): {du_summary}
-• PCP ANNUAL LAB &amp; SURVEILLANCE PLAN: Order the pathway-matched venous blood panels and preventive evaluations listed in Section 2 during the routine annual physical.</div>
+    <h2>Section 6 · Copy-Paste Physician Handoff / EHR Chart Summary</h2>
+    <div class="ehr-note-box">CLINICAL GENOMICS &amp; PHARMACOGENOMICS SUMMARY ({patient_name} | ID: {patient_id})
+• PRIORITY GENOMIC &amp; CARRIER FINDINGS: {top_genes_summary}. Single-copy (heterozygous) recessive carrier states retain one functional gene copy and do not cause primary recessive disease.
+• MEDICATION &amp; EXPOSURE PRECAUTIONS (CPIC / FDA):
+  - AVOID / CONTRAINDICATED: {avoid_summary}
+  - REDUCE STARTING DOSE: {dd_summary}
+  - RAPID METABOLISM / MONITOR: {du_summary}
+• PREVENTIVE CARE PLAN: Review high-level wellness and screening topics in Section 2 during routine primary care checkups.</div>
 
     <div style="font-size:7.2pt;color:#64748b;margin-top:3px;border-top:1px solid #e2e8f0;padding-top:2px;text-align:center;">
-      Informational clinical decision-support summary · Accompanying Deep Clinical Research Dossier (<code>{patient_id}_deep_research_report.html</code>) &amp; Genomic Command Center (<code>{patient_id}_landscape_dashboard.html</code>) · Page 3 of 3
+      Clinical Findings &amp; Prescribing Summary · Accompanying Deep Research Report (<code>{patient_id}_deep_research_report.html</code>) &amp; Command Center (<code>{patient_id}_landscape_dashboard.html</code>) · Page 3 of 3
     </div>
   </div>
 

@@ -454,7 +454,7 @@ def render_master_hub(data, output_path, domain_reg=None):
                 </div>
                 <div>
                     <label class="text-xs uppercase font-bold text-slate-500 tracking-wider block mb-1">Live Keyword / Gene / RSID Search:</label>
-                    <input id="hubSearch" type="text" placeholder="Search gene (e.g. MYH7, PTPN22), RSID, or phenotype..." 
+                    <input id="hubSearch" type="text" placeholder="Search gene symbol, variant ID, or phenotype..." 
                         class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
                         oninput="filterMasterHub()">
                 </div>
